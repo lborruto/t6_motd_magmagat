@@ -171,10 +171,24 @@ mg_hearth_zombie_died( zombie )
         return;
 
     if ( !isdefined( zombie ) || !isdefined( zombie.attacker ) || !isplayer( zombie.attacker ) )
+    {
+        mg_debug_print( "MG: kill not counted: no player attacker" );
         return;
+    }
 
-    if ( !mg_ent_in_office( zombie ) || !mg_player_in_office( zombie.attacker ) )
+    if ( !mg_ent_in_office( zombie ) )
+    {
+        mg_debug_print( "MG: kill not counted: the zombie died outside zone_warden_office" );
         return;
+    }
+
+    if ( !mg_player_in_office( zombie.attacker ) )
+    {
+        mg_debug_print( "MG: kill not counted: " . "" + zombie.attacker.name + "" . " is outside zone_warden_office" );
+        return;
+    }
+
+    mg_debug_print( "MG: soul released at " + mg_vec_str( zombie.origin ) );
 
     level thread mg_orb_spawn( zombie.origin + ( 0, 0, 30 ) );
 }

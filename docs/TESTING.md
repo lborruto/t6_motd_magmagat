@@ -21,7 +21,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] No red error popup on map load.
 - [ ] `!mg status` prints the version, the state (`locked` at boot), orbs 0, no carrier, no timer, and a
       resolved line for every anchor.
-- [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..4`, `MG_FORGE`,
+- [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
       `MG_FORGE_GUN`; none say "undefined".
 - [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `give`, `magma`, `shock`, `fx`, `snd`.
 
@@ -63,7 +63,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 4. The run
 
 - [ ] `!mg goto run` (or take the tempered gun honestly): state is `run`, you carry the tempered Blundergat,
-      a visible flame rides the weapon, the four barrels are lit blue, and a temper timer/bar is running.
+      a visible flame rides the weapon, the five barrels are lit blue, and a temper timer/bar is running.
 - [ ] Standing within range of any lit barrel (office exit, top of the spiral stairs, bottom of the tunnels,
       Generator Room door) refills the timer to full.
 - [ ] Firing a shot costs time off the timer (5 s per shot) - fire once and watch the timer drop.
