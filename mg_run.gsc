@@ -73,11 +73,14 @@ mg_run_loop( weapon )
     self endon( "disconnect" );
 
     bar = self mg_bar_create( "Temper" );
+    self.mg_run_bar = bar;
     away_since = undefined;
     flame = mg_fx_loop( "fire_xsm", self.origin );
 
     if ( isdefined( flame ) )
         flame linkto( self, "tag_weapon_right", ( 0, 0, 0 ), ( 0, 0, 0 ) );
+
+    level.mg_run_flame = flame;
 
     while ( mg_state_is( "run" ) )
     {
@@ -108,8 +111,6 @@ mg_run_loop( weapon )
 
             if ( gettime() - away_since > 1000 )
             {
-                mg_bar_destroy( bar );
-                mg_fx_stop( flame );
                 mg_run_fail( "weapon switched away" );
                 return;
             }
@@ -122,15 +123,15 @@ mg_run_loop( weapon )
 
         if ( self.mg_temper_left <= 0 )
         {
-            mg_bar_destroy( bar );
-            mg_fx_stop( flame );
             mg_run_fail( "the flame died" );
             return;
         }
     }
 
-    mg_bar_destroy( bar );
-    mg_fx_stop( flame );
+    mg_bar_destroy( self.mg_run_bar );
+    self.mg_run_bar = undefined;
+    mg_fx_stop( level.mg_run_flame );
+    level.mg_run_flame = undefined;
 }
 
 // self = carrier. Each shot of the tempered gun costs 5 s.
@@ -166,12 +167,18 @@ mg_run_down_watch()
         mg_run_fail( "the carrier went down" );
 }
 
-// run -> ready. The gun in hand is a plain Blundergat again (it never stopped being one); the fireplace resets.
+// run -> ready. Threaded off the calling loop: the callers endon "mg_run_over", so the notify below would kill
+// them (and this tail) if it ran inside their thread.
 mg_run_fail( reason )
 {
     if ( !mg_state_is( "run" ) )
         return;
 
+    level thread mg_run_fail_do( reason );
+}
+
+mg_run_fail_do( reason )
+{
     mg_debug_print( "MG: temper lost: " + reason + ". Temper the Blundergat again." );
     level notify( "mg_run_over" );
 
@@ -179,36 +186,44 @@ mg_run_fail( reason )
     {
         level.mg_carrier mg_snd_player( "zmb_no_cha_ching" );
         level.mg_carrier thread mg_hud_title( "The temper is lost", 3 );
-        level.mg_carrier.mg_temper_left = undefined;
     }
 
-    level.mg_carrier = undefined;
-    level.mg_run_weapon = undefined;
-    mg_barrels_set( 0 );
+    mg_run_cleanup();
     mg_state_set( "ready" );
 }
 
-// run -> forge (called by mg_forge when the tempered gun is placed): stop the timer, keep the carrier.
+// Everything the run created, destroyed from one place (the loop may have been killed by a notify).
+mg_run_cleanup()
+{
+    if ( isdefined( level.mg_carrier ) )
+    {
+        if ( isdefined( level.mg_carrier.mg_run_bar ) )
+            mg_bar_destroy( level.mg_carrier.mg_run_bar );
+
+        level.mg_carrier.mg_run_bar = undefined;
+        level.mg_carrier.mg_temper_left = undefined;
+    }
+
+    mg_fx_stop( level.mg_run_flame );
+    level.mg_run_flame = undefined;
+    level.mg_carrier = undefined;
+    level.mg_run_weapon = undefined;
+    mg_barrels_set( 0 );
+}
+
+// run -> forge (called by mg_forge when the tempered gun is placed, after it has read what it needs from
+// level.mg_carrier / the weapon passed in): stop the timer and clean up.
 mg_run_end_ok()
 {
     level notify( "mg_run_over" );
-
-    if ( isdefined( level.mg_carrier ) )
-        level.mg_carrier.mg_temper_left = undefined;
-
-    mg_barrels_set( 0 );
+    mg_run_cleanup();
 }
 
 // self = player typing !mg goto
 mg_run_fabricate( state )
 {
     level notify( "mg_run_over" );
-    mg_barrels_set( 0 );
-
-    if ( isdefined( level.mg_carrier ) )
-        level.mg_carrier.mg_temper_left = undefined;
-
-    level.mg_carrier = undefined;
+    mg_run_cleanup();
 
     if ( state == "run" )
     {
