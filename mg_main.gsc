@@ -3,8 +3,9 @@
 #include maps\mp\zombies\_zm_utility;
 #include scripts\zm\zm_prison\mg_systems;
 #include scripts\zm\zm_prison\mg_coords;
+#include scripts\zm\zm_prison\mg_quest;
 
-// Magmagat for Mob of the Dead (Plutonium T6, zm_prison). Entry point.
+// Magmagat for Mob of the Dead (Plutonium T6, zm_prison). Entry point, boot order, `!mg` chat commands.
 init()
 {
     if ( !isdefined( level.script ) || level.script != "zm_prison" )
@@ -14,9 +15,9 @@ init()
         return;
 
     level.mg_active = 1;
+    level.mg_version = "0.1.0";
     mg_fx_init();
     mg_precache();
-    level.mg_version = "0.1.0";
     level thread mg_boot();
 }
 
@@ -26,5 +27,96 @@ mg_boot()
     flag_wait( "start_zombie_round_logic" );
     mg_coords_init();
     level thread mg_systems_boot();
+    mg_quest_init();
+    level thread mg_chat_listener();
     print( "[MG] Magmagat " + level.mg_version + " loaded\n" );
+}
+
+mg_chat_listener()
+{
+    level endon( "end_game" );
+
+    for ( ;; )
+    {
+        level waittill( "say", message, player );
+
+        if ( !isdefined( player ) || !isplayer( player ) || !isdefined( message ) )
+            continue;
+
+        if ( message.size < 3 || tolower( getsubstr( message, 0, 3 ) ) != "!mg" )
+            continue;
+
+        if ( getdvarint( "mg_debug" ) != 1 )
+        {
+            player mg_out( "MG: debug commands need console `set mg_debug 1`" );
+            continue;
+        }
+
+        args = strtok( message, " " );
+        sub = "help";
+        arg = undefined;
+
+        if ( args.size > 1 )
+            sub = tolower( args[1] );
+
+        if ( args.size > 2 )
+            arg = args[2];
+
+        player thread mg_command( sub, arg, args );
+    }
+}
+
+// self = the player who typed
+mg_command( sub, arg, args )
+{
+    self endon( "disconnect" );
+
+    switch ( sub )
+    {
+        case "status":
+            foreach ( line in mg_status_lines() )
+                self mg_out( line );
+
+            return;
+
+        case "goto":
+            if ( !isdefined( arg ) )
+            {
+                self mg_out( "Usage: !mg goto <locked|ready|souls|pickup|run|forge|done>" );
+                return;
+            }
+
+            self mg_goto( tolower( arg ) );
+            return;
+
+        case "spots":
+            foreach ( key in mg_coords_keys() )
+                self mg_out( mg_coord_line( key ) );
+
+            return;
+
+        case "help":
+            self mg_help();
+            return;
+    }
+
+    if ( self mg_debug_command( sub, arg, args ) )
+        return;
+
+    self mg_out( "MG: unknown command `!mg " + sub + "`" );
+    self mg_help();
+}
+
+mg_help()
+{
+    self mg_out( "!mg commands (chat, needs `set mg_debug 1`; every answer is also a [MG] console line):" );
+    self mg_out( "  status | goto <locked|ready|souls|pickup|run|forge|done> | spots | help" );
+    self mg_out( "  give (a Blundergat) | magma (Magmagat personality on the gun in hand) | shock (pistol zaps shock boxes)" );
+    self mg_out( "  fx [<n>|<name>|next|prev|stop|grid] | snd [<n>|<name>|next|prev]" );
+}
+
+// TEMPORARY stub, replaced by mg_debug.gsc in Task 9
+mg_debug_command( sub, arg, args )
+{
+    return 0;
 }
