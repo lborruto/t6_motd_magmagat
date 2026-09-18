@@ -63,6 +63,7 @@ mg_coords_init()
     mg_coord_set( "MG_BARREL_2", ( 227, 8713, 761 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
     mg_coord_set( "MG_BARREL_3", ( 80, 7954, 211 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
     mg_coord_set( "MG_BARREL_4", ( -400, 6500, 72 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
+    mg_coord_set( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ), mg_model( "barrel" ) ); // owner: five barrels on the route
 
     // forge: the left generator of the Generator Room (existing map model, nothing spawned)
     mg_coord_set( "MG_FORGE", ( -400, 6330, 72 ), ( 0, 190.7, 0 ), mg_model( "beacon" ) );
@@ -76,6 +77,29 @@ mg_coords_init()
 mg_apply_overrides()
 {
     mg_coord_override( "MG_HEARTH", ( -475, 8804, 1353 ), ( 0, 135, -90 ) ); // owner spot 2026-09-18 (yaw 495 = 135; roll -90 lays the gun flat as the vanilla desk gun)
+
+    // owner grab pass 2026-09-18 (evening)
+    mg_coord_override( "MG_SKULL_1", ( -506, 8819, 1424 ), ( 0, 315, 0 ) );
+
+    mg_coord_override( "MG_SKULL_2", ( -483, 8796, 1424 ), ( 0, 315, 0 ) );
+
+    mg_coord_override( "MG_SKULL_3", ( -461, 8774, 1424 ), ( 0, 315, 0 ) );
+
+    mg_coord_override( "MG_HEARTH_USE", ( -489, 8787, 1336 ), ( 0, 237, 0 ) );
+
+    mg_coord_override( "MG_BARREL_1", ( -468, 9403, 1360 ), ( 0, 248, 0 ) );
+
+    mg_coord_override( "MG_BARREL_2", ( 270, 8855, 1152 ), ( 0, 248, 0 ) );
+
+    mg_coord_override( "MG_BARREL_3", ( 268, 8828, 848 ), ( 0, 351, 0 ) );
+
+    mg_coord_override( "MG_BARREL_4", ( 85, 8697, 399 ), ( 0, 8, 0 ) );
+
+    mg_coord_override( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ) );
+
+    mg_coord_override( "MG_FORGE", ( -391, 6791, 72 ), ( 0, 305, 0 ) );
+
+    mg_coord_override( "MG_FORGE_GUN", ( -394, 6809, 107 ), ( 0, 190, -90 ) ); // yaw 550 = 190
 }
 
 mg_coord_set( key, origin, angles, model )
