@@ -198,7 +198,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--elec);outline-o
 .chip-ours{color:var(--good);border-color:var(--good)}.chip-vanilla{color:var(--muted)}
 li.row label input[type=radio]:checked + code{color:var(--accent)}
 .row.today{outline:2px solid var(--good);outline-offset:-2px}
-.row.today .chip-ours::after{content:" \00b7 today"}
+.row.today .chip-ours::after{content:" - today"}
 .path{font:11px "IBM Plex Mono",monospace;color:var(--muted);flex-basis:100%;order:9}
 .summary .list{font:13px/1.7 "IBM Plex Mono",monospace;white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);padding:12px}
 .summary textarea{width:100%;box-sizing:border-box;min-height:80px;margin:10px 0;background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:8px;font:14px "IBM Plex Sans",sans-serif}
