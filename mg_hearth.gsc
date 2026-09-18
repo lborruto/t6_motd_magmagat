@@ -184,7 +184,7 @@ mg_hearth_zombie_died( zombie )
 
     if ( !mg_player_in_office( zombie.attacker ) )
     {
-        mg_debug_print( "MG: kill not counted: " . "" + zombie.attacker.name + "" . " is outside zone_warden_office" );
+        mg_debug_print( "MG: kill not counted: " + zombie.attacker.name + " is outside zone_warden_office" );
         return;
     }
 
