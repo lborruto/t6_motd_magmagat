@@ -32,7 +32,6 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Raise the bridge (or `!mg goto ready`): state becomes `ready`. Holding `blundergat_zm` or
       `blundergat_upgraded_zm`, a prompt appears at the hearth ("Temper the Blundergat"). Holding neither: no
       prompt.
-- [ ] The boards over the fireplace are visible at start and burn away when the Blundergat is placed; `!mg
       goto souls` also removes them.
 
 ## 2. The souls

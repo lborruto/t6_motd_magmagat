@@ -17,7 +17,6 @@ mg_models_init()
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
     level.mg_models["ball"] = "t6_wpn_zmb_projectile_blundergat";
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
-    level.mg_models["planks"] = "p6_zm_al_door_barricade_1";
 }
 
 mg_model( kind )
@@ -69,8 +68,6 @@ mg_coords_init()
     mg_coord_set( "MG_FORGE", ( -400, 6330, 72 ), ( 0, 190.7, 0 ), mg_model( "beacon" ) );
     mg_coord_set( "MG_FORGE_GUN", ( -449, 6307, 120 ), ( 0, 280, -90 ), mg_model( "gun_world" ) );
 
-    // the boards over the hearth, burned away once the quest starts (mg_hearth.gsc mg_planks_burn)
-    mg_coord_set( "MG_PLANKS", ( -475, 8804, 1372 ), ( 0, 135, 0 ), mg_model( "planks" ) );
 
     mg_apply_overrides();
 }

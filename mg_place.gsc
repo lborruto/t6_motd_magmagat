@@ -134,6 +134,10 @@ mg_place_follow()
 
     if ( self.mg_place_snap )
     {
+        // park the held prop out of the way for the trace: aimed at, it was hit by its own trace and the prop
+        // jumped between its face and the far wall every frame (owner 2026-09-18); the origin is set again below
+        // in the same frame, so the client never sees the parking spot
+        self.mg_place_ent.origin = ( 0, 0, -30000 );
         trace = bullettrace( eye, eye + forward * 2500, 0, self );
         pos = trace["position"];
         normal = ( 0, 0, 1 );

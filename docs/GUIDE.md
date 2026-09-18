@@ -20,7 +20,6 @@ Head to the fireplace in the Warden's Office holding a Blundergat. Press use at 
 into the fire and the quest begins. From this point the office is your workplace, so do not leave it before
 you have deposited every soul below, or the fire lets go of the gun and you start over.
 
-The boards over the hearth burn away the moment the Blundergat goes in.
 
 </details>
 
