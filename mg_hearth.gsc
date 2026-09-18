@@ -12,6 +12,7 @@ mg_hearth_init()
 {
     level.mg_orbs = 0;
     level.mg_skulls = [];
+    level.mg_hearth_session = 0;
 
     for ( i = 1; i <= 3; i++ )
     {
@@ -132,21 +133,27 @@ mg_hearth_start( player )
     c = mg_coord( "MG_HEARTH" );
     level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
     player mg_snd_player( "zmb_powerpanel_activate" );
+    level.mg_hearth_session++;
     mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
     mg_state_set( "souls" );
     level thread mg_hearth_office_watch();
     level thread mg_hearth_round_watch();
 }
 
-// souls: a round that ends with no soul collected at all sends the gun back (spec section 3)
+// souls: a round that ends with no soul collected at all sends the gun back (spec section 3). The watcher belongs
+// to ONE souls session (token): a stale instance parked on the waittill must not reset a later session.
 mg_hearth_round_watch()
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
+    my = level.mg_hearth_session;
 
-    while ( mg_state_is( "souls" ) )
+    while ( mg_state_is( "souls" ) && level.mg_hearth_session == my )
     {
         level waittill( "end_of_round" );
+
+        if ( level.mg_hearth_session != my )
+            return;
 
         if ( mg_state_is( "souls" ) && level.mg_orbs == 0 )
         {
@@ -206,6 +213,10 @@ mg_orb_spawn( pos )
 
         wait 0.1;
     }
+
+    // mg_orbs_clear (a reset while the orb flew) may have deleted it under us
+    if ( !isdefined( orb ) )
+        return;
 
     from = orb.origin;
     mg_fx_stop( orb );
@@ -452,6 +463,7 @@ mg_hearth_fabricate( state )
 
     if ( state == "souls" )
     {
+        level.mg_hearth_session++;
         mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
         level thread mg_hearth_office_watch_delayed();
     }
