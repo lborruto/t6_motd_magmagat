@@ -256,6 +256,7 @@ $scripts
     function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;if(canvas.width!==w||canvas.height!==h){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
     (function loop(){requestAnimationFrame(loop);resize();controls.update();renderer.render(scene,camera)})();
   }else{document.getElementById('viewer').querySelector('.hint').textContent='The 3D libraries did not load; pick by name and size, I will check the shape.'}
+  function mgStrip(t){try{var j=JSON.parse(t);delete j.images;delete j.textures;delete j.samplers;(j.materials||[]).forEach(function(m){delete m.normalTexture;delete m.occlusionTexture;delete m.emissiveTexture;if(m.pbrMetallicRoughness){delete m.pbrMetallicRoughness.baseColorTexture;delete m.pbrMetallicRoughness.metallicRoughnessTexture}});return JSON.stringify(j)}catch(e){return t}}
   var loader=ok?new THREE.GLTFLoader():null,mat=ok?new THREE.MeshStandardMaterial({color:0xb89070,roughness:0.85,metalness:0.05,side:THREE.DoubleSide}):null;
   function show(name){
     var el=document.querySelector('script[data-model="'+name+'"]');if(!el)return;
@@ -264,7 +265,7 @@ $scripts
     if(row){row.classList.add('viewing');document.getElementById('vdims').textContent=row.querySelector('.dims').textContent+' units'}
     var s=steps[cur];document.getElementById('pick').disabled=!s||s.dataset.fixed==='1';
     if(!ok)return;
-    loader.parse(el.textContent,'',function(g){
+    loader.parse(mgStrip(el.textContent),'',function(g){
       if(model){scene.remove(model)}model=g.scene;model.traverse(function(o){if(o.isMesh){o.material=mat}});scene.add(model);
       var box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
       var m=Math.max(size.x,size.y,size.z,8);controls.target.copy(center);camera.position.set(center.x+m*1.2,center.y+m*0.9,center.z+m*1.6);camera.near=m/100;camera.far=m*50;camera.updateProjectionMatrix();
