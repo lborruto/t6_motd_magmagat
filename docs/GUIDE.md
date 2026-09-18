@@ -31,8 +31,10 @@ that rule. Walk into an orb to collect it; it travels to the hearth. You need **
 three skulls on the mantle turn blue as you go: the first at **6**, the second at **12**, the third at
 **18**.
 
-If nobody stands in the office for a stretch of time, the flame gives up and the gun is lost — start the
-fireplace step again, souls included. So keep at least one player inside while the count is running.
+If nobody stands in the office for **5 seconds** while the souls are being collected, the fire gives up and
+the gun is lost — start the fireplace step again, souls included. A warning sound plays at **3 seconds**, so
+you have a couple of seconds to get back inside once you hear it. Keep at least one player inside while the
+count is running.
 
 Once you reach 18, press use at the hearth again to feed the souls to the fire.
 
@@ -48,9 +50,9 @@ Once you are carrying the tempered gun, the flame on it is a **25-second** tempe
 own. Four blue barrels along the route — the office exit, the top of the spiral stairs, the bottom of the
 Citadel tunnels, and the Generator Room door — refill the timer to full when you stand near one. Every shot
 you fire also costs **5 seconds** off the timer, so do not spray it on the way. Switching away from the
-tempered gun, or going down, kills the temper immediately.
+tempered gun for **more than 1 second** kills the temper; going down kills it at once, no grace period.
 
-If the temper runs out, or you switch weapons, or you go down: it is back to the fireplace, souls included.
+If the temper runs out, or you switch weapons for too long, or you go down: it is back to the fireplace, souls included.
 The remaster's own warning holds here too — do not get comfortable with the gun in hand until it is forged.
 
 </details>
@@ -59,7 +61,7 @@ The remaster's own warning holds here too — do not get comfortable with the gu
 <summary>The forge</summary>
 
 Carry the tempered Blundergat to the generator in the Generator Room by the docks. Power it with one press,
-then place the gun on it. It ghosts for a few seconds, then take it back: it is now the Magmagat.
+then place the gun on it. It ghosts for **5 seconds**, then take it back: it is now the Magmagat.
 
 Once the forge has produced a Magmagat this way, it stays open: any plain Blundergat placed on it afterward
 converts straight away, no fresh temper run needed.
@@ -78,9 +80,8 @@ Brutus is different: a lava ball or a patch burns him steadily, but neither one 
 always survives the fire.
 
 Switching to another weapon, or going down, ends nothing about the Magmagat itself — once forged, it is
-yours to keep and carry like any Pack-a-Punched weapon, including through the Acid Gat machine... except the
-Acid Gat kit refuses a Magmagat outright. The forge already claimed that gun; it has nothing left to give it.
-Pack-a-Punch it normally instead: a Magmagat that goes through the machine comes out the other side as the
-Magmus Operandi, one tier up, same personality.
+yours to keep and carry like any other weapon. The Acid Gat kit, however, refuses a Magmagat outright: the
+forge already claimed that gun, so it has nothing left to give it. Pack-a-Punch it normally instead: a
+Sweeper placed in the fire comes out as the Magmus Operandi, one tier up, same personality.
 
 </details>

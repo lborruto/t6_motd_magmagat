@@ -5,7 +5,7 @@ A new wonder weapon and its quest for Black Ops II Zombies, Mob of the Dead, on 
 ## Install
 
 1. Download the latest release.
-2. Drop every `zm_prison_magmagat_*.gsc` file into
+2. Drop every `zm_prison_magmagat*.gsc` file into
    `%localappdata%\Plutonium\storage\t6\scripts\zm\zm_prison\` (create the folder if needed).
 3. Play Mob of the Dead.
 
