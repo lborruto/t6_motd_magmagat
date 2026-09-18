@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use FindBin;
 
 # gen_fx_motd.pl > wizard_fx_motd.html : Magmagat Effect Picker, modelled on Dead Frequency's gen_wizard_fx.pl.
 # Effects cannot be rendered in a browser: the page pairs with the in-game `!mg fx <n>` audition tool
@@ -7,7 +8,7 @@ use warnings;
 # candidate list of zm_prison / Alcatraz effects under it, each row's copy button gives the console command that
 # swaps the role's key to that candidate BEFORE loading the map (mg_fx_init() honours a `mg_fx_<key>` dvar
 # override); then `!mg fx <n>` shows it in game.
-my $ASSETS = 'tools/assets/assets_zm_prison.txt';
+my $ASSETS = '$FindBin::Bin/../assets/assets_zm_prison.txt';
 
 # ---- every fx of the families named by the brief, deduplicated
 my @fx;

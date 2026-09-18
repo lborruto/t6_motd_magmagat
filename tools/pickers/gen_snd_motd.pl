@@ -1,5 +1,7 @@
 use strict;
 use warnings;
+use FindBin;
+my $dump = $ENV{MG_SND_DUMP} // "snd_dump"; # soundbank dumps (zm_prison/, patch_zm/, common_zm/) and small/ (shrunk files)
 use MIME::Base64 qw(encode_base64);
 
 # gen_snd_motd.pl > wizard_snd_motd.html : Magmagat Sound Picker, modelled on Dead Frequency's gen_wizard_snd.pl.
@@ -7,13 +9,13 @@ use MIME::Base64 qw(encode_base64);
 # the zm_prison / Alcatraz soundbank, downsampled the same way shrink.pl does), pick one, Next.
 #
 # Local inputs (not in any repo):
-my $CSV    = 'tools/assets/soundbank/zmb_alcatraz.all.aliases.csv';
+my $CSV    = '$FindBin::Bin/../assets/soundbank/zmb_alcatraz.all.aliases.csv';
 my @ROOTS  = (
-    'dump/prison/snd/zm_prison',
-    'dump/prison/snd/patch_zm',
-    'dump/prison/snd/common_zm',
+    '$dump/zm_prison',
+    '$dump/patch_zm',
+    '$dump/common_zm',
 );
-my $SMALL  = 'dump/pickers_motd/small';
+my $SMALL  = '$dump/small';
 mkdir $SMALL unless -d $SMALL;
 
 # ---- shrink.pl logic, inlined (16-bit PCM WAV -> mono, half rate; other formats copied as-is) ----

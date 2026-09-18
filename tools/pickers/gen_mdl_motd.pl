@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use FindBin;
 
 # gen_mdl_motd.pl > wizard_mdl_motd.html : Magmagat Prop Picker, modelled on Dead Frequency's gen_wizard_mdl.pl.
 # Reads the OpenAssetTools glTF dump of zm_prison (made with:
@@ -10,7 +11,7 @@ use warnings;
 # from its glTF accessors (min/max), and builds one prop role at a time with a three.js viewer, same as the
 # TranZit picker.
 my $DUMP   = 'C:/Games/t6/model_dump/zm_prison';
-my $ASSETS = 'tools/assets/assets_zm_prison.txt';
+my $ASSETS = '$FindBin::Bin/../assets/assets_zm_prison.txt';
 
 # ---- candidate xmodel names used by the map: p6_zm_al_* (this map's own props) plus generic p6_/p_/zombie_
 # props, excluding characters/weapons/vehicles/fx/tags the same way gen_wizard_mdl.pl does.
