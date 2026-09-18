@@ -5,6 +5,7 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_hearth;
 #include scripts\zm\zm_prison\mg_run;
+#include scripts\zm\zm_prison\mg_forge;
 
 // The quest state machine. States, in order: locked, ready, souls, pickup, run, forge, done (spec section 3).
 
@@ -128,9 +129,4 @@ mg_temper_left_str()
         return "" + int( level.mg_carrier.mg_temper_left ) + " s";
 
     return "-";
-}
-
-// TEMPORARY stub, replaced by its stage file
-mg_forge_fabricate( state )
-{
 }

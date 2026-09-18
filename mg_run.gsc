@@ -4,6 +4,7 @@
 #include scripts\zm\zm_prison\mg_systems;
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
+#include scripts\zm\zm_prison\mg_forge;
 
 // The temper run: 25 s of flame, four blue barrels refill it, a shot costs 5 s, switching away for more than
 // 1 s or going down kills it (spec section 3, numbers approved 2026-09-18).
@@ -242,8 +243,3 @@ mg_run_start_delayed( player, weapon )
     mg_run_start( player, weapon );
 }
 
-// TEMPORARY stub, replaced by mg_forge.gsc in Task 7
-mg_forge_near( player )
-{
-    return 0;
-}
