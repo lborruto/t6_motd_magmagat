@@ -7,6 +7,7 @@
 #include scripts\zm\zm_prison\mg_hearth;
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_forge;
+#include scripts\zm\zm_prison\mg_weapon;
 
 // Magmagat for Mob of the Dead (Plutonium T6, zm_prison). Entry point, boot order, `!mg` chat commands.
 init()
@@ -34,6 +35,7 @@ mg_boot()
     mg_hearth_init();
     mg_run_init();
     mg_forge_init();
+    mg_weapon_init();
     level thread mg_chat_listener();
     print( "[MG] Magmagat " + level.mg_version + " loaded\n" );
 }

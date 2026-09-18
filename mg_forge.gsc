@@ -5,6 +5,7 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_run;
+#include scripts\zm\zm_prison\mg_weapon;
 
 // The forge: the dock Generator Room's large generator. Power it (one press), place the tempered gun, 5 s of
 // ghosts, take the Magmagat. Once forged, any Blundergat placed converts (level.mg_forge_open).
@@ -238,9 +239,4 @@ mg_forge_fabricate( state )
         level.mg_forge_ready_gun = spawn_weapon_model( "blundergat_zm", undefined, c.origin, c.angles );
         level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
     }
-}
-
-// TEMPORARY stub, replaced by mg_weapon.gsc in Task 8
-mg_weapon_grant( player, weapon )
-{
 }
