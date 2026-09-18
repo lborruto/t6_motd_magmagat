@@ -92,6 +92,8 @@ mg_forge_prompt_text( player )
 
 mg_forge_press( player )
 {
+    level endon( "mg_goto" );
+
     if ( is_true( level.mg_forge_busy ) )
         return;
 
@@ -131,6 +133,7 @@ mg_forge_press( player )
 mg_forge_place( player, weapon, tempered )
 {
     level endon( "end_game" );
+    level endon( "mg_goto" );
 
     if ( !isdefined( weapon ) || !player hasweapon( weapon ) )
         return;
@@ -152,12 +155,25 @@ mg_forge_place( player, weapon, tempered )
     gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
     level.mg_forge_gun_weapon = weapon;
     level.mg_forge_placer = player;
+    level.mg_forge_place_ents = [];
+    level.mg_forge_place_ents[level.mg_forge_place_ents.size] = gun;
     mg_snd_near( "zmb_afterlife_object_apparate", c.origin, 800 );
 
     // two ghosts circle the gun for 5 s
     g1 = mg_fx_loop( "ghost", c.origin + ( 40, 0, 20 ) );
+
+    if ( isdefined( g1 ) )
+        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = g1;
+
     g2 = mg_fx_loop( "ghost", c.origin + ( -40, 0, 20 ) );
+
+    if ( isdefined( g2 ) )
+        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = g2;
+
     smoke = mg_fx_loop( "smoke", c.origin );
+
+    if ( isdefined( smoke ) )
+        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = smoke;
 
     for ( i = 0; i < 10; i++ )
     {
@@ -181,6 +197,7 @@ mg_forge_place( player, weapon, tempered )
     level.mg_forge_ready_gun = gun;
     level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
     level.mg_forge_busy = 0;
+    level.mg_forge_place_ents = [];
 }
 
 // Take the Magmagat: the same weapon name, with the personality.
@@ -195,7 +212,7 @@ mg_forge_take( player )
 
     if ( !player hasweapon( weapon ) )
     {
-        if ( isdefined( primaries ) && primaries.size >= 2 && isdefined( current ) && current != "none" )
+        if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( player ) )
             player takeweapon( current );
 
         player giveweapon( weapon );
@@ -222,6 +239,18 @@ mg_forge_take( player )
 // self = player typing !mg goto
 mg_forge_fabricate( state )
 {
+    // a place() killed mid-ghosts by the goto notify leaves its entities to us
+    if ( isdefined( level.mg_forge_place_ents ) )
+    {
+        foreach ( ent in level.mg_forge_place_ents )
+        {
+            if ( isdefined( ent ) )
+                ent delete();
+        }
+    }
+
+    level.mg_forge_place_ents = [];
+
     if ( isdefined( level.mg_forge_ready_gun ) )
         level.mg_forge_ready_gun delete();
 

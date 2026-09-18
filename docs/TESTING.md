@@ -104,6 +104,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       the weapon must remain unchanged.
 - [ ] A plain Blundergat (no personality) still upgrades at the Acid Gat station normally - confirm the
       refusal is specific to a flagged Magmagat, not a blanket block.
+- [ ] With a Magmagat in hand, a Brutus-locked craftable table still charges its unlock price and unlocks;
+      other craftables (shield, plane parts) still craft normally.
 - [ ] Losing the personality (box swap, wall buy replacing the weapon, death without Tombstone) clears the
       flag; the forge (once `done`) can re-grant it to a fresh Blundergat.
 

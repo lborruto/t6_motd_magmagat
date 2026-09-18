@@ -135,6 +135,26 @@ mg_hearth_start( player )
     mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
     mg_state_set( "souls" );
     level thread mg_hearth_office_watch();
+    level thread mg_hearth_round_watch();
+}
+
+// souls: a round that ends with no soul collected at all sends the gun back (spec section 3)
+mg_hearth_round_watch()
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+
+    while ( mg_state_is( "souls" ) )
+    {
+        level waittill( "end_of_round" );
+
+        if ( mg_state_is( "souls" ) && level.mg_orbs == 0 )
+        {
+            mg_debug_print( "MG: the round ended with no soul collected: the Blundergat is lost" );
+            mg_hearth_reset( 0 );
+            return;
+        }
+    }
 }
 
 // souls: a kill by a player inside the office, of a zombie inside the office, drops an orb.
@@ -162,6 +182,10 @@ mg_orb_spawn( pos )
     if ( !isdefined( orb ) )
         return;
 
+    if ( !isdefined( level.mg_orb_ents ) )
+        level.mg_orb_ents = [];
+
+    level.mg_orb_ents[level.mg_orb_ents.size] = orb;
     orb moveto( pos + ( 0, 0, 30 ), 1 );
     start = gettime();
     taker = undefined;
@@ -298,7 +322,6 @@ mg_hearth_pickup_window()
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
-    // no endon on "mg_hearth_taken": mg_hearth_reset below notifies it, and a thread that notifies a name it endons dies there
     wait 30;
 
     if ( !mg_state_is( "pickup" ) )
@@ -332,14 +355,13 @@ mg_hearth_take( player )
 
     if ( !player hasweapon( weapon ) )
     {
-        if ( isdefined( primaries ) && primaries.size >= 2 && isdefined( current ) && current != "none" )
+        if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( player ) )
             player takeweapon( current );
 
         player giveweapon( weapon );
     }
 
     player switchtoweapon( weapon );
-    level notify( "mg_hearth_taken" );
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun delete();
@@ -351,11 +373,25 @@ mg_hearth_take( player )
     mg_run_start( player, weapon );
 }
 
+mg_orbs_clear()
+{
+    if ( isdefined( level.mg_orb_ents ) )
+    {
+        foreach ( orb in level.mg_orb_ents )
+        {
+            if ( isdefined( orb ) )
+                orb delete();
+        }
+    }
+
+    level.mg_orb_ents = [];
+}
+
 // Back to ready. give_back 1 hands the laid gun back to its owner (used by fabrications), 0 loses it.
 mg_hearth_reset( give_back )
 {
+    mg_orbs_clear();
     mg_death_listen_remove( "mg_hearth" );
-    level notify( "mg_hearth_taken" );
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun delete();
@@ -397,6 +433,7 @@ mg_hearth_state_watch()
 // !mg goto support: builds what the asked state expects from the hearth.
 mg_hearth_fabricate( state )
 {
+    mg_orbs_clear();
     mg_death_listen_remove( "mg_hearth" );
 
     if ( isdefined( level.mg_hearth_gun ) )
@@ -433,7 +470,9 @@ mg_hearth_fabricate( state )
 // the state is set right after fabrication; the watcher must start after that
 mg_hearth_office_watch_delayed()
 {
+    level endon( "mg_goto" );
     wait 0.1;
     level thread mg_hearth_office_watch();
+    level thread mg_hearth_round_watch();
 }
 

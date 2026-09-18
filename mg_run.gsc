@@ -239,6 +239,7 @@ mg_run_fabricate( state )
 
 mg_run_start_delayed( player, weapon )
 {
+    level endon( "mg_goto" );
     wait 0.1;
     mg_run_start( player, weapon );
 }

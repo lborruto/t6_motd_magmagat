@@ -11,6 +11,9 @@
 mg_weapon_init()
 {
     level.mg_patches = [];
+    // chained, not replaced: vanilla _zm_ai_brutus.gsc:127 installs its own hook on this map (paid unlock of a
+    // Brutus-locked table); ours only adds the Magmagat refusal on the Acid Gat station
+    level.mg_prev_craftable_validation = level.custom_craftable_validation;
     level.custom_craftable_validation = ::mg_acid_station_validation;
     level thread mg_weapon_connect_watch();
 }
@@ -134,7 +137,10 @@ mg_lava_ball( weapon )
     ball = spawn( "script_model", start );
     ball setmodel( mg_model( "ball" ) );
     ball.angles = self getplayerangles();
-    playfxontag( level._effect["mg_ball"], ball, "tag_origin" );
+
+    if ( isdefined( level._effect["mg_ball"] ) )
+        playfxontag( level._effect["mg_ball"], ball, "tag_origin" );
+
     dist = distance( start, target );
     time = dist / 2000;
 
@@ -328,10 +334,20 @@ mg_burn_clear( seconds )
     self.mg_burning = 0;
 }
 
-// The vanilla Acid Gat station asks level.custom_craftable_validation( player ) before converting: a Magmagat
-// is refused (spec section 4).
+// self = the craftable trigger vanilla is validating (_zm_craftables / zm_alcatraz_utility call
+// `trigger [[ level.custom_craftable_validation ]]( player )`). Vanilla's own hook runs first; then only the
+// Acid Gat station (targetname blundergat_upgrade) refuses a Magmagat (spec section 4).
 mg_acid_station_validation( player )
 {
+    if ( isdefined( level.mg_prev_craftable_validation ) )
+    {
+        if ( !( self [[ level.mg_prev_craftable_validation ]]( player ) ) )
+            return 0;
+    }
+
+    if ( !isdefined( self.targetname ) || self.targetname != "blundergat_upgrade" )
+        return 1;
+
     if ( !isdefined( player ) )
         return 1;
 

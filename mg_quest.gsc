@@ -60,6 +60,24 @@ mg_has_blundergat( player )
     return undefined;
 }
 
+// The vanilla rule for "take a quest weapon" (zm_alcatraz_utility.gsc:264): the weapon in hand may be replaced only
+// if it is a real gun, not a mine, equipment, the revive syringe or nothing.
+mg_can_replace_current( player )
+{
+    current = player getcurrentweapon();
+
+    if ( !isdefined( current ) || current == "none" )
+        return 0;
+
+    if ( is_placeable_mine( current ) || is_equipment( current ) )
+        return 0;
+
+    if ( isdefined( level.revive_tool ) && current == level.revive_tool )
+        return 0;
+
+    return 1;
+}
+
 mg_state_index( s )
 {
     order = [];
