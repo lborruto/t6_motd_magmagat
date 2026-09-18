@@ -3,6 +3,7 @@
 #include maps\mp\zombies\_zm_utility;
 #include scripts\zm\zm_prison\mg_systems;
 #include scripts\zm\zm_prison\mg_coords;
+#include scripts\zm\zm_prison\mg_hearth;
 
 // The quest state machine. States, in order: locked, ready, souls, pickup, run, forge, done (spec section 3).
 
@@ -129,10 +130,6 @@ mg_temper_left_str()
 }
 
 // TEMPORARY stubs, each replaced by its stage file
-mg_hearth_fabricate( state )
-{
-}
-
 mg_run_fabricate( state )
 {
 }
