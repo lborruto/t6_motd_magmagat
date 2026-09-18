@@ -298,7 +298,7 @@ mg_hearth_pickup_window()
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
-    level endon( "mg_hearth_taken" );
+    // no endon on "mg_hearth_taken": mg_hearth_reset below notifies it, and a thread that notifies a name it endons dies there
     wait 30;
 
     if ( !mg_state_is( "pickup" ) )
