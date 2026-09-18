@@ -52,8 +52,7 @@ change.
 
 Anchor keys (all in `mg_coords.gsc`): `MG_HEARTH` (gun rest in the fire), `MG_HEARTH_USE` (where the player
 stands to press), `MG_SKULL_1`, `MG_SKULL_2`, `MG_SKULL_3`, `MG_BARREL_1..4`, `MG_FORGE` (use point at the
-generator), `MG_FORGE_GUN` (gun rest on the generator), `MG_PLANKS` (the boards over the hearth, burned away
-by `mg_hearth.gsc` `mg_planks_burn()` once the quest starts). Defaults are placeholders near the vanilla free
+generator), `MG_FORGE_GUN` (gun rest on the generator). Defaults are placeholders near the vanilla free
 Blundergat desk struct and the dock generator; the owner replaces them through `mg_apply_overrides()` (see
 "Coordinate workflow" below).
 
@@ -159,7 +158,7 @@ mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), "p6_zm_al_w
 Paste the `mg_coord_override(...)` line into `mg_apply_overrides()` in `mg_coords.gsc` to make it permanent
 (the 4th, model, argument is only printed when the anchor carries a prop of its own). An override always wins
 over the placeholder default. The anchor keys to fill in are `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`,
-`MG_BARREL_1..4`, `MG_FORGE`, `MG_FORGE_GUN`, `MG_PLANKS`.
+`MG_BARREL_1..4`, `MG_FORGE`, `MG_FORGE_GUN`.
 
 The cheats script (`cheats_zm.gsc`) and its old `!place` / `!spot` placement flow are not part of this
 repository and are never edited here — see "Rules every change must keep" below.

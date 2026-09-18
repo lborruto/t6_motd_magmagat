@@ -23,28 +23,9 @@ mg_hearth_init()
         level.mg_skulls[i - 1] = skull;
     }
 
-    // the BO3 remaster boards the fireplace up until the quest starts (mg_planks_burn removes them)
-    c = mg_coord( "MG_PLANKS" );
-    level.mg_planks = spawn( "script_model", c.origin );
-    level.mg_planks setmodel( mg_model( "planks" ) );
-    level.mg_planks.angles = c.angles;
-
     level thread mg_hearth_fire();
     level thread mg_hearth_prompt_loop();
     level thread mg_hearth_state_watch();
-}
-
-// Burns the boards away, once. They never come back within a game: the fireplace stays open once tempered
-// once, so mg_hearth_reset does not touch them.
-mg_planks_burn()
-{
-    if ( !isdefined( level.mg_planks ) )
-        return;
-
-    mg_fx_once( "fire_sm", level.mg_planks.origin );
-    mg_snd_near( "zmb_powerpanel_activate", level.mg_planks.origin, 800 );
-    level.mg_planks delete();
-    level.mg_planks = undefined;
 }
 
 // The hearth fire: normal flame in every state but pickup / run (blue) and locked (nothing extra).
@@ -154,7 +135,6 @@ mg_hearth_start( player )
     player mg_snd_player( "zmb_powerpanel_activate" );
     level.mg_hearth_session++;
     mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
-    mg_planks_burn();
     mg_state_set( "souls" );
     level thread mg_hearth_office_watch();
     level thread mg_hearth_round_watch();
@@ -474,8 +454,6 @@ mg_hearth_fabricate( state )
     mg_skulls_dark();
     level.mg_orbs = 0;
 
-    if ( state != "locked" && state != "ready" )
-        mg_planks_burn();
 
     if ( state == "souls" || state == "pickup" )
     {
