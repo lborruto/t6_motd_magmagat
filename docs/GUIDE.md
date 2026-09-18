@@ -81,7 +81,8 @@ always survives the fire.
 
 Switching to another weapon, or going down, ends nothing about the Magmagat itself — once forged, it is
 yours to keep and carry like any other weapon. The Acid Gat kit, however, refuses a Magmagat outright: the
-forge already claimed that gun, so it has nothing left to give it. Pack-a-Punch it normally instead: a
-Sweeper placed in the fire comes out as the Magmus Operandi, one tier up, same personality.
+forge already claimed that gun, so it has nothing left to give it. Pack-a-Punch it normally instead: the
+Magmagat comes out as the Magmus Operandi, one tier up, same personality. It also works the other way round:
+a Sweeper, the Pack-a-Punched Blundergat, tempered and forged comes out as the Magmus Operandi directly.
 
 </details>
