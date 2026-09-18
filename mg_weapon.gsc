@@ -143,10 +143,12 @@ mg_lava_ball( weapon )
 
     ball moveto( target, time );
     caught = undefined;
+    aimed = undefined;
     hit_ent = trace["entity"];
 
+    // the aimed zombie is caught when the ball ARRIVES, not now: the flight must be seen
     if ( isdefined( hit_ent ) && isai( hit_ent ) && isalive( hit_ent ) )
-        caught = hit_ent;
+        aimed = hit_ent;
 
     elapsed = 0;
 
@@ -164,6 +166,9 @@ mg_lava_ball( weapon )
             }
         }
     }
+
+    if ( !isdefined( caught ) && isdefined( aimed ) && isalive( aimed ) && distancesquared( aimed.origin + ( 0, 0, 40 ), ball.origin ) < 80 * 80 )
+        caught = aimed;
 
     self.mg_balls--;
 
@@ -207,7 +212,7 @@ mg_ball_explode( ball, zombie, weapon )
 
         if ( isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
         {
-            ai dodamage( int( ai.maxhealth * 0.1 ), pos, self, self, "none", "MOD_PROJECTILE_SPLASH", 0, weapon );
+            self mg_brutus_burn( ai, 0.1, pos, "MOD_PROJECTILE_SPLASH", weapon );
             ai thread mg_burn_fx( 3 );
             continue;
         }
@@ -227,6 +232,18 @@ mg_burn_fx( seconds )
 
     wait( seconds );
     mg_fx_stop( fx );
+}
+
+// self = player. Brutus burns but never dies from the Magmagat: the damage is clamped so at least 1 hp remains.
+mg_brutus_burn( ai, frac, pos, mod, weapon )
+{
+    dmg = int( ai.maxhealth * frac );
+
+    if ( dmg >= ai.health )
+        dmg = ai.health - 1;
+
+    if ( dmg > 0 )
+        ai dodamage( dmg, pos, self, self, "none", mod, 0, weapon );
 }
 
 // self = player. A magma patch: 8 s, 60 units, 250 + 30 * round every 0.5 s (Brutus 2 % of his max health).
@@ -269,7 +286,7 @@ mg_patch( pos, weapon )
 
             if ( isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
             {
-                ai dodamage( int( ai.maxhealth * 0.02 ), pos, self, self, "none", "MOD_BURNED", 0, weapon );
+                self mg_brutus_burn( ai, 0.02, pos, "MOD_BURNED", weapon );
                 continue;
             }
 
