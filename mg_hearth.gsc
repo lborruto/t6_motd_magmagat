@@ -4,6 +4,7 @@
 #include scripts\zm\zm_prison\mg_systems;
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
+#include scripts\zm\zm_prison\mg_run;
 
 // The fireplace: temper prompt, the gun in the fire, 18 orbs, three skulls, the 30 s pickup (spec section 3).
 
@@ -436,7 +437,3 @@ mg_hearth_office_watch_delayed()
     level thread mg_hearth_office_watch();
 }
 
-// TEMPORARY stub, replaced by mg_run.gsc in Task 6
-mg_run_start( player, weapon )
-{
-}
