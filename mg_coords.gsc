@@ -16,6 +16,8 @@ mg_models_init()
     level.mg_models["candle"] = "p6_zm_al_candle_med_on";
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
     level.mg_models["ball"] = "t6_wpn_zmb_projectile_blundergat";
+    level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
+    level.mg_models["planks"] = "p6_zm_al_door_barricade_1";
 }
 
 mg_model( kind )
@@ -47,23 +49,28 @@ mg_coords_init()
 
     level.mg_coords = [];
 
-    // hearth: placeholders at the desk until the owner spots the real fireplace
-    mg_coord_set( "MG_HEARTH", ( -767, 8662, 1372 ), ( 0, 180, 0 ) );
-    mg_coord_set( "MG_HEARTH_USE", ( -720, 8662, 1370 ), ( 0, 180, 0 ) );
-    mg_coord_set( "MG_SKULL_1", ( -767, 8632, 1400 ), ( 0, 180, 0 ) );
-    mg_coord_set( "MG_SKULL_2", ( -767, 8662, 1400 ), ( 0, 180, 0 ) );
-    mg_coord_set( "MG_SKULL_3", ( -767, 8692, 1400 ), ( 0, 180, 0 ) );
+    // hearth: placeholder position at the desk until overridden below; the skulls and the use point are
+    // already derived from the owner's real MG_HEARTH spot (mg_apply_overrides), adjust with !mg grab if the
+    // hearth ever moves again
+    mg_coord_set( "MG_HEARTH", ( -767, 8662, 1372 ), ( 0, 180, 0 ), mg_model( "gun_world" ) );
+    mg_coord_set( "MG_HEARTH_USE", ( -433, 8762, 1353 ), ( 0, 135, 0 ), mg_model( "beacon" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
+    mg_coord_set( "MG_SKULL_1", ( -495, 8784, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
+    mg_coord_set( "MG_SKULL_2", ( -475, 8804, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
+    mg_coord_set( "MG_SKULL_3", ( -455, 8824, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
 
     // barrels along the route (spec: office exit, top of the spiral stairs, bottom of the tunnels, generator door):
     // placeholders on the zone volume origins of tools/assets/zm_prison.d3dbsp.ents.txt
-    mg_coord_set( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ) );
-    mg_coord_set( "MG_BARREL_2", ( 227, 8713, 761 ), ( 0, 0, 0 ) );
-    mg_coord_set( "MG_BARREL_3", ( 80, 7954, 211 ), ( 0, 0, 0 ) );
-    mg_coord_set( "MG_BARREL_4", ( -400, 6500, 72 ), ( 0, 0, 0 ) );
+    mg_coord_set( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
+    mg_coord_set( "MG_BARREL_2", ( 227, 8713, 761 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
+    mg_coord_set( "MG_BARREL_3", ( 80, 7954, 211 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
+    mg_coord_set( "MG_BARREL_4", ( -400, 6500, 72 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
 
     // forge: the left generator of the Generator Room (existing map model, nothing spawned)
-    mg_coord_set( "MG_FORGE", ( -400, 6330, 72 ), ( 0, 190.7, 0 ) );
-    mg_coord_set( "MG_FORGE_GUN", ( -449, 6307, 120 ), ( 0, 280, -90 ) );
+    mg_coord_set( "MG_FORGE", ( -400, 6330, 72 ), ( 0, 190.7, 0 ), mg_model( "beacon" ) );
+    mg_coord_set( "MG_FORGE_GUN", ( -449, 6307, 120 ), ( 0, 280, -90 ), mg_model( "gun_world" ) );
+
+    // the boards over the hearth, burned away once the quest starts (mg_hearth.gsc mg_planks_burn)
+    mg_coord_set( "MG_PLANKS", ( -475, 8804, 1372 ), ( 0, 135, 0 ), mg_model( "planks" ) );
 
     mg_apply_overrides();
 }
@@ -71,9 +78,10 @@ mg_coords_init()
 // Owner spots go here, one line each: mg_coord_override( "KEY", ( x, y, z ), ( pitch, yaw, roll ) );
 mg_apply_overrides()
 {
+    mg_coord_override( "MG_HEARTH", ( -475, 8804, 1353 ), ( 0, 135, -90 ) ); // owner spot 2026-09-18 (yaw 495 = 135; roll -90 lays the gun flat as the vanilla desk gun)
 }
 
-mg_coord_set( key, origin, angles )
+mg_coord_set( key, origin, angles, model )
 {
     if ( isdefined( level.mg_coords[key] ) && is_true( level.mg_coords[key].overridden ) )
         return;
@@ -81,14 +89,20 @@ mg_coord_set( key, origin, angles )
     c = spawnstruct();
     c.origin = origin;
     c.angles = angles;
+    c.model = model;
     level.mg_coords[key] = c;
 }
 
-mg_coord_override( key, origin, angles )
+// An override without a model keeps the model of the existing anchor, if any.
+mg_coord_override( key, origin, angles, model )
 {
+    if ( !isdefined( model ) && isdefined( level.mg_coords[key] ) )
+        model = level.mg_coords[key].model;
+
     c = spawnstruct();
     c.origin = origin;
     c.angles = angles;
+    c.model = model;
     c.overridden = 1;
     level.mg_coords[key] = c;
 }
@@ -127,10 +141,13 @@ mg_coord_line( key )
     if ( !isdefined( c ) )
         return key + ": undefined";
 
-    tag = "";
+    line = key + " | " + mg_vec_str( c.origin ) + " | " + mg_vec_str( c.angles );
+
+    if ( isdefined( c.model ) )
+        line += " | " + c.model;
 
     if ( is_true( c.overridden ) )
-        tag = " (override)";
+        line += " (override)";
 
-    return key + " | " + mg_vec_str( c.origin ) + " | " + mg_vec_str( c.angles ) + tag;
+    return line;
 }

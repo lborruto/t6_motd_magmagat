@@ -5,6 +5,7 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_weapon;
+#include scripts\zm\zm_prison\mg_place;
 
 // Debug tools (`!mg`, needs `set mg_debug 1`): give / magma / shock and the fx / snd audition (ported from
 // the Dead Frequency mod's audition tool and renamed to this mod's prefix). The fx/snd grid ("!mg fx grid")
@@ -66,6 +67,72 @@ mg_debug_command( sub, arg, args )
 
         case "snd":
             self mg_aud_snd( arg );
+            return 1;
+
+        case "grab":
+            if ( !isdefined( arg ) )
+            {
+                self mg_out( "Usage: !mg grab <KEY>   e.g. !mg grab MG_HEARTH   (!mg spots lists keys)" );
+                return 1;
+            }
+
+            self mg_place_grab( arg );
+            return 1;
+
+        case "drop":
+            self mg_place_drop();
+            return 1;
+
+        case "cancel":
+            self mg_place_cancel();
+            return 1;
+
+        case "rot":
+            if ( !isdefined( arg ) )
+            {
+                self mg_out( "Usage: !mg rot <deg>   e.g. !mg rot 15" );
+                return 1;
+            }
+
+            self mg_place_rot( int( arg ) );
+            return 1;
+
+        case "up":
+            if ( !isdefined( arg ) )
+            {
+                self mg_out( "Usage: !mg up <units>   e.g. !mg up 4" );
+                return 1;
+            }
+
+            self mg_place_up( int( arg ) );
+            return 1;
+
+        case "show":
+            if ( isdefined( arg ) && !isdefined( mg_coord( arg ) ) )
+            {
+                self mg_out( "MG: unknown key " + arg + " (!mg spots lists them)" );
+                return 1;
+            }
+
+            mg_preview_show( arg );
+            self mg_out( "MG: preview spawned (!mg hide to remove, !mg tp <KEY> to visit)" );
+            return 1;
+
+        case "hide":
+            mg_preview_hide();
+            self mg_out( "MG: preview removed" );
+            return 1;
+
+        case "tp":
+            if ( !isdefined( arg ) )
+            {
+                self mg_out( "Usage: !mg tp <KEY>   e.g. !mg tp MG_HEARTH   (!mg spots lists keys)" );
+                return 1;
+            }
+
+            if ( !self mg_preview_teleport( arg ) )
+                self mg_out( "MG: unknown key " + arg );
+
             return 1;
     }
 

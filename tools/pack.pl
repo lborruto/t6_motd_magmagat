@@ -28,7 +28,7 @@ my $tools = dirname( File::Spec->rel2abs( $0 ) );
 my $repo  = dirname( $tools );
 
 my @ORDER = qw(
-    mg_main.gsc mg_systems.gsc mg_coords.gsc mg_quest.gsc mg_hearth.gsc mg_run.gsc mg_forge.gsc
+    mg_main.gsc mg_systems.gsc mg_coords.gsc mg_place.gsc mg_quest.gsc mg_hearth.gsc mg_run.gsc mg_forge.gsc
     mg_weapon.gsc mg_debug.gsc
 );
 

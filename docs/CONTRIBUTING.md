@@ -39,6 +39,7 @@ change.
 | `mg_main.gsc` | `init()` (zm_prison guard, precache, version), `mg_boot()`, chat listener `!mg`, command dispatch, help |
 | `mg_systems.gsc` | ported helpers: `mg_debug_print`, `mg_out`, `mg_fx_init`, `mg_fx_loop/once/stop`, `mg_fx_keepalive`, `mg_snd_near`, `mg_prompt`, `mg_press_use`, `mg_bar_*`, `mg_hud_title`, `mg_death_listen_add/remove`, `mg_zombies_near`, `mg_trail`, HUD disconnect cleanup |
 | `mg_coords.gsc` | anchor registry `mg_coord( key )` / `mg_coord_set`, `mg_apply_overrides()` (owner spots pasted here), `mg_models_init` / `mg_model( kind )` / `mg_precache()` |
+| `mg_place.gsc` | live placement mode `!mg grab <KEY>` / `drop` / `cancel` / `rot` / `up` (ported from Dead Frequency's `df_place.gsc`), anchor previews `mg_preview_show` / `mg_preview_refresh` / `mg_preview_hide` / `mg_preview_teleport` |
 | `mg_quest.gsc` | `level.mg_state`, `mg_state_set( s )`, `mg_state_is( s )`, `level notify( "mg_state", s )`, bridge gate, `mg_goto( state )` fabrication, `mg_status_lines()` |
 | `mg_hearth.gsc` | fireplace prompt, souls (orbs, skulls), pickup window |
 | `mg_run.gsc` | temper timer, barrels, carrier fail rules |
@@ -51,7 +52,8 @@ change.
 
 Anchor keys (all in `mg_coords.gsc`): `MG_HEARTH` (gun rest in the fire), `MG_HEARTH_USE` (where the player
 stands to press), `MG_SKULL_1`, `MG_SKULL_2`, `MG_SKULL_3`, `MG_BARREL_1..4`, `MG_FORGE` (use point at the
-generator), `MG_FORGE_GUN` (gun rest on the generator). Defaults are placeholders near the vanilla free
+generator), `MG_FORGE_GUN` (gun rest on the generator), `MG_PLANKS` (the boards over the hearth, burned away
+by `mg_hearth.gsc` `mg_planks_burn()` once the quest starts). Defaults are placeholders near the vanilla free
 Blundergat desk struct and the dock generator; the owner replaces them through `mg_apply_overrides()` (see
 "Coordinate workflow" below).
 
@@ -126,37 +128,41 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | `!mg shock` | toggle the debug shock pistol (zaps Afterlife shock boxes and panels with the pistol in hand) |
 | `!mg fx [<n>\|<name>\|next\|prev\|stop]` | audition a registered effect where you aim, 8 s (no fx grid in this mod) |
 | `!mg snd [<n>\|<alias>\|next\|prev]` | audition a curated sound alias at full volume |
+| `!mg grab <KEY>` | live placement mode: the anchor's prop follows your crosshair (FIRE place, MELEE cancel, ADS freeze, 1/2 turn, 3/4 raise, F surface/float, jump reset) |
+| `!mg drop` / `!mg cancel` | place the held prop (prints the paste-ready `mg_coord_override(...)` line) / leave the anchor as it was |
+| `!mg rot <deg>` / `!mg up <units>` | turn / raise the held prop by chat instead of the buttons |
+| `!mg show [KEY]` / `!mg hide` | preview one anchor (or every anchor) in place / remove the preview |
+| `!mg tp <KEY>` | teleport to an anchor to judge it in person |
 
 Every `!mg` answer is also printed to the console as a `[MG] ...` line.
 
 ## Coordinate workflow
 
 `mg_coords.gsc` ships placeholder anchors near the vanilla free-Blundergat desk and the dock generator. The
-owner records the real spots in game with the cheats script's placement mode:
+owner records the real spots in game with this mod's own live placement mode (`mg_place.gsc`, needs console
+`set mg_debug 1`):
 
 ```
-!place <model>       spawn a model that follows you (or your aim), to preview a spot
-!spot KEY             print the current spot as a paste-ready [SPOT] line
-!spots                print every recorded spot
+!mg show               spawn a preview of every anchor (or !mg show KEY for just one), !mg hide removes it
+!mg grab <KEY>          the anchor's prop follows your crosshair
+                         FIRE place, MELEE cancel, ADS freeze, 1/2 turn, 3/4 raise, F surface/float, jump reset
+!mg drop / !mg cancel   place it (prints the paste-ready line below) / leave the anchor as it was
 ```
 
-Each `!spot` prints a line of the form:
+A `!mg drop` prints two lines, both to the console:
 
 ```
 [SPOT] MG_BARREL_1 | -600 9100 1336 | 0 0 0 | p6_zm_al_wood_barrel_01
+mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), "p6_zm_al_wood_barrel_01" );
 ```
 
-Turn it into an override and paste it into `mg_apply_overrides()` in `mg_coords.gsc`:
+Paste the `mg_coord_override(...)` line into `mg_apply_overrides()` in `mg_coords.gsc` to make it permanent
+(the 4th, model, argument is only printed when the anchor carries a prop of its own). An override always wins
+over the placeholder default. The anchor keys to fill in are `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`,
+`MG_BARREL_1..4`, `MG_FORGE`, `MG_FORGE_GUN`, `MG_PLANKS`.
 
-```
-mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ) );
-```
-
-An override always wins over the placeholder default. The anchor keys to fill in are `MG_HEARTH`,
-`MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..4`, `MG_FORGE`, `MG_FORGE_GUN`.
-
-The cheats script itself (`cheats_zm.gsc`) is not part of this repository and is never edited here — see
-"Rules every change must keep" below.
+The cheats script (`cheats_zm.gsc`) and its old `!place` / `!spot` placement flow are not part of this
+repository and are never edited here — see "Rules every change must keep" below.
 
 ## Rules every change must keep
 
