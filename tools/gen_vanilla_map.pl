@@ -38,7 +38,7 @@ for my $f (@files) {
     open my $h, '<:raw', $f or next;
     my $ns = $f;
     $ns =~ s{^.*?/ZM/}{};
-    $ns =~ s{^[^/]+/}{};          # drop the per-map folder (Core/, Maps/Tranzit/, ...)
+    $ns =~ s{^[^/]+/}{};          # drop the per-map folder (Core/, Maps/Mob of the Dead/, ...)
     $ns =~ s{\.gsc$}{};
     while (my $l = <$h>) {
         next unless $l =~ /^([a-z_][a-z0-9_]*)\s*\(/;

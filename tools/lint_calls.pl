@@ -10,7 +10,7 @@ my $tools   = dirname(__FILE__);
 my $repo    = "$tools/..";
 my $vanilla = 'C:/Games/t6/t6-scripts/t6-scripts-main/ZM';
 
-my %known = ( notifyonplayercommand => 1 ); # a real T6 builtin the ZM scripts never use (MP ones do); mg_scav works with it in game
+my %known = ( notifyonplayercommand => 1 ); # a real T6 builtin the ZM scripts never use (MP ones do)
 my %keyword = map { $_ => 1 } qw(if else while for foreach switch case return wait waittill waittillmatch waittillframeend
   endon notify thread call self level game anim undefined true false break continue default in isdefined);
 

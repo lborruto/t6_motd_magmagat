@@ -65,10 +65,10 @@ for my $f ( sort glob("$repo/mg_*.gsc") ) {
             }
             if ( $a =~ /^vox_/ ) {
                 next if $vox_ok{$a};
-                printf "vox?   %-16s %5d  %s  (not a vanilla TranZit vox alias, unverified)\n", $name, $ln, $a;
+                printf "vox?   %-16s %5d  %s  (not a vanilla Mob of the Dead vox alias, unverified)\n", $name, $ln, $a;
                 next;
             }
-            printf "SILENT %-16s %5d  %s  is in no TranZit sound bank\n", $name, $ln, $a;
+            printf "SILENT %-16s %5d  %s  is in no zm_prison sound bank\n", $name, $ln, $a;
             $bad++;
         }
     }
