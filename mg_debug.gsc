@@ -201,6 +201,17 @@ mg_aud_fx_list()
     foreach ( key, path in mg_fx_table() )
         l[l.size] = key; // bare key: mg_fx_loop / mg_fx_once add the "mg_" prefix themselves
 
+    // then every effect the MAP registered (zm_prison_fx.gsc and friends, tools/assets/fx_registered_zm_prison.txt):
+    // playable as is, no precache needed
+    if ( isdefined( level._effect ) )
+    {
+        foreach ( key in getarraykeys( level._effect ) )
+        {
+            if ( key.size < 3 || getsubstr( key, 0, 3 ) != "mg_" )
+                l[l.size] = key;
+        }
+    }
+
     return l;
 }
 
@@ -361,7 +372,12 @@ mg_aud_fx( arg )
 // The fx at the point you aim at (ground hit within 300, else 150 ahead), for 8 s or until the next one.
 mg_aud_fx_show( name, idx )
 {
-    if ( !isdefined( level._effect["mg_" + name] ) )
+    full = "mg_" + name;
+
+    if ( !isdefined( level._effect[full] ) && isdefined( level._effect[name] ) )
+        full = name; // a key the map registered itself
+
+    if ( !isdefined( level._effect[full] ) )
     {
         self mg_out( "[FX " + idx + "] " + name + ": no such fx registered, nothing to play" );
         return;
@@ -375,7 +391,9 @@ mg_aud_fx_show( name, idx )
     if ( isdefined( trace["fraction"] ) && trace["fraction"] < 1 )
         pos = trace["position"] + trace["normal"] * 4;
 
-    level.mg_aud_fx_ent = mg_fx_loop( name, pos );
+    level.mg_aud_fx_ent = spawn( "script_model", pos );
+    level.mg_aud_fx_ent setmodel( "tag_origin" );
+    playfxontag( level._effect[full], level.mg_aud_fx_ent, "tag_origin" );
     level thread mg_aud_fx_auto_stop( level.mg_aud_fx_ent, 8 );
     tag = "[FX " + idx + "/" + mg_aud_fx_list().size + "] ";
 
