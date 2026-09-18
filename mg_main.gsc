@@ -8,6 +8,7 @@
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_forge;
 #include scripts\zm\zm_prison\mg_weapon;
+#include scripts\zm\zm_prison\mg_debug;
 
 // Magmagat for Mob of the Dead (Plutonium T6, zm_prison). Entry point, boot order, `!mg` chat commands.
 init()
@@ -36,6 +37,7 @@ mg_boot()
     mg_run_init();
     mg_forge_init();
     mg_weapon_init();
+    mg_debug_init();
     level thread mg_chat_listener();
     print( "[MG] Magmagat " + level.mg_version + " loaded\n" );
 }
@@ -120,11 +122,5 @@ mg_help()
     self mg_out( "!mg commands (chat, needs `set mg_debug 1`; every answer is also a [MG] console line):" );
     self mg_out( "  status | goto <locked|ready|souls|pickup|run|forge|done> | spots | help" );
     self mg_out( "  give (a Blundergat) | magma (Magmagat personality on the gun in hand) | shock (pistol zaps shock boxes)" );
-    self mg_out( "  fx [<n>|<name>|next|prev|stop|grid] | snd [<n>|<name>|next|prev]" );
-}
-
-// TEMPORARY stub, replaced by mg_debug.gsc in Task 9
-mg_debug_command( sub, arg, args )
-{
-    return 0;
+    self mg_out( "  fx [<n>|<name>|next|prev|stop] | snd [<n>|<name>|next|prev]" );
 }
