@@ -121,7 +121,7 @@ mg_help()
 {
     self mg_out( "!mg commands (chat, needs `set mg_debug 1`; every answer is also a [MG] console line):" );
     self mg_out( "  status | goto <locked|ready|souls|pickup|run|forge|done> | spots | help" );
-    self mg_out( "  give (a Blundergat) | magma (Magmagat personality on the gun in hand) | shock (pistol zaps shock boxes)" );
+    self mg_out( "  give (a Blundergat) | magma (Magmagat personality on the gun in hand) | shock (zap every shock box and panel now) | shock gun (pistol zaps what you shoot)" );
     self mg_out( "  fx [<n>|<name>|next|prev|stop] | snd [<n>|<name>|next|prev]" );
     self mg_out( "  grab <KEY> (prop follows your crosshair; FIRE place, MELEE cancel, ADS freeze, 1/2 turn, 3/4 raise, F surface/float) | drop | cancel | rot <deg> | up <units> | show [KEY] | hide | tp <KEY>" );
 }

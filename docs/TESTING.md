@@ -23,7 +23,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       resolved line for every anchor.
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
       `MG_FORGE_GUN`; none say "undefined".
-- [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `give`, `magma`, `shock`, `fx`, `snd`.
+- [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `give`, `magma`, `shock` (all at once) / `shock gun`, `fx`, `snd`.
 
 ## 1. Locked / ready
 

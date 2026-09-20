@@ -124,7 +124,8 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | `!mg help` | full command list |
 | `!mg give` | give a plain Blundergat |
 | `!mg magma` | grant the Magmagat personality to the Blundergat in hand |
-| `!mg shock` | toggle the debug shock pistol (zaps Afterlife shock boxes and panels with the pistol in hand) |
+| `!mg shock` | zap every Afterlife shock box and panel of the map at once (doors, generator panels) |
+| `!mg shock gun` | toggle the debug shock pistol (zaps the shock box or panel you shoot) |
 | `!mg fx [<n>\|<name>\|next\|prev\|stop]` | audition a registered effect where you aim, 8 s (no fx grid in this mod) |
 | `!mg snd [<n>\|<alias>\|next\|prev]` | audition a curated sound alias at full volume |
 | `!mg grab <KEY>` | live placement mode: the anchor's prop follows your crosshair (FIRE place, MELEE cancel, ADS freeze, 1/2 turn, 3/4 raise, F surface/float, jump reset) |

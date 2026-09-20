@@ -45,20 +45,37 @@ mg_debug_command( sub, arg, args )
             return 1;
 
         case "shock":
-            level.mg_shock = !is_true( level.mg_shock );
-
-            if ( level.mg_shock )
+            // "!mg shock gun" toggles the pistol zap; plain "!mg shock" zaps EVERY Afterlife shock box and panel of the
+            // map at once (owner 2026-09-20: the ones behind walls cannot be aimed at, even with noclip)
+            if ( isdefined( arg ) && tolower( arg ) == "gun" )
             {
-                foreach ( player in getplayers() )
-                    player thread mg_shock_loop();
+                level.mg_shock = !is_true( level.mg_shock );
+
+                if ( level.mg_shock )
+                {
+                    foreach ( player in getplayers() )
+                        player thread mg_shock_loop();
+                }
+
+                word = "OFF";
+
+                if ( level.mg_shock )
+                    word = "ON";
+
+                self mg_out( "MG: shock pistol " + word + " (" + level.mg_shock_weapon + " zaps Afterlife shock boxes and panels)" );
+                return 1;
             }
 
-            word = "OFF";
+            n = 0;
 
-            if ( level.mg_shock )
-                word = "ON";
+            foreach ( ent in getentarray( "afterlife_interact", "targetname" ) )
+            {
+                ent notify( "damage", 1, level );
+                mg_fx_once( "blue_spark", ent.origin );
+                n++;
+            }
 
-            self mg_out( "MG: shock pistol " + word + " (" + level.mg_shock_weapon + " zaps Afterlife shock boxes and panels)" );
+            self mg_out( "MG: zap sent to " + n + " Afterlife shock boxes and panels (!mg shock gun for the pistol mode)" );
             return 1;
 
         case "fx":
