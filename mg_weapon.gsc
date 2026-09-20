@@ -52,7 +52,6 @@ mg_weapon_grant( player, weapon )
     if ( weapon == "blundergat_upgraded_zm" )
         title = "Magmus Operandi";
 
-    player thread mg_hud_title( title, 3 );
     player mg_snd_player( "zmb_hellbox_arrive" );
     mg_debug_print( "MG: " + player.name + " holds a " + title + " (" + weapon + ")" );
 }
@@ -82,7 +81,6 @@ mg_weapon_player_watch()
         {
             self.mg_magma["blundergat_zm"] = 0;
             self.mg_magma["blundergat_upgraded_zm"] = 1;
-            self thread mg_hud_title( "Magmus Operandi", 3 );
         }
 
         // both gone (box swap, wall buy, death without Tombstone): the personality is lost
@@ -355,7 +353,6 @@ mg_acid_station_validation( player )
 
     if ( isdefined( weapon ) && mg_is_magma( player, weapon ) )
     {
-        player thread mg_hud_title( "The forge already claimed this gun", 2 );
         player mg_snd_player( "zmb_quest_nixie_count" );
         return 0;
     }

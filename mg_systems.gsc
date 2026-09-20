@@ -437,13 +437,12 @@ mg_zombies_near( pos, radius )
     return n;
 }
 
-// ---- zones --------------------------------------------------------------------------------------------------
-mg_office_volumes()
+// ---- the Warden's Office, as a box ---------------------------------------------------------------------------
+// The map's zone_warden_office volume is smaller than the room looks (owner 2026-09-20: kills inside the room did not
+// count). The owner walked the four corners: (-1056 8804) (-1056 8527) (-463 8531) (-462 8809), floor 1311..1336.
+mg_in_office_box( pos )
 {
-    if ( isdefined( level.zones ) && isdefined( level.zones["zone_warden_office"] ) )
-        return level.zones["zone_warden_office"].volumes;
-
-    return getentarray( "zone_warden_office", "targetname" );
+    return pos[0] > -1070 && pos[0] < -450 && pos[1] > 8515 && pos[1] < 8820 && pos[2] > 1280 && pos[2] < 1520;
 }
 
 mg_ent_in_office( ent )
@@ -451,13 +450,7 @@ mg_ent_in_office( ent )
     if ( !isdefined( ent ) )
         return 0;
 
-    foreach ( vol in mg_office_volumes() )
-    {
-        if ( ent istouching( vol ) )
-            return 1;
-    }
-
-    return 0;
+    return mg_in_office_box( ent.origin );
 }
 
 mg_player_in_office( player )

@@ -15,8 +15,9 @@ mg_models_init()
     level.mg_models["barrel"] = "p6_zm_al_wood_barrel_01";
     level.mg_models["candle"] = "p6_zm_al_candle_med_on";
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
-    level.mg_models["ball"] = "t6_wpn_zmb_projectile_blundergat";
+    level.mg_models["ball"] = "tag_origin"; // owner 2026-09-20: the dart model read as the Acid Gat; the fire fx alone is the ball
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
+    level.mg_models["clip"] = "collision_clip_32x32x32"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none)
 }
 
 mg_model( kind )
@@ -38,7 +39,8 @@ mg_precache()
         mg_models_init();
 
     foreach ( kind, name in level.mg_models )
-        precachemodel( name );
+        if ( name != "tag_origin" )
+            precachemodel( name );
 }
 
 mg_coords_init()

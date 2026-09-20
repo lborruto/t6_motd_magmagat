@@ -20,6 +20,11 @@ mg_run_init()
         barrel setmodel( mg_model( "barrel" ) );
         barrel.angles = c.angles;
         level.mg_barrels[i - 1] = barrel;
+
+        // players walk through a bare script_model: a collision clip stands inside the barrel (owner 2026-09-20)
+        clip = spawn( "script_model", barrel.origin + ( 0, 0, 16 ) );
+        clip setmodel( mg_model( "clip" ) );
+        barrel.mg_clip = clip;
     }
 }
 
@@ -59,7 +64,6 @@ mg_run_start( player, weapon )
     player.mg_temper_left = 25.0;
     mg_barrels_set( 1 );
     mg_state_set( "run" );
-    player thread mg_hud_title( "Tempered Blundergat", 3 );
     player thread mg_run_loop( weapon );
     player thread mg_run_shot_watch( weapon );
     player thread mg_run_down_watch();
@@ -73,8 +77,6 @@ mg_run_loop( weapon )
     level endon( "mg_run_over" );
     self endon( "disconnect" );
 
-    bar = self mg_bar_create( "Temper" );
-    self.mg_run_bar = bar;
     away_since = undefined;
     flame = mg_fx_loop( "gun_flame", self.origin );
 
@@ -120,7 +122,6 @@ mg_run_loop( weapon )
             away_since = undefined;
 
         self.mg_temper_left = self.mg_temper_left - 0.1;
-        mg_bar_update( bar, self.mg_temper_left / 25.0 );
 
         if ( self.mg_temper_left <= 0 )
         {
@@ -129,8 +130,6 @@ mg_run_loop( weapon )
         }
     }
 
-    mg_bar_destroy( self.mg_run_bar );
-    self.mg_run_bar = undefined;
     mg_fx_stop( level.mg_run_flame );
     level.mg_run_flame = undefined;
 }
@@ -186,7 +185,6 @@ mg_run_fail_do( reason )
     if ( isdefined( level.mg_carrier ) && is_player_valid( level.mg_carrier ) )
     {
         level.mg_carrier mg_snd_player( "wpn_blundersplat_explode_layer" );
-        level.mg_carrier thread mg_hud_title( "The temper is lost", 3 );
     }
 
     mg_run_cleanup();
@@ -198,10 +196,7 @@ mg_run_cleanup()
 {
     if ( isdefined( level.mg_carrier ) )
     {
-        if ( isdefined( level.mg_carrier.mg_run_bar ) )
-            mg_bar_destroy( level.mg_carrier.mg_run_bar );
 
-        level.mg_carrier.mg_run_bar = undefined;
         level.mg_carrier.mg_temper_left = undefined;
     }
 

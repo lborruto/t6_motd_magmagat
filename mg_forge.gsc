@@ -37,7 +37,6 @@ mg_forge_prompt_loop()
             {
                 if ( is_true( player.mg_forge_prompted ) )
                 {
-                    player mg_prompt( 0, undefined );
                     player.mg_forge_prompted = 0;
                 }
 
@@ -50,14 +49,12 @@ mg_forge_prompt_loop()
             {
                 if ( is_true( player.mg_forge_prompted ) )
                 {
-                    player mg_prompt( 0, undefined );
                     player.mg_forge_prompted = 0;
                 }
 
                 continue;
             }
 
-            player mg_prompt( 1, text );
             player.mg_forge_prompted = 1;
 
             if ( player mg_press_use() )

@@ -16,7 +16,7 @@ what round it is or how many players are in the game.
 <details>
 <summary>The fireplace</summary>
 
-Head to the fireplace in the Warden's Office holding a Blundergat. Press use at the hearth: the gun goes
+Head to the fireplace in the Warden's Office holding a Blundergat. Stand at the hearth and press use, no prompt shows: the gun goes
 into the fire and the quest begins. From this point the office is your workplace, so do not leave it before
 you have deposited every soul below, or the fire lets go of the gun and you start over.
 
@@ -32,9 +32,9 @@ that rule. Walk into an orb to collect it; it travels to the hearth. You need **
 three skulls on the mantle turn blue as you go: the first at **6**, the second at **12**, the third at
 **18**.
 
-If nobody stands in the office for **5 seconds** while the souls are being collected, the fire gives up and
-the gun is lost — start the fireplace step again, souls included. A warning sound plays at **3 seconds**, so
-you have a couple of seconds to get back inside once you hear it. Keep at least one player inside while the
+If nobody stands in the room while the souls are being collected, the fire gives up at once and
+the gun is lost with a fail sound: start the fireplace step again, souls included. So
+keep at least one player inside while the
 count is running.
 
 Once you reach 18, press use at the hearth again to feed the souls to the fire.

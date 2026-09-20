@@ -30,7 +30,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Before the bridge is raised: state stays `locked`, no prompt at the hearth even with a Blundergat in
       hand.
 - [ ] Raise the bridge (or `!mg goto ready`): state becomes `ready`. Holding `blundergat_zm` or
-      `blundergat_upgraded_zm`, a prompt appears at the hearth ("Temper the Blundergat"). Holding neither: no
+      `blundergat_upgraded_zm`, pressing use at the hearth lays the gun in the fire (no on-screen prompt, as the original). Holding neither: no
       prompt.
 
 ## 2. The souls
@@ -44,7 +44,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       outside / zombie outside).
 - [ ] Skulls turn blue at 6, 12 and 18 orbs (one skull per threshold).
 - [ ] Orbs stop spawning once the count is already at 18 (kill one more zombie in-office: no extra orb).
-- [ ] **Failure path**: leave the office with nobody inside for the fail window (watch for the warning line
+- [ ] **Failure path**: leave the room with nobody inside (1.5 s grace; a fail sound
       partway through). The fireplace resets: state goes back to `ready` and the collected souls are lost.
       Confirm the skulls go dark again and the count restarts at 0 on the next attempt.
 - [ ] Co-op: a second player can collect orbs and press the hearth; the souls state is shared, not per
@@ -62,10 +62,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 4. The run
 
 - [ ] `!mg goto run` (or take the tempered gun honestly): state is `run`, you carry the tempered Blundergat,
-      a visible flame rides the weapon, the five barrels are lit blue, and a temper timer/bar is running.
+      a visible flame rides the weapon and the five barrels are lit blue (no timer on screen: the flame is the only indicator; `!mg status` prints the seconds left).
 - [ ] Standing within range of any lit barrel (office exit, top of the spiral stairs, bottom of the tunnels,
       Generator Room door) refills the timer to full.
-- [ ] Firing a shot costs time off the timer (5 s per shot) - fire once and watch the timer drop.
+- [ ] Firing a shot costs 5 s of temper - fire once and check `!mg status`.
 - [ ] **Failure path - timer expires**: let the temper run out without refilling. State returns to `ready`,
       the gun in hand becomes a plain Blundergat again, and the fireplace resets (souls included - confirm
       the skulls go dark and the count is back to 0).

@@ -70,7 +70,6 @@ mg_hearth_prompt_loop()
             {
                 if ( is_true( player.mg_hearth_prompted ) )
                 {
-                    player mg_prompt( 0, undefined );
                     player.mg_hearth_prompted = 0;
                 }
 
@@ -90,14 +89,12 @@ mg_hearth_prompt_loop()
             {
                 if ( is_true( player.mg_hearth_prompted ) )
                 {
-                    player mg_prompt( 0, undefined );
                     player.mg_hearth_prompted = 0;
                 }
 
                 continue;
             }
 
-            player mg_prompt( 1, text );
             player.mg_hearth_prompted = 1;
 
             if ( !player mg_press_use() )
@@ -241,7 +238,15 @@ mg_orb_spawn( pos )
     level.mg_orbs++;
     taker mg_snd_player( "zmb_quest_forcefield_end" );
     mg_fx_once( "soul_hit", taker.origin + ( 0, 0, 40 ) );
-    level thread mg_trail( "soul_trail", from, mg_coord( "MG_HEARTH" ).origin + ( 0, 0, 20 ), 900 );
+
+    // the soul flies to the skull it fills (owner 2026-09-20): skull 0 for orbs 1-6, 1 for 7-12, 2 for 13-18
+    target = mg_coord( "MG_HEARTH" ).origin + ( 0, 0, 20 );
+    skull = level.mg_skulls[int( ( level.mg_orbs - 1 ) / 6 )];
+
+    if ( isdefined( skull ) )
+        target = skull.origin + ( 0, 0, 8 );
+
+    level thread mg_trail( "soul_trail", from, target, 900 );
     mg_debug_print( "MG: orb " + level.mg_orbs + "/18 by " + taker.name );
 
     if ( level.mg_orbs == 6 || level.mg_orbs == 12 || level.mg_orbs == 18 )
@@ -311,16 +316,11 @@ mg_hearth_office_watch()
         if ( !isdefined( empty_since ) )
             empty_since = gettime();
 
-        if ( !warned && gettime() - empty_since >= 3000 )
+        // owner 2026-09-20: leaving the room resets the souls (1.5 s of grace for a doorway step, no warning)
+        if ( gettime() - empty_since >= 1500 )
         {
-            warned = 1;
-            mg_debug_print( "MG: office empty, 2 s before the fire takes the gun" );
+            mg_debug_print( "MG: office left during the souls: the Blundergat is lost, souls reset" );
             mg_snd_near( "zmb_quest_nixie_fail", mg_coord( "MG_HEARTH" ).origin, 1500 );
-        }
-
-        if ( gettime() - empty_since >= 5000 )
-        {
-            mg_debug_print( "MG: office left during the souls: the Blundergat is lost" );
             mg_hearth_reset( 0 );
             return;
         }
