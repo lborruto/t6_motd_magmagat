@@ -38,7 +38,7 @@ mg_barrels_set( lit )
 
     foreach ( barrel in level.mg_barrels )
     {
-        ent = mg_fx_loop( "blue_fire", barrel.origin + ( 0, 0, 30 ) );
+        ent = mg_fx_loop( "barrel_fire", barrel.origin + ( 0, 0, 30 ) );
 
         if ( isdefined( ent ) )
         {
@@ -76,7 +76,7 @@ mg_run_loop( weapon )
     bar = self mg_bar_create( "Temper" );
     self.mg_run_bar = bar;
     away_since = undefined;
-    flame = mg_fx_loop( "fire_xsm", self.origin );
+    flame = mg_fx_loop( "gun_flame", self.origin );
 
     if ( isdefined( flame ) )
         flame linkto( self, "tag_weapon_right", ( 0, 0, 0 ), ( 0, 0, 0 ) );
@@ -96,7 +96,7 @@ mg_run_loop( weapon )
             if ( distancesquared( self.origin, barrel.origin ) < 80 * 80 )
             {
                 if ( self.mg_temper_left < 24.5 )
-                    self mg_snd_player( "zmb_afterlife_shockbox_on" );
+                    self mg_snd_player( "evt_wolfhead_depart" );
 
                 self.mg_temper_left = 25.0;
             }
@@ -185,7 +185,7 @@ mg_run_fail_do( reason )
 
     if ( isdefined( level.mg_carrier ) && is_player_valid( level.mg_carrier ) )
     {
-        level.mg_carrier mg_snd_player( "zmb_no_cha_ching" );
+        level.mg_carrier mg_snd_player( "wpn_blundersplat_explode_layer" );
         level.mg_carrier thread mg_hud_title( "The temper is lost", 3 );
     }
 

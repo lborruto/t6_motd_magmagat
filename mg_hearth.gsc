@@ -40,11 +40,11 @@ mg_hearth_fire()
             mg_fx_stop( level.mg_hearth_fx );
 
         if ( mg_state_is( "pickup" ) )
-            level.mg_hearth_fx = mg_fx_loop( "blue_fire", pos );
+            level.mg_hearth_fx = mg_fx_loop( "hearth_blue", pos );
         else if ( mg_state_is( "souls" ) )
-            level.mg_hearth_fx = mg_fx_loop( "fire_md", pos );
+            level.mg_hearth_fx = mg_fx_loop( "hearth_fire", pos );
         else
-            level.mg_hearth_fx = mg_fx_loop( "fire_sm", pos );
+            level.mg_hearth_fx = mg_fx_loop( "hearth_fire", pos );
 
         if ( isdefined( level.mg_hearth_fx ) )
             level thread mg_fx_keepalive( level.mg_hearth_fx );
@@ -132,7 +132,7 @@ mg_hearth_start( player )
     level.mg_orbs = 0;
     c = mg_coord( "MG_HEARTH" );
     level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
-    player mg_snd_player( "zmb_powerpanel_activate" );
+    player mg_snd_player( "zmb_hellbox_lock" );
     level.mg_hearth_session++;
     mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
     mg_state_set( "souls" );
@@ -239,7 +239,7 @@ mg_orb_spawn( pos )
         return;
 
     level.mg_orbs++;
-    taker mg_snd_player( "zmb_powerup_grabbed_3p" );
+    taker mg_snd_player( "zmb_quest_forcefield_end" );
     mg_fx_once( "soul_hit", taker.origin + ( 0, 0, 40 ) );
     level thread mg_trail( "soul_trail", from, mg_coord( "MG_HEARTH" ).origin + ( 0, 0, 20 ), 900 );
     mg_debug_print( "MG: orb " + level.mg_orbs + "/18 by " + taker.name );
@@ -268,7 +268,7 @@ mg_skull_light( idx )
     if ( isdefined( ent ) )
         level thread mg_fx_keepalive( ent );
 
-    mg_snd_near( "evt_wolfhead_eat", skull.origin, 600 );
+    mg_snd_near( "zmb_afterlife_zombie_warp_in", skull.origin, 600 );
 }
 
 mg_skulls_dark()
@@ -315,7 +315,7 @@ mg_hearth_office_watch()
         {
             warned = 1;
             mg_debug_print( "MG: office empty, 2 s before the fire takes the gun" );
-            mg_snd_near( "zmb_no_cha_ching", mg_coord( "MG_HEARTH" ).origin, 1500 );
+            mg_snd_near( "zmb_quest_nixie_fail", mg_coord( "MG_HEARTH" ).origin, 1500 );
         }
 
         if ( gettime() - empty_since >= 5000 )
@@ -335,7 +335,7 @@ mg_hearth_deposit( player )
 
     mg_death_listen_remove( "mg_hearth" );
     mg_state_set( "pickup" );
-    player mg_snd_player( "zmb_afterlife_panel_on" );
+    player mg_snd_player( "zmb_hellbox_unlock" );
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun moveto( level.mg_hearth_gun.origin + ( 0, 0, 14 ), 3 );

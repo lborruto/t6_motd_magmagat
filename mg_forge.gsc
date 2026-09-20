@@ -109,7 +109,7 @@ mg_forge_press( player )
         level.mg_forge_powered = 1;
         pos = mg_coord( "MG_FORGE_GUN" ).origin;
         mg_fx_once( "sparks", pos );
-        mg_snd_near( "zmb_quest_generator_panel_power", pos, 800 );
+        mg_snd_near( "zmb_powerpanel_activate", pos, 800 );
         wait 2;
         level.mg_forge_busy = 0;
         return;
@@ -157,7 +157,7 @@ mg_forge_place( player, weapon, tempered )
     level.mg_forge_placer = player;
     level.mg_forge_place_ents = [];
     level.mg_forge_place_ents[level.mg_forge_place_ents.size] = gun;
-    mg_snd_near( "zmb_afterlife_object_apparate", c.origin, 800 );
+    mg_snd_near( "zmb_afterlife_shockbox_on", c.origin, 800 );
 
     // two ghosts circle the gun for 5 s
     g1 = mg_fx_loop( "ghost", c.origin + ( 40, 0, 20 ) );
@@ -193,7 +193,7 @@ mg_forge_place( player, weapon, tempered )
     mg_fx_stop( g2 );
     mg_fx_stop( smoke );
     mg_fx_once( "explo", c.origin );
-    mg_snd_near( "zmb_afterlife_object_disapparate", c.origin, 800 );
+    mg_snd_near( "zmb_hellbox_open", c.origin, 800 );
     level.mg_forge_ready_gun = gun;
     level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
     level.mg_forge_busy = 0;

@@ -31,21 +31,27 @@ mg_fx_table()
     t["fire_xsm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
     t["embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat";
     t["blue_fire"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
-    t["soul"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge";
+    t["soul"] = "maps/zombie_alcatraz/fx_alcatraz_light_round_oo"; // owner pick 2026-09-20
     t["soul_start"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
-    t["soul_full"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
-    t["soul_hit"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_impact_sm";
-    t["soul_trail"] = "maps/zombie_alcatraz/fx_alcatraz_soul_gib_trail";
+    t["soul_full"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // owner pick (teleport_ball)
+    t["soul_hit"] = "weapon/tomahawk/fx_tomahawk_charge"; // owner pick (tomahawk_charge_up)
+    t["soul_trail"] = "weapon/tomahawk/fx_tomahawk_trail_charged"; // owner pick
     t["ghost"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
-    t["sparks"] = "maps/zombie_alcatraz/fx_alcatraz_generator_sparks";
-    t["smoke"] = "maps/zombie_alcatraz/fx_alcatraz_generator_smk";
-    t["glow"] = "maps/zombie_alcatraz/fx_alcatraz_quest_item_glow";
+    t["sparks"] = "maps/zombie_alcatraz/fx_alcatraz_elevator_spark"; // owner pick
+    t["smoke"] = "maps/zombie_alcatraz/fx_alcatraz_plane_fire_trail"; // owner pick
+    t["glow"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // owner pick (Magmagat ready)
     t["glint"] = "maps/zombie_alcatraz/fx_alcatraz_key_glint";
     t["ball"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire";
     t["ball_hit"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact";
-    t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso";
+    t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // owner pick
     t["explo"] = "maps/zombie/fx_zmb_tranzit_lava_torso_explo";
     t["blue_spark"] = "electrical/fx_elec_spark_bounce_blue_lg";
+    // one key per visible role (owner picks 2026-09-20)
+    t["hearth_fire"] = "maps/zombie/fx_zmb_meat_trail";
+    t["hearth_blue"] = "maps/zombie_alcatraz/fx_alcatraz_tomahawk_pickup";
+    t["barrel_fire"] = "weapon/tomahawk/fx_tomahawk_trail_ug";
+    t["gun_flame"] = "weapon/tomahawk/fx_tomahawk_trail_ug";
+    t["patch_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
     return t;
 }
 

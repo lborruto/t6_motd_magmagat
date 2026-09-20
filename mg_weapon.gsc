@@ -53,7 +53,7 @@ mg_weapon_grant( player, weapon )
         title = "Magmus Operandi";
 
     player thread mg_hud_title( title, 3 );
-    player mg_snd_player( "zmb_perks_packa_ready" );
+    player mg_snd_player( "zmb_hellbox_arrive" );
     mg_debug_print( "MG: " + player.name + " holds a " + title + " (" + weapon + ")" );
 }
 
@@ -273,7 +273,7 @@ mg_patch( pos, weapon )
         self.mg_patches = rest;
     }
 
-    fire = mg_fx_loop( "fire_md", pos );
+    fire = mg_fx_loop( "patch_fire", pos );
 
     if ( !isdefined( fire ) )
         return;
@@ -356,7 +356,7 @@ mg_acid_station_validation( player )
     if ( isdefined( weapon ) && mg_is_magma( player, weapon ) )
     {
         player thread mg_hud_title( "The forge already claimed this gun", 2 );
-        player mg_snd_player( "zmb_no_cha_ching" );
+        player mg_snd_player( "zmb_quest_nixie_count" );
         return 0;
     }
 
