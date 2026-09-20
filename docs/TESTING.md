@@ -119,10 +119,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       part of this mod).
 - [ ] `!mg snd <n>` / `!mg snd <alias>` / `!mg snd next` / `!mg snd prev` plays a curated sound alias to you
       at full volume and prints its name; silence on a name means the alias is in no bank.
-- [ ] **Shock pistol on a shock box**: `!mg shock` toggles on, fire the shock weapon (`m1911_zm` by default)
+- [ ] **Shock zap**: `!mg shock` zaps every shock box and panel at once (doors open, generator panels light). **Shock pistol**: `!mg shock gun` toggles on, fire the shock weapon (`m1911_zm` by default)
       at an Afterlife shock box - it should zap as if hit by the real Afterlife interaction.
 - [ ] **Shock pistol on a power panel**: same toggle, aim at an Afterlife power panel instead - it should
-      zap that too. Toggle `!mg shock` off afterward and confirm shots no longer zap anything.
+      zap that too. Toggle `!mg shock gun` off afterward and confirm shots no longer zap anything.
 
 ## 8. Co-op
 
