@@ -257,6 +257,9 @@ $scripts
     (function loop(){requestAnimationFrame(loop);resize();controls.update();renderer.render(scene,camera)})();
   }else{document.getElementById('viewer').querySelector('.hint').textContent='The 3D libraries did not load; pick by name and size, I will check the shape.'}
   function mgStrip(t){try{var j=JSON.parse(t);delete j.images;delete j.textures;delete j.samplers;(j.materials||[]).forEach(function(m){delete m.normalTexture;delete m.occlusionTexture;delete m.emissiveTexture;if(m.pbrMetallicRoughness){delete m.pbrMetallicRoughness.baseColorTexture;delete m.pbrMetallicRoughness.metallicRoughnessTexture}});return JSON.stringify(j)}catch(e){return t}}
+  function mgDiag(t){var h=document.getElementById('viewer').querySelector('.hint');if(h){h.textContent='[v3] '+t}}
+  window.addEventListener('error',function(ev){mgDiag('script error: '+(ev.message||ev.type))});
+  mgDiag('three.js '+(window.THREE?'r'+THREE.REVISION:'NOT loaded')+', GLTFLoader '+(window.THREE&&THREE.GLTFLoader?'ok':'missing')+', OrbitControls '+(window.THREE&&THREE.OrbitControls?'ok':'missing')+', WebGL '+(function(){try{var c=document.createElement('canvas');return (c.getContext('webgl')||c.getContext('experimental-webgl'))?'ok':'unavailable'}catch(e){return 'unavailable'}})());
   var loader=ok?new THREE.GLTFLoader():null,mat=ok?new THREE.MeshStandardMaterial({color:0xb89070,roughness:0.85,metalness:0.05,side:THREE.DoubleSide}):null;
   function show(name){
     var el=document.querySelector('script[data-model="'+name+'"]');if(!el)return;
@@ -266,10 +269,10 @@ $scripts
     var s=steps[cur];document.getElementById('pick').disabled=!s||s.dataset.fixed==='1';
     if(!ok)return;
     loader.parse(mgStrip(el.textContent),'',function(g){
-      if(model){scene.remove(model)}model=g.scene;model.traverse(function(o){if(o.isMesh){o.material=mat}});scene.add(model);
+      if(model){scene.remove(model)}model=g.scene;model.traverse(function(o){if(o.isMesh){o.material=mat}});scene.add(model);var mc=0;model.traverse(function(o){if(o.isMesh)mc++});mgDiag('showing '+name+': '+mc+' mesh(es)');
       var box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
       var m=Math.max(size.x,size.y,size.z,8);controls.target.copy(center);camera.position.set(center.x+m*1.2,center.y+m*0.9,center.z+m*1.6);camera.near=m/100;camera.far=m*50;camera.updateProjectionMatrix();
-    },function(e){document.getElementById('vname').textContent=name+' (could not parse)'});
+    },function(e){document.getElementById('vname').textContent=name+' (could not parse)';mgDiag('parse error: '+(e&&e.message?e.message:e))});
   }
   function summary(){var out=[];steps.forEach(function(s){var id=s.dataset.id;if(id==='summary')return;var t=s.querySelector('h2').textContent;var v;if(s.dataset.fixed==='1'){v='fixed ('+s.dataset.cur+')'}else{v=picks[id]?picks[id]:(keep[id]?'keep ('+s.dataset.cur+')':'-- not decided --')}out.push(t+' = '+v)});return out.join('\\n')}
   function markPicked(){var s=steps[cur],p=s?picks[s.dataset.id]:null;document.querySelectorAll('.mrow').forEach(function(r){r.classList.toggle('picked',r.dataset.name===p)})}
