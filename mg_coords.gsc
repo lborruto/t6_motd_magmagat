@@ -41,6 +41,28 @@ mg_precache()
     foreach ( kind, name in level.mg_models )
         if ( name != "tag_origin" )
             precachemodel( name );
+
+    // owner 2026-09-28: the real models come from our mod.ff (mods/zm_magmagat); only precached when that mod is
+    // the one loaded, so the loose scripts still run without it
+    if ( mg_mod_loaded() )
+    {
+        foreach ( name in mg_mod_models() )
+            precachemodel( name );
+    }
+}
+
+// 1 when Plutonium runs our fastfile mod (the Mods menu sets fs_game to mods/<folder>).
+mg_mod_loaded()
+{
+    return issubstr( tolower( getdvar( "fs_game" ) ), "zm_magmagat" );
+}
+
+// Every xmodel our mod.ff ships (mod/zone_source/mod.zone).
+mg_mod_models()
+{
+    list = [];
+    list[list.size] = "mg_test_barrel";
+    return list;
 }
 
 mg_coords_init()

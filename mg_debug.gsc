@@ -140,6 +140,17 @@ mg_debug_command( sub, arg, args )
             self mg_out( "MG: preview removed" );
             return 1;
 
+        // owner 2026-09-28: spawn any precached model 80 in front (the mod.ff test props)
+        case "model":
+            if ( !isdefined( arg ) )
+            {
+                self mg_out( "MG: mod loaded " + mg_mod_loaded() + " (fs_game '" + getdvar( "fs_game" ) + "'), usage: !mg model <xmodel>" );
+                return 1;
+            }
+
+            self mg_debug_spawn_model( arg );
+            return 1;
+
         case "tp":
             if ( !isdefined( arg ) )
             {
@@ -154,6 +165,25 @@ mg_debug_command( sub, arg, args )
     }
 
     return 0;
+}
+
+// self = player. One script_model of `name` 80 in front, on the ground, facing the player; the previous one goes.
+mg_debug_spawn_model( name )
+{
+    if ( isdefined( level.mg_debug_model ) )
+        level.mg_debug_model delete();
+
+    fwd = anglestoforward( ( 0, self.angles[1], 0 ) );
+    pos = self.origin + fwd * 80;
+    trace = bullettrace( pos + ( 0, 0, 60 ), pos - ( 0, 0, 300 ), 0, self );
+
+    if ( isdefined( trace["position"] ) )
+        pos = trace["position"];
+
+    level.mg_debug_model = spawn( "script_model", pos );
+    level.mg_debug_model setmodel( name );
+    level.mg_debug_model.angles = ( 0, self.angles[1] + 180, 0 );
+    self mg_out( "MG: model " + name + " at " + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) );
 }
 
 // self = player. Every shot of the shock weapon traces from the eye; the nearest afterlife_interact entity
