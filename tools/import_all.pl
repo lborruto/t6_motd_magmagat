@@ -53,6 +53,9 @@ for my $p (@props) {
 my $zone = "$repo/mod/zone_source/mod.zone";
 open my $h, '<:raw', $zone or die "$zone: $!\n";
 my $z = do { local $/; <$h> };
+$z =~ s/
+/
+/g;    # a checkout may hand it over with CRLF endings
 close $h;
 my $block = "// props (tools/import_all.pl)\n" . join( '', map { "xmodel,$_->[0]\n" } @props ) . "// end props\n";
 # in place when the block exists (the zone keeps its order), else appended
