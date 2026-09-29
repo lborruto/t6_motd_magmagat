@@ -37,7 +37,7 @@ mg_fx_table()
     t["soul_release"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
     t["soul"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
     t["soul_start"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
-    t["soul_trail"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
+    t["soul_trail"] = "weapon/lightning_hands/lightning_hands_muzzleflash_trail"; // the BO3 remaster's soul trail
     t["soul_arrive"] = "weapon/tomahawk/fx_tomahawk_charge_ug"; // a soul-energy flash (the wolf heads' impact is their bite blood)
     t["soul_hit"] = "weapon/tomahawk/fx_tomahawk_charge"; // the soul taken by a player
     t["soul_full"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
@@ -45,8 +45,11 @@ mg_fx_table()
     t["hearth_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
     t["hearth_blue"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell";
     t["hearth_close"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell_close";
+    t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the deposit's flare-up
+    t["gun_vanish"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a gun not taken in time vanishes
     // the run: fire in the barrels, the temper riding the gun
     t["barrel_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm";
+    t["barrel_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // a barrel spent on a refill
     t["gun_flame"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
     // the forge: the generator's own sparks and smoke, afterlife ghosts, the quest-item glow on the gun to take
     t["ghost"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";

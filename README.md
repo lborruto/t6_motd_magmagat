@@ -22,7 +22,8 @@ walkthrough behind spoiler folds.
 
 ## Credits
 
-Quest design after the BO3 custom map "Mob of the Dead Remastered" by nekoBoy and Blood of the Dead by
-Treyarch. The Magmagat is Treyarch's Black Ops 4 model, the blue barrels and the mantle skulls are models from that
-map, the lava is its own; the gun plays BO2's Blundergat animations. Built with OpenAssetTools and on the Dead
-Frequency toolchain. MIT licence (the code).
+Quest design after Treyarch's Black Ops 4 "Blood of the Dead" and the BO3 Workshop map "MOB OF THE DEAD" by
+copforthat (with tupivere_, dobby, Xela, Hybs, Rayjiun, robit, GCP, Booris and Kingslayer Kyle). The Magmagat is
+Treyarch's Black Ops 4 model; the blue barrels, the mantle skulls, the lava and the quest's sounds (the flame bursts,
+the souls, the press, the warden's lines) come from that map; the gun plays BO2's Blundergat animations. Built with
+OpenAssetTools and on the Dead Frequency toolchain. MIT licence (the code).

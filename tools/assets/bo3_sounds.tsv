@@ -1,0 +1,8 @@
+# The BO3 remaster's own sounds the mod plays (tools/import_sounds.pl builds them into the mod.all bank of mod.ff).
+# our alias	BO3 alias	storage	pan	looping	volume(dB)	dist_min	dist_max	what for
+mg_flame_burst	zmb_flame_burst	loaded	3d	nonlooping	92	200	2500	the fire takes the gun, the deposit's flare, the forge's burst (the remaster's magmagat flame bursts)
+mg_soul_kill	amb_soul_kill	loaded	3d	nonlooping	90	150	1800	a soul leaves its body (the remaster's soul kill)
+mg_soul_loop	amb_soul_loop	streamed	3d	looping	82	80	900	a soul waiting to be taken
+mg_press	zmb_magmagat_upgrade_machine	loaded	3d	nonlooping	95	250	3000	the forge works the gun (the remaster's magmagat press)
+mg_brutus_mgu	vox_brutus_easter_egg_mgu	loaded	2d	nonlooping	95	0	0	the warden answers the first forge (the remaster's Brutus line for the Magmagat)
+mg_brutus_laugh	vox_brutus_scary_laugh	streamed	2d	nonlooping	92	0	0	the warden laughs when the gun is lost

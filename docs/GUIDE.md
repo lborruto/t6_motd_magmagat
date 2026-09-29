@@ -4,88 +4,87 @@
 > says it best: our advice is to discover it yourself first. Come back here only if you are stuck. Each
 > section below is folded; open only the one you need.
 
+The quest follows Black Ops 4's Blood of the Dead and the BO3 "Mob of the Dead" remaster: the same steps, counts
+and timers, on Mob of the Dead.
+
 <details>
 <summary>Requirements</summary>
 
-You need a Blundergat (`blundergat_zm`) or its Pack-a-Punched form (`blundergat_upgraded_zm`) in hand, and
-someone must have reached the Golden Gate Bridge at least once (the plane's landing). Nothing else has to happen first: the quest does not care
-what round it is or how many players are in the game.
+You need a Blundergat, a Sweeper (its Pack-a-Punched form), an Acid Gat or a Vitriolic Withering (the Pack-a-Punched
+Acid Gat), and someone must have reached the Golden Gate Bridge at least once (the plane's landing). Nothing else
+has to happen first: the quest does not care what round it is or how many players are in the game.
 
 </details>
 
 <details>
 <summary>The fireplace</summary>
 
-Head to the fireplace in the Warden's Office holding a Blundergat. Stand at the hearth and press use, no prompt shows: the gun goes
-into the fire and the quest begins. From this point the office is your workplace, so do not leave it before
-you have deposited every soul below, or the fire lets go of the gun and you start over.
-
+Head to the fireplace in the Warden's Office holding one of those guns. Stand at the hearth and press use (no
+prompt shows): the gun goes into the fire, a laugh answers, and the quest begins.
 
 </details>
 
 <details>
 <summary>The souls</summary>
 
-Every zombie you kill **while you are standing inside the Warden's Office, and the zombie also dies inside
-it**, drops a blue soul orb. A kill through the office window from outside does not count on either end of
-that rule. Walk into an orb to collect it; it travels to the hearth. You need **18 souls** in total. The
-three skulls on the mantle turn blue as you go: the first at **6**, the second at **12**, the third at
-**18**.
+Every zombie a player kills **that dies inside the Warden's Office** releases its soul; the killer can stand
+anywhere. The soul streaks out of the body and rises for **3 seconds**: walk into it before it fades. A soul you
+take flies to its skull on the mantle. You need **15 souls**: the three skulls light up blue at **5**, **10** and
+**15**.
 
-If nobody stands in the room while the souls are being collected, the fire gives up at once and
-the gun is lost with a fail sound: start the fireplace step again, souls included. So
-keep at least one player inside while the
-count is running.
+The office belongs to the player who placed the gun. If that player spends **10 seconds** outside it, the souls
+taken so far are lost (the skulls go dark). **30 seconds** outside, or dying, and the fire lets go: the gun is lost.
 
-Once you reach 18, press use at the hearth again to feed the souls to the fire.
+At 15, press use at the hearth again. The skulls drain into the fire one after the other, the fire flares, and a
+second later it opens into a blue hell portal with the tempered gun rising in it.
 
 </details>
 
 <details>
 <summary>The run</summary>
 
-The flame turns blue and the tempered Blundergat rises out of the fire. You have **30 seconds** to take it
-before the fire reclaims it (whoever placed the gun gets a plain Blundergat back, if he is still alive).
+You have **30 seconds** to take the tempered gun, or it is lost.
 
-Once you are carrying the tempered gun, the flame on it is a **25-second** temper that ticks down on its
-own. Four blue barrels along the route — the office exit, the top of the spiral stairs, the bottom of the
-Citadel tunnels, and the Generator Room door — refill the timer to full when you stand near one. Every shot
-you fire also costs **5 seconds** off the timer, so do not spray it on the way. Switching away from the
-tempered gun for **more than 1 second** kills the temper; going down kills it at once, no grace period.
+In your hands its flame is a **25-second** temper that burns down on its own, and every shot costs **6 seconds**.
+Five barrels burn along the route (the office exit, down the stairs, the Citadel, the tunnels, the docks): walking
+up to one refills the temper to full, but each barrel works **once per run** and goes out after. In the last 5
+seconds the flame flickers and the gun shakes.
 
-If the temper runs out, or you switch weapons for too long, or you go down: it is back to the fireplace, souls included.
-The remaster's own warning holds here too — do not get comfortable with the gun in hand until it is forged.
+Switch weapons, go down, or let the temper run out, and the flame dies: you keep your gun, and it is back to the
+fireplace for a new temper.
 
 </details>
 
 <details>
 <summary>The forge</summary>
 
-Carry the tempered Blundergat to the generator in the Generator Room by the docks. Power it with one press,
-then place the gun on it. It ghosts for **5 seconds**, bursts, and the Magmagat rises out of the fire: take it.
+Carry the tempered gun to the generator in the Generator Room by the docks. Power it with one press, then place
+the gun on it. Two ghosts work it for **5 seconds**, it bursts, and the Magmagat rises out of the fire. Take it
+within **30 seconds** or it is lost. The first forge wakes the warden: a Brutus comes for you.
 
-Once the forge has produced a Magmagat this way, it stays open: any plain Blundergat placed on it afterward
-converts straight away, no fresh temper run needed.
+A Pack-a-Punched gun (a Sweeper or a Vitriolic Withering) comes out as the **Magmus Operandi**.
+
+Once the forge has made a Magmagat, it stays open: any of the four guns placed on it converts straight away, no
+temper run needed. The fireplace takes no more guns.
 
 </details>
 
 <details>
 <summary>The weapon</summary>
 
-The Magmagat is the Black Ops 4 gun: its own model and name, the molten canisters and barrels glowing and
-flickering, a small flame riding it while you hold it. It handles and reloads like a Blundergat, but it fires with a
-burst of flame and red-hot streaks, and every shot also throws a tumbling blob of lava. A
-ball that lands on a zombie sticks and explodes it and everything around it a moment later; a shot that
-misses leaves a molten pool on the ground instead, which keeps damaging zombies that walk through it for a
-few seconds.
+The Magmagat is the Black Ops 4 gun: its own model and name, its molten canisters and barrels glowing and
+flickering, a small flame riding it while you hold it. It handles and reloads like a Blundergat, but it fires with
+a burst of flame and red-hot streaks, and every shot also throws a tumbling blob of lava.
 
-Brutus is different: a lava ball or a patch burns him steadily, but neither one can kill him outright — he
-always survives the fire.
+A blob that lands on a zombie sticks for half a second, then kills it (a stronger one takes a heavy hit and burns
+to death over 4 seconds); everything within about 10 feet takes a blast and catches fire. A miss leaves a molten
+pool for **5 seconds** (3 at most): zombies are drawn to it, catch fire when they step in, and crawlers die in it
+outright. Mind your feet: your own lava burns you too.
 
-Switching to another weapon, or going down, ends nothing about the Magmagat itself — once forged, it is
-yours to keep and carry like any other weapon. The Acid Gat kit, however, refuses a Magmagat outright: it
-only takes a Blundergat, and the forge already claimed that one. Pack-a-Punch it normally instead: the
-Magmagat comes out as the Magmus Operandi, one tier up, armoured, same personality. It also works the other way round:
-a Sweeper, the Pack-a-Punched Blundergat, tempered and forged comes out as the Magmus Operandi directly.
+Brutus takes the blob hard: it burns him for 5 seconds, enough to bring him down.
+
+Once forged, the Magmagat is yours like any other weapon. Pack-a-Punch it and it comes out as the Magmus Operandi
+(two blobs a clip, a bigger lure). The Acid Gat kit takes it too: it goes in as the Blundergat it was, and comes
+out as the Acid Gat.
 
 </details>

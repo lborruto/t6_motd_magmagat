@@ -65,17 +65,18 @@ mg_bridge_flag_watch()
     level notify( "mg_bridge_reached" );
 }
 
-// The Blundergat variant the player holds, or undefined (Sweeper counts, the Acid Gat does not).
+// The Blundergat variant the player holds, or undefined. As in BO4 the fireplace and the forge take all four: the
+// Blundergat, the Sweeper, the Acid Gat and the Vitriolic Withering (a Pack-a-Punched one forges the Magmus Operandi).
 mg_has_blundergat( player )
 {
     if ( !isdefined( player ) || !is_player_valid( player ) )
         return undefined;
 
-    if ( player hasweapon( "blundergat_upgraded_zm" ) )
-        return "blundergat_upgraded_zm";
-
-    if ( player hasweapon( "blundergat_zm" ) )
-        return "blundergat_zm";
+    foreach ( weapon in array( "blundergat_upgraded_zm", "blundersplat_upgraded_zm", "blundergat_zm", "blundersplat_zm" ) )
+    {
+        if ( player hasweapon( weapon ) )
+            return weapon;
+    }
 
     return undefined;
 }
@@ -150,7 +151,7 @@ mg_goto( state )
 mg_status_lines()
 {
     l = [];
-    l[l.size] = "MG " + level.mg_version + " | state " + level.mg_state + " | orbs " + level.mg_orbs + "/18";
+    l[l.size] = "MG " + level.mg_version + " | state " + level.mg_state + " | orbs " + level.mg_orbs + "/15";
 
     if ( isdefined( level.mg_carrier ) && isdefined( level.mg_carrier.name ) )
         l[l.size] = "carrier " + level.mg_carrier.name + " | temper left " + mg_temper_left_str();

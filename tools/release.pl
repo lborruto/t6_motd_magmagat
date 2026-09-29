@@ -2,6 +2,7 @@
 # Builds the release: ONE folder the player drops into %LOCALAPPDATA%\Plutonium\storage\t6\mods\, plus its zip.
 #   release/zm_magmagat/mod.ff                                   props + Magmagat weapons (tools/build_mod.pl)
 #   release/zm_magmagat/mod.json                                 name, author, description, version
+#   release/zm_magmagat/mod.all.sabl, mod.all.sabs              the sound bank (the BO3 remaster's sounds)
 #   release/zm_magmagat/scripts/zm/zm_prison/zm_prison_magmagat*.gsc   the quest (tools/pack.pl)
 #   release/zm_magmagat-<version>.zip
 # mod/props and mod/weapon must be built first (tools/import_all.pl, tools/build_weapon.pl).
@@ -26,6 +27,9 @@ remove_tree($dir);
 make_path($scripts);
 copy( "$repo/mod/out/mod.ff", "$dir/mod.ff" ) or die "release.pl: mod.ff: $!\n";
 copy( "$repo/mod/out/mod.json", "$dir/mod.json" ) or die "release.pl: mod.json: $!\n";
+for my $bank (qw(mod.all.sabl mod.all.sabs)) {
+    copy( "$repo/mod/out/$bank", "$dir/$bank" ) or die "release.pl: $bank: $!\n";
+}
 
 # one packed file if it fits, else two, else three (as tools/deploy.pl)
 my $parts = 0;

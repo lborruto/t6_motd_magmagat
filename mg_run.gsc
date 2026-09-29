@@ -6,8 +6,9 @@
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_forge;
 
-// The temper run: 25 s of flame, five blue barrels refill it, a shot costs 5 s, switching away for more than
-// 1 s or going down kills it (spec section 3, numbers approved 2026-09-18).
+// The temper run, after BO4: 25 s of flame, a shot costs 6 s, each of the five barrels refills it to full ONCE per run
+// (it burns while a tempered gun is out and goes out once spent), the flame flickers in the last 5 s, switching
+// weapon or going down ends it (the player keeps the Blundergat: back to the fireplace).
 
 mg_run_init()
 {
@@ -30,28 +31,34 @@ mg_run_init()
 
 mg_barrels_set( lit )
 {
-    if ( !isdefined( level.mg_barrel_fx ) )
-        level.mg_barrel_fx = [];
-
-    foreach ( ent in level.mg_barrel_fx )
-        mg_fx_stop( ent );
-
-    level.mg_barrel_fx = [];
-
-    if ( !lit )
-        return;
-
     foreach ( barrel in level.mg_barrels )
     {
+        mg_fx_stop( barrel.mg_fx );
+        barrel.mg_fx = undefined;
+        barrel.mg_spent = 0;
+
+        if ( !lit )
+            continue;
+
         ent = mg_fx_loop( "barrel_fire", barrel.origin + ( 0, 0, 30 ) );
 
         if ( isdefined( ent ) )
         {
             ent playloopsound( "amb_fire_sml" );
             level thread mg_fx_keepalive( ent );
-            level.mg_barrel_fx[level.mg_barrel_fx.size] = ent;
+            barrel.mg_fx = ent;
         }
     }
+}
+
+// A barrel refilled the temper: a flare, then it is out for the rest of the run.
+mg_barrel_spend( barrel )
+{
+    barrel.mg_spent = 1;
+    mg_fx_stop( barrel.mg_fx );
+    barrel.mg_fx = undefined;
+    mg_fx_once( "barrel_flare", barrel.origin + ( 0, 0, 30 ) );
+    mg_snd_near( "zmb_plane_fire_whoosh", barrel.origin, 900 );
 }
 
 // pickup -> run
@@ -70,7 +77,7 @@ mg_run_start( player, weapon )
     player thread mg_run_down_watch();
 }
 
-// self = carrier. Timer, HUD bar, barrels, weapon-away rule.
+// self = carrier. Timer, barrels, the last-5-s flicker, weapon-away rule.
 mg_run_loop( weapon )
 {
     level endon( "end_game" );
@@ -79,12 +86,8 @@ mg_run_loop( weapon )
     self endon( "disconnect" );
 
     away_since = undefined;
-    flame = mg_fx_loop( "gun_flame", self.origin );
-
-    if ( isdefined( flame ) )
-        flame linkto( self, "tag_weapon_right", ( 0, 0, 0 ), ( 0, 0, 0 ) );
-
-    level.mg_run_flame = flame;
+    flicker = 0;
+    level.mg_run_flame = mg_run_flame_on( self );
 
     while ( mg_state_is( "run" ) )
     {
@@ -93,19 +96,19 @@ mg_run_loop( weapon )
         if ( !is_player_valid( self ) )
             continue;
 
-        // barrels refill
+        // a burning barrel within 64 units refills the temper to full, once per run
         foreach ( barrel in level.mg_barrels )
         {
-            if ( distancesquared( self.origin, barrel.origin ) < 80 * 80 )
+            if ( !is_true( barrel.mg_spent ) && distancesquared( self.origin, barrel.origin ) < 64 * 64 )
             {
-                if ( self.mg_temper_left < 24.5 )
-                    self mg_snd_player( "evt_wolfhead_depart" );
-
                 self.mg_temper_left = 25.0;
+                self mg_snd_player( "evt_wolfhead_depart" );
+                self playrumbleonentity( "damage_heavy" );
+                mg_barrel_spend( barrel );
             }
         }
 
-        // weapon away for more than 1 s
+        // weapon away (BO4 checks right after the change; a quarter second forgives a stray scroll)
         current = self getcurrentweapon();
 
         if ( current != weapon )
@@ -113,7 +116,7 @@ mg_run_loop( weapon )
             if ( !isdefined( away_since ) )
                 away_since = gettime();
 
-            if ( gettime() - away_since > 1000 )
+            if ( gettime() - away_since > 250 )
             {
                 mg_run_fail( "weapon switched away" );
                 return;
@@ -129,13 +132,43 @@ mg_run_loop( weapon )
             mg_run_fail( "the flame died" );
             return;
         }
+
+        // the last 5 s: the flame flickers every 0.5 s, with a rumble and a tick
+        flicker++;
+
+        if ( self.mg_temper_left <= 5 && flicker % 5 == 0 )
+        {
+            if ( isdefined( level.mg_run_flame ) )
+            {
+                mg_fx_stop( level.mg_run_flame );
+                level.mg_run_flame = undefined;
+            }
+            else
+                level.mg_run_flame = mg_run_flame_on( self );
+
+            self playrumbleonentity( "damage_light" );
+            self mg_snd_player( "zmb_quest_nixie_count" );
+        }
+        else if ( self.mg_temper_left > 5 && !isdefined( level.mg_run_flame ) )
+            level.mg_run_flame = mg_run_flame_on( self );
     }
 
     mg_fx_stop( level.mg_run_flame );
     level.mg_run_flame = undefined;
 }
 
-// self = carrier. Each shot of the tempered gun costs 5 s.
+// the temper riding the gun
+mg_run_flame_on( player )
+{
+    flame = mg_fx_loop( "gun_flame", player gettagorigin( "tag_weapon_right" ) );
+
+    if ( isdefined( flame ) )
+        flame linkto( player, "tag_weapon_right", ( 0, 0, 0 ), ( 0, 0, 0 ) );
+
+    return flame;
+}
+
+// self = carrier. Each shot of the tempered gun costs 6 s (BO4).
 mg_run_shot_watch( weapon )
 {
     level endon( "end_game" );
@@ -149,7 +182,7 @@ mg_run_shot_watch( weapon )
 
         if ( isdefined( fired ) && fired == weapon && isdefined( self.mg_temper_left ) )
         {
-            self.mg_temper_left = self.mg_temper_left - 5.0;
+            self.mg_temper_left = self.mg_temper_left - 6.0;
             mg_debug_print( "MG: shot fired, temper " + int( self.mg_temper_left ) + " s" );
         }
     }

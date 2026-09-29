@@ -207,14 +207,19 @@ mg_debug_tour()
     self mg_tour_look( "1/8 The fireplace: its fire and crackle; the Blundergat laid in it", use, hearth );
     gun = spawn_weapon_model( "blundergat_zm", undefined, hearth, mg_coord( "MG_HEARTH" ).angles );
     self playsoundtoplayer( "zmb_hellbox_lock", self );
+    self playsoundtoplayer( "mg_flame_burst", self );
+    self playsoundtoplayer( "zmb_easteregg_laugh", self );
     wait 4;
 
     // 2. a soul: out of the body, waiting, taken, flying to the first skull, bursting in
     spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90 + ( 0, 0, 30 );
     self mg_tour_look( "2/8 A soul: leaves the body, waits, is taken, flies to its skull", use + ( 0, 0, 10 ), spot );
     mg_fx_once( "soul_release", spot );
-    self playsoundtoplayer( "evt_soulsuck_body", self );
+    self playsoundtoplayer( "mg_soul_kill", self );
     orb = mg_fx_loop( "soul", spot );
+
+    if ( isdefined( orb ) )
+        orb playloopsound( "mg_soul_loop" );
 
     if ( isdefined( orb ) )
         orb moveto( spot + ( 0, 0, 30 ), 1 );
@@ -230,7 +235,10 @@ mg_debug_tour()
     wait 1.5;
 
     // 3. a skull full (6 souls)
-    self mg_tour_look( "3/8 A skull full (6 souls): its glow and hum", use, skull );
+    self mg_tour_look( "3/8 A skull full (5 souls): the afterlife skull, its glow and hum", use, skull );
+    lit = spawn( "script_model", skull );
+    lit setmodel( mg_model( "skull_lit" ) );
+    lit.angles = mg_coord( "MG_SKULL_1" ).angles;
     glow = mg_fx_loop( "soul_full", skull + ( 0, 0, 2 ) );
 
     if ( isdefined( glow ) )
@@ -239,9 +247,10 @@ mg_debug_tour()
     self playsoundtoplayer( "zmb_afterlife_zombie_warp_in", self );
     wait 4;
     mg_fx_stop( glow );
+    lit delete();
 
-    // 4. 18 souls given: the hell portal opens in the fire, the tempered gun rises
-    self mg_tour_look( "4/8 18 souls given: the hell portal opens, the tempered gun rises", use, hearth );
+    // 4. 15 souls given: the hell portal opens in the fire, the tempered gun rises
+    self mg_tour_look( "4/8 15 souls given: the hell portal opens, the tempered gun rises", use, hearth );
     portal = mg_fx_loop( "hearth_blue", hearth, ( 0, vectortoangles( use - hearth )[1], 0 ) );
     self playsoundtoplayer( "evt_wolfhead_spawn", self );
 
@@ -278,6 +287,7 @@ mg_debug_tour()
     wait 1.5;
     gun = spawn_weapon_model( "blundergat_zm", undefined, fc.origin, fc.angles );
     self playsoundtoplayer( "zmb_afterlife_shockbox_on", self );
+    self playsoundtoplayer( "mg_press", self );
     g1 = mg_fx_loop( "ghost", fc.origin + ( 40, 0, 20 ) );
     g2 = mg_fx_loop( "ghost", fc.origin + ( -40, 0, 20 ) );
     smoke = mg_fx_loop( "smoke", fc.origin );
@@ -311,6 +321,7 @@ mg_debug_tour()
     mg_fx_once( "ball_hit", fc.origin );
     glow = mg_fx_loop( "glow", fc.origin );
     wait 3;
+    self playsoundtoplayer( "mg_brutus_mgu", self );
     mg_fx_stop( glow );
     gun delete();
 

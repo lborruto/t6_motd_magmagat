@@ -7,7 +7,8 @@
 #
 #   perl tools/build_mod.pl            build + install (tools/deploy.pl installs the scripts beside it)
 #   perl tools/build_mod.pl --no-install
-# mod/props and mod/weapon must exist: tools/import_all.pl and tools/build_weapon.pl write them.
+# mod/props, mod/weapon and mod/sound must exist: tools/import_all.pl, tools/build_weapon.pl and tools/import_sounds.pl
+# write them. The sound bank comes out as mod.all.sabl / mod.all.sabs beside mod.ff: they are installed with it.
 # mod.json gets the version of mg_main.gsc (level.mg_version), written to mod/out/mod.json.
 #
 # Env overrides: MG_OAT (the OpenAssetTools folder), MG_BO2 (the BO2 install).
@@ -29,9 +30,10 @@ die "build_mod.pl: no BO2 zones at $zones (set MG_BO2)\n" unless -f "$zones/zm_p
 chdir "$repo/mod" or die "build_mod.pl: no mod/ folder\n";
 -d 'props' or die "build_mod.pl: no mod/props: run perl tools/import_all.pl first\n";
 -d 'weapon' or die "build_mod.pl: no mod/weapon: run perl tools/build_weapon.pl first\n";
+-d 'sound' or die "build_mod.pl: no mod/sound: run perl tools/import_sounds.pl first\n";
 my @cmd = ( "$oat/Linker.exe", '--base-folder', '.', '--output-folder', 'out',
     '--load', "$zones/common_zm.ff", '--load', "$zones/zm_prison.ff",
-    '--add-asset-search-path', '?base?/props;?base?/weapon', 'mod' );
+    '--add-asset-search-path', '?base?/props;?base?/weapon;?base?/sound', 'mod' );
 system(@cmd) == 0 or die "build_mod.pl: the Linker failed (exit " . ( $? >> 8 ) . ")\n";
 -f 'out/mod.ff' or die "build_mod.pl: no out/mod.ff after the build\n";
 printf "build_mod.pl: mod/out/mod.ff, %d bytes\n", -s 'out/mod.ff';
@@ -51,5 +53,8 @@ my $local = $ENV{LOCALAPPDATA} or die "build_mod.pl: LOCALAPPDATA is not set\n";
 my $dest = "$local/Plutonium/storage/t6/mods/zm_magmagat";
 make_path($dest);
 copy( 'out/mod.ff', "$dest/mod.ff" ) or die "build_mod.pl: copy failed: $!\n";
+for my $bank (qw(mod.all.sabl mod.all.sabs)) {
+    copy( "out/$bank", "$dest/$bank" ) or die "build_mod.pl: copy of $bank failed: $!\n";
+}
 copy( 'out/mod.json', "$dest/mod.json" ) or die "build_mod.pl: copy of mod.json failed: $!\n";
 print "build_mod.pl: installed to $dest (pick \"zm_magmagat\" in the Mods menu, then load Mob of the Dead)\n";

@@ -7,16 +7,22 @@
 
 // The Magmagat is its own weapon, magmagat_zm, shipped in our mod.ff (tools/build_weapon.pl: the Blundergat's rig
 // and animations, a lava skin); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. Each shot also
-// launches a lava ball; a zombie that catches it burns 0.6 s and explodes (150 units); a miss leaves an 8 s patch.
+// launches a lava blob with BO4's numbers (zm_weap_blundergat.gsc): a zombie that catches it burns 0.5 s, then dies
+// (up to 1000 health; stronger ones take 1000 and burn 4 s) and everything within 128 units takes 400 and catches
+// fire; a miss leaves a 5 s molten pool (3 at most) that sets zombies on fire, lures them, and hurts its owner.
+// Brutus burns (10-20 % of his health a second for 5 s, half from round 15): the lava can kill him, as in BO4.
 // The look lives in the weapon file (tools/build_weapon.pl: lava tanks, fire muzzle flash, red tracers); the script
 // adds the flame riding the held gun, the fire whoosh of every shot, and flies BO4's kind of effects: a tumbling
 // lava blob (mg_lava_blob) and a molten pool mesh under every miss (mg_lava_pool).
-// The Acid Gat kit refuses it by itself: vanilla only takes a blundergat_zm / blundergat_upgraded_zm.
+// The Acid Gat kit takes it (BO4): the Magmagat goes in as the Blundergat it was, the kit makes the Acid Gat.
 
 mg_weapon_init()
 {
     level.mg_patches = [];
     mg_weapon_register();
+    // chained, not replaced: vanilla _zm_ai_brutus.gsc installs its own hook on this map (a Brutus-locked table)
+    level.mg_prev_craftable_validation = level.custom_craftable_validation;
+    level.custom_craftable_validation = ::mg_acid_station_validation;
     level thread mg_weapon_connect_watch();
 }
 
@@ -52,10 +58,11 @@ mg_weapon_register()
     level.zombie_include_weapons["magmagat_zm"] = 0;
 }
 
-// The Magmagat a Blundergat becomes at the forge.
+// The Magmagat a gun becomes at the forge: a Pack-a-Punched one (Sweeper, Vitriolic Withering) gives the Magmus
+// Operandi (BO4).
 mg_magma_of( weapon )
 {
-    if ( isdefined( weapon ) && weapon == "blundergat_upgraded_zm" )
+    if ( isdefined( weapon ) && ( weapon == "blundergat_upgraded_zm" || weapon == "blundersplat_upgraded_zm" ) )
         return "magmagat_upgraded_zm";
 
     return "magmagat_zm";
@@ -274,17 +281,25 @@ mg_lava_ball( weapon )
     self thread mg_patch( pos, weapon );
 }
 
-// self = player. The ball sticks to the zombie 0.6 s, then everything within 150 units dies (Brutus burns).
+// self = player. The blob sticks 0.5 s, then (BO4): the zombie dies if it has 1000 health or less, else takes 1000
+// and burns 4 s before dying; everyone within 128 units takes 400 and catches fire. Brutus burns instead.
 mg_ball_explode( ball, zombie, weapon )
 {
     level endon( "end_game" );
     ball linkto( zombie, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
+
+    if ( isdefined( zombie.animname ) && zombie.animname == "brutus_zombie" )
+    {
+        self thread mg_brutus_burn( zombie, ball, weapon );
+        return;
+    }
+
     burn = mg_fx_loop( "burn", zombie.origin + ( 0, 0, 40 ) );
 
     if ( isdefined( burn ) )
         burn linkto( zombie, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
 
-    wait 0.6;
+    wait 0.35;
     pos = ball.origin;
 
     if ( isdefined( zombie ) )
@@ -295,20 +310,45 @@ mg_ball_explode( ball, zombie, weapon )
     mg_fx_once( "explo", pos );
     mg_snd_near( "wpn_blundersplat_explode", pos, 1200 );
 
+    if ( isdefined( zombie ) && isalive( zombie ) )
+    {
+        if ( zombie.health <= 1000 )
+            zombie dodamage( zombie.health + 666, pos, self, self, "none", "MOD_PROJECTILE", 0, weapon );
+        else
+        {
+            zombie dodamage( 1000, pos, self, self, "none", "MOD_PROJECTILE", 0, weapon );
+            zombie thread mg_burn_fx( 4 );
+            self thread mg_burn_then_die( zombie, 4, weapon );
+        }
+    }
+
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
-        if ( !isdefined( ai ) || !isalive( ai ) || distancesquared( ai.origin, pos ) > 150 * 150 )
+        if ( !isdefined( ai ) || !isalive( ai ) || ai == zombie || distancesquared( ai.origin, pos ) > 128 * 128 )
             continue;
 
         if ( isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
-        {
-            self mg_brutus_burn( ai, 0.1, pos, "MOD_PROJECTILE_SPLASH", weapon );
-            ai thread mg_burn_fx( 3 );
             continue;
-        }
 
-        ai dodamage( ai.health + 666, pos, self, self, "none", "MOD_PROJECTILE_SPLASH", 0, weapon );
+        ai dodamage( 400, pos, self, self, "none", "MOD_GRENADE_SPLASH", 0, weapon );
+
+        if ( isalive( ai ) && !is_true( ai.mg_burning ) )
+        {
+            ai.mg_burning = 1;
+            ai thread mg_burn_fx( 3 );
+            ai thread mg_burn_clear( 3 );
+        }
     }
+}
+
+// self = player. A strong zombie burns, then dies.
+mg_burn_then_die( zombie, seconds, weapon )
+{
+    zombie endon( "death" );
+    wait( seconds );
+
+    if ( isalive( zombie ) )
+        zombie dodamage( zombie.health + 666, zombie.origin, self, self, "none", "MOD_BURNED", 0, weapon );
 }
 
 // self = zombie
@@ -324,19 +364,38 @@ mg_burn_fx( seconds )
     mg_fx_stop( fx );
 }
 
-// self = player. Brutus burns but never dies from the Magmagat: the damage is clamped so at least 1 hp remains.
-mg_brutus_burn( ai, frac, pos, mod, weapon )
+// self = player. Brutus and the blob (BO4): 100 at once, then 10-20 % of his maximum health a second (5-10 % from
+// round 15) for 5 s while the blob burns on him. It can kill him.
+mg_brutus_burn( ai, ball, weapon )
 {
-    dmg = int( ai.maxhealth * frac );
+    level endon( "end_game" );
+    ai dodamage( 100, ai.origin, self, self, "none", "MOD_PROJECTILE", 0, weapon );
+    ai thread mg_burn_fx( 5 );
+    lo = 0.1;
+    hi = 0.2;
 
-    if ( dmg >= ai.health )
-        dmg = ai.health - 1;
+    if ( level.round_number >= 15 )
+    {
+        lo = 0.05;
+        hi = 0.1;
+    }
 
-    if ( dmg > 0 )
-        ai dodamage( dmg, pos, self, self, "none", mod, 0, weapon );
+    for ( t = 0; t < 5 && isdefined( ai ) && isalive( ai ); t++ )
+    {
+        wait 1;
+
+        if ( isdefined( ai ) && isalive( ai ) )
+            ai dodamage( int( ai.maxhealth * randomfloatrange( lo, hi ) ), ai.origin, self, self, "none", "MOD_BURNED", 0, weapon );
+    }
+
+    if ( isdefined( ball ) )
+        ball delete();
 }
 
-// self = player. A magma patch: 8 s, 60 units, 250 + 30 * round every 0.5 s (Brutus 2 % of his max health).
+// self = player. A molten pool (BO4): 5 s, 64 units across, 3 at most (the oldest goes). A zombie that walks in
+// catches fire: 10 % of its health at once, then a burn that scales with the round; a crawler dies at once. The pool
+// lures zombies (128 units, 3 of them; the Magmus Operandi's 256 and 6) and hurts its owner (1 every 0.4 s).
+// Brutus burns 2 % of his health every 0.5 s in it.
 mg_patch( pos, weapon )
 {
     level endon( "end_game" );
@@ -344,11 +403,9 @@ mg_patch( pos, weapon )
     if ( !isdefined( self.mg_patches ) )
         self.mg_patches = [];
 
-    // cap 6 per player, oldest removed first
-    if ( self.mg_patches.size >= 6 )
+    while ( self.mg_patches.size >= 3 )
     {
-        oldest = self.mg_patches[0];
-        mg_patch_stop( oldest );
+        mg_patch_stop( self.mg_patches[0] );
         rest = [];
 
         for ( i = 1; i < self.mg_patches.size; i++ )
@@ -369,37 +426,62 @@ mg_patch( pos, weapon )
     pool setmodel( mg_model( "pool" ) );
     pool.angles = ( 0, randomint( 360 ), 0 );
     fire.mg_pool = pool;
-
     self.mg_patches[self.mg_patches.size] = fire;
     embers = mg_fx_loop( "embers", pos );
-    mg_snd_near( "zmb_fire_loop", pos, 600 );
-    tick = 250 + 30 * level.round_number;
+    fire playloopsound( "zmb_fire_loop" );
 
-    for ( t = 0; t < 8 && isdefined( fire ); t += 0.5 )
+    // the lure: vanilla's point of interest (the monkey bomb's), switched off with the pool
+    big = isdefined( weapon ) && weapon == "magmagat_upgraded_zm";
+    lure_dist = 128;
+    lure_count = 3;
+
+    if ( big )
+    {
+        lure_dist = 256;
+        lure_count = 6;
+    }
+
+    pool create_zombie_point_of_interest( lure_dist, lure_count, 10000 );
+    pool thread create_zombie_point_of_interest_attractor_positions( 4, 45 );
+
+    for ( t = 0; t < 5 && isdefined( fire ); t += 0.4 )
     {
         foreach ( ai in getaiarray( level.zombie_team ) )
         {
-            if ( !isdefined( ai ) || !isalive( ai ) || distancesquared( ai.origin, pos ) > 60 * 60 )
+            if ( !isdefined( ai ) || !isalive( ai ) || distancesquared( ai.origin, pos ) > 64 * 64 || abs( ai.origin[2] - pos[2] ) > 32 )
                 continue;
 
             if ( isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
             {
-                self mg_brutus_burn( ai, 0.02, pos, "MOD_BURNED", weapon );
+                ai dodamage( int( ai.maxhealth * 0.016 ), pos, self, self, "none", "MOD_BURNED", 0, weapon );
                 continue;
             }
 
-            ai dodamage( tick, pos, self, self, "none", "MOD_BURNED", 0, weapon );
+            if ( !is_true( ai.has_legs ) && isdefined( ai.has_legs ) )
+            {
+                ai dodamage( ai.health + 666, pos, self, self, "none", "MOD_BURNED", 0, weapon );
+                continue;
+            }
 
             if ( !is_true( ai.mg_burning ) )
             {
                 ai.mg_burning = 1;
-                ai thread mg_burn_fx( 1.5 );
-                ai thread mg_burn_clear( 1.5 );
+                ai dodamage( int( ai.maxhealth * 0.1 ), pos, self, self, "none", "MOD_BURNED", 0, weapon );
+                ai thread mg_burn_fx( 3 );
+                ai thread mg_burn_clear( 3 );
+                self thread mg_pool_burn( ai, weapon );
             }
         }
 
-        wait 0.5;
+        // the owner is not immune to his own lava
+        if ( isdefined( self ) && is_player_valid( self ) && distancesquared( self.origin, pos ) < 64 * 64 && abs( self.origin[2] - pos[2] ) < 40 )
+            self dodamage( 1, pos );
+
+        wait 0.4;
     }
+
+    if ( isdefined( pool ) )
+        pool deactivate_zombie_point_of_interest();
 
     mg_fx_stop( embers );
 
@@ -418,6 +500,27 @@ mg_patch( pos, weapon )
     }
 }
 
+// self = player. A zombie set on fire by a pool burns a share of its health every second for 3 s (BO4 scales it with
+// the round: most of it early, a fifth late).
+mg_pool_burn( ai, weapon )
+{
+    ai endon( "death" );
+    frac = 0.75;
+
+    if ( level.round_number >= 29 )
+        frac = 0.175;
+    else if ( level.round_number >= 9 )
+        frac = 0.75 - ( level.round_number - 9 ) * ( 0.575 / 20 );
+
+    for ( i = 0; i < 3; i++ )
+    {
+        wait 1;
+
+        if ( isalive( ai ) )
+            ai dodamage( int( ai.maxhealth * frac / 3 ), ai.origin, self, self, "none", "MOD_BURNED", 0, weapon );
+    }
+}
+
 // A patch goes: its fire and its pool mesh.
 mg_patch_stop( fire )
 {
@@ -425,7 +528,11 @@ mg_patch_stop( fire )
         return;
 
     if ( isdefined( fire.mg_pool ) )
+    {
+        // the lure goes with it (vanilla keeps a list of points of interest)
+        fire.mg_pool deactivate_zombie_point_of_interest();
         fire.mg_pool delete();
+    }
 
     mg_fx_stop( fire );
 }
@@ -436,4 +543,36 @@ mg_burn_clear( seconds )
     self endon( "death" );
     wait( seconds );
     self.mg_burning = 0;
+}
+
+// self = the craftable trigger vanilla validates (zm_alcatraz_utility blundergat_upgrade_station). Vanilla's own hook
+// runs first. At the Acid Gat kit (targetname blundergat_upgrade) a player holding a Magmagat and no Blundergat hands
+// it in as the Blundergat of its tier: vanilla then makes the Acid Gat (the Magmus Operandi gives the Vitriolic
+// Withering), as BO4's kit does.
+mg_acid_station_validation( player )
+{
+    if ( isdefined( level.mg_prev_craftable_validation ) )
+    {
+        if ( !( self [[ level.mg_prev_craftable_validation ]]( player ) ) )
+            return 0;
+    }
+
+    if ( !isdefined( self.targetname ) || self.targetname != "blundergat_upgrade" || !isdefined( player ) )
+        return 1;
+
+    magma = mg_has_magma( player );
+
+    if ( !isdefined( magma ) || player hasweapon( "blundergat_zm" ) || player hasweapon( "blundergat_upgraded_zm" ) )
+        return 1;
+
+    base = "blundergat_zm";
+
+    if ( magma == "magmagat_upgraded_zm" )
+        base = "blundergat_upgraded_zm";
+
+    player takeweapon( magma );
+    player giveweapon( base );
+    player switchtoweapon( base );
+    mg_debug_print( "MG: " + player.name + " hands a " + magma + " to the Acid Gat kit" );
+    return 1;
 }

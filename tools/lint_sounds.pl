@@ -33,6 +33,17 @@ for my $csv ( glob("$tools/assets/soundbank/*.aliases.csv") ) {
 }
 die "lint_sounds.pl: no alias tables under tools/assets/soundbank\n" unless %alias;
 
+# our own aliases: the BO3 remaster's sounds the mod's bank carries (tools/import_sounds.pl)
+if ( open my $h, '<', "$tools/assets/bo3_sounds.tsv" ) {
+    while (<$h>) {
+        next if /^#/ || !/\S/;
+        my @c = split /\t/;
+        $alias{ $c[0] } = 1;
+        $info{ $c[0] } = "$c[3] $c[6]-$c[7] (mod bank)";
+    }
+    close $h;
+}
+
 # vox aliases played by vanilla prison scripts (english bank, not in the dumped tables) verified by hand
 my %vox_ok = ();
 

@@ -2,10 +2,10 @@ name: Release the player zip
 
 # The player downloads ONE zip: the zm_magmagat folder for %LOCALAPPDATA%\Plutonium\storage\t6\mods\.
 # Its mod.ff is built from the games' own files, which never leave the maintainer's PC: tools/publish.pl builds it
-# and publishes the GitHub Release v<version> with mod.ff attached. This workflow then does the rest from the tagged
-# sources: lints, packs the quest scripts, assembles the folder (mod.ff, mod.json with the version,
+# and publishes the GitHub Release v<version> with mod.ff and its sound bank (mod.all.sabl / .sabs) attached. This workflow then does the rest from the tagged
+# sources: lints, packs the quest scripts, assembles the folder (mod.ff, the sound bank, mod.json with the version,
 # scripts/zm/zm_prison/zm_prison_magmagat*.gsc), zips it, attaches zm_magmagat-<version>.zip and removes the bare
-# mod.ff so the release offers the zip alone.
+# files so the release offers the zip alone.
 on:
   release:
     types: [ published ]
@@ -40,17 +40,19 @@ jobs:
       - name: Lint the sources
         run: perl tools/lint_includes.pl && perl tools/lint_sounds.pl && perl tools/lint_calls.pl && perl tools/check_links.pl .
 
-      - name: Get the release's mod.ff
+      - name: Get the release's mod.ff and sound bank
         run: |
           mkdir -p dl
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern 'mod.ff' --dir dl
+          for f in mod.ff mod.all.sabl mod.all.sabs; do
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$f" --dir dl
+          done
           ls -la dl
 
       - name: Assemble the mod folder
         run: |
           D=release/zm_magmagat
           mkdir -p "$D/scripts/zm/zm_prison"
-          cp dl/mod.ff "$D/mod.ff"
+          cp dl/mod.ff dl/mod.all.sabl dl/mod.all.sabs "$D/"
           perl -pe 's/("version"\s*:\s*")[^"]*"/${1}${{ steps.ver.outputs.version }}"/' mod/mod.json > "$D/mod.json"
           # one packed file if it fits, else two, else three (as tools/release.pl)
           perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 1 \
@@ -63,4 +65,6 @@ jobs:
           ZIP="zm_magmagat-${{ steps.ver.outputs.version }}.zip"
           (cd release && zip -r -9 "../$ZIP" zm_magmagat)
           gh release upload "$TAG" "$ZIP" --repo "$GITHUB_REPOSITORY" --clobber
-          gh release delete-asset "$TAG" mod.ff --repo "$GITHUB_REPOSITORY" --yes
+          for f in mod.ff mod.all.sabl mod.all.sabs; do
+            gh release delete-asset "$TAG" "$f" --repo "$GITHUB_REPOSITORY" --yes
+          done

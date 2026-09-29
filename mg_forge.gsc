@@ -7,8 +7,9 @@
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_weapon;
 
-// The forge: the dock Generator Room's large generator. Power it (one press), place the tempered gun, 5 s of
-// ghosts, take the Magmagat. Once forged, any Blundergat placed converts (level.mg_forge_open).
+// The forge: the dock Generator Room's large generator. Power it (one press, as the BO3 remaster), place the tempered
+// gun, 5 s of ghosts (BO4's two smelter ghosts), take the Magmagat within 30 s or it is lost (BO4). The first forge
+// summons a Brutus (BO4). Once forged, any Blundergat or Acid Gat placed converts (level.mg_forge_open).
 
 mg_forge_init()
 {
@@ -155,6 +156,7 @@ mg_forge_place( player, weapon, tempered )
     level.mg_forge_place_ents = [];
     level.mg_forge_place_ents[level.mg_forge_place_ents.size] = gun;
     mg_snd_near( "zmb_afterlife_shockbox_on", c.origin, 800 );
+    mg_snd_near( "mg_press", c.origin, 2000 ); // the remaster's magmagat press at work
 
     // two ghosts circle the gun for 5 s
     g1 = mg_fx_loop( "ghost", c.origin + ( 40, 0, 20 ) );
@@ -191,6 +193,7 @@ mg_forge_place( player, weapon, tempered )
     mg_fx_stop( smoke );
     mg_fx_once( "explo", c.origin );
     mg_snd_near( "zmb_hellbox_open", c.origin, 800 );
+    mg_snd_near( "mg_flame_burst", c.origin, 1500 );
     gun delete();
     gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin - ( 0, 0, 10 ), c.angles );
     level.mg_forge_place_ents[level.mg_forge_place_ents.size] = gun;
@@ -209,6 +212,33 @@ mg_forge_place( player, weapon, tempered )
     level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
     level.mg_forge_busy = 0;
     level.mg_forge_place_ents = [];
+    level thread mg_forge_pickup_window( gun );
+}
+
+// 30 s to take the Magmagat, or it vanishes (BO4). Before the first forge the quest goes back to the fireplace.
+mg_forge_pickup_window( gun )
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    wait 30;
+
+    if ( !isdefined( level.mg_forge_ready_gun ) || level.mg_forge_ready_gun != gun )
+        return;
+
+    pos = gun.origin;
+    mg_debug_print( "MG: the Magmagat was not taken in 30 s: it is lost" );
+    mg_fx_once( "gun_vanish", pos );
+    mg_snd_near( "zmb_quest_nixie_fail", pos, 1500 );
+    mg_snd_near( "mg_brutus_laugh", pos, 2500 );
+    gun delete();
+    level.mg_forge_ready_gun = undefined;
+    mg_fx_stop( level.mg_forge_ready_glow );
+    level.mg_forge_ready_glow = undefined;
+    level.mg_forge_gun_weapon = undefined;
+    level.mg_forge_placer = undefined;
+
+    if ( mg_state_is( "forge" ) )
+        mg_state_set( "ready" );
 }
 
 // Take the Magmagat (the Magmus Operandi when a Sweeper was forged).
@@ -231,6 +261,11 @@ mg_forge_take( player )
         level.mg_forge_open = 1;
         mg_state_set( "done" );
         mg_debug_print( "MG: Magmagat forged by " + player.name + "; the forge stays open for any Blundergat" );
+        // the first forge wakes the warden (BO4 spawns a Brutus in New Industries; the remaster gives him a line)
+        foreach ( p in getplayers() )
+            p playsoundtoplayer( "mg_brutus_mgu", p );
+
+        maps\mp\zombies\_zm_ai_brutus::attempt_brutus_spawn( 1 );
     }
 }
 

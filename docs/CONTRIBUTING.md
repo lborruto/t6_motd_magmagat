@@ -102,6 +102,7 @@ because two layouts must never coexist. Never hand-edit an installed file. `tool
 ```
 perl tools/import_all.pl       # the BO3 props from the Greyhound export -> mod/props
 perl tools/build_weapon.pl     # the Magmagat weapons from BO2's Blundergat -> mod/weapon (--redump to dump again)
+perl tools/import_sounds.pl    # the BO3 remaster's quest sounds -> mod/sound (the mod.all sound bank)
 perl tools/build_mod.pl        # OpenAssetTools Linker -> mod/out/mod.ff + mod.json, installed into the mod folder
 perl tools/deploy.pl           # the scripts, beside it
 perl tools/release.pl          # release/zm_magmagat/ (the folder players drop into mods\) + its zip, to try it locally
@@ -112,7 +113,7 @@ Needs OpenAssetTools (`C:/Games/t6/openassettools`, env `MG_OAT`), the BO2 insta
 props, Greyhound's export of the BO3 map "Mob of the Dead Remastered" (`C:/Games/t6/Greyhound-1.49.4.0`, env
 `MG_GREYHOUND`: its models in `exported_files/black_ops_3_sp/xmodels`, the map's textures loaded from its `.xpak` in
 `exported_files/black_ops_3/ximages`). `mod/props`, `mod/weapon`, `mod/work` and `mod/out` are generated from the
-games' files and are never committed.
+games' files and are never committed (so is `mod/sound`).
 
 - **Props** (`tools/import_all.pl` lists them): each BO3 model becomes a rigid T6 xmodel (Greyhound's glTF, Z-up
   centimetres, turned to the Linker's Y-up inches; at most 4 LODs), one material per surface cloned from a vanilla
@@ -140,6 +141,13 @@ games' files and are never committed.
   splat meshes. The two are generated (a noise-displaced sphere, an irregular domed splat) and skinned with the BO3
   remaster's lava (`i_pbr_lava_magma_emissive_1_mtl`) on the emberglow shader; the script flies the blob (tumbling,
   with a fire trail) and lays the pool under every miss.
+- **The sounds** (`tools/import_sounds.pl`, the list in `tools/assets/bo3_sounds.tsv`): BO3 banks are the same `2UX#`
+  container as T6's (version 15), every sound plain FLAC 48 kHz. The map's zone data names them: each alias record
+  holds the alias hash (T6's `SND_HashName`) and, 0x30 after it, the bank entry it plays (`tools/MgBo3.pm`). Every
+  variant of an alias is copied out: a `loaded` one decoded to a plain 44-byte-header PCM WAV (`tools/flac2wav.pl`), a
+  `streamed` one kept FLAC, as BO2 stores its own. The zone line `soundbank,mod.all` makes the Linker write
+  `mod.all.sabl` / `mod.all.sabs` beside `mod.ff`; they ship in the mod folder. Our aliases are `mg_*`; `lint_sounds`
+  reads the manifest. In game, `printsoundalias mg_press` (console) shows whether the bank is loaded.
 - **What the fastfile cannot carry** (OpenAssetTools v0.33): new particle effects (FxEffectDef is not loaded), new
   tracers (the T6 tracer loader is not registered) and BO3 animations (no tool turns T7 xanims into T6 ones; the
   rig is shared, so the Blundergat's animations fit the BO4 gun). So the particles are zm_prison's own: orange

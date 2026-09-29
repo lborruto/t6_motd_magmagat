@@ -137,11 +137,11 @@ is the realistic scope for a first pass.
 - **Total realistic scope (props + reskinned weapon, no new anims): ~4–7 days.**
 
 ## Legal / etiquette note
-The Workshop map's own assets may be nekoBoy's original work, or may themselves be ported from
+The Workshop map's own assets may be copforthat's team's original work, or may themselves be ported from
 BO4 (Blood of the Dead) or other titles — Workshop custom-map credits sections commonly acknowledge
 third-party asset sources, and the wider BO3 modding community (Modme wiki, CabConModding,
 ZGC/DEVRAW asset sites) routinely shares and reuses ported assets between titles, but expects
-attribution. Standard etiquette in this scene: message the map author (nekoBoy) via the Steam
+attribution. Standard etiquette in this scene: message the map author (copforthat) via the Steam
 Workshop page or Discord before redistributing extracted assets, credit both the original modeler
 and, if applicable, the underlying game the asset was first ripped from (Activision/Treyarch, via
 BO4), and keep the resulting T6 mod as a free, non-commercial fan release with credits in the

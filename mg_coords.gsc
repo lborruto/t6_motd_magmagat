@@ -12,6 +12,7 @@ mg_models_init()
 {
     level.mg_models = [];
     level.mg_models["skull"] = "mg_skull"; // mod.ff (tools/import_all.pl): the BO3 remaster's skull
+    level.mg_models["skull_lit"] = "p6_zm_al_skull_afterlife"; // zm_prison: a lit skull turns into the afterlife skull, as in BO4
     level.mg_models["barrel"] = "mg_barrel_blue"; // mod.ff: the BO3 remaster's blue metal barrel
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
     level.mg_models["ball"] = "mg_lava_blob"; // mod.ff (tools/gen_lava_fx.pl): a lava blob, as BO4 flies (the Acid Gat dart read wrong)
