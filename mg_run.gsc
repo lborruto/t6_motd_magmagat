@@ -6,7 +6,7 @@
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_forge;
 
-// The temper run, after BO4: 25 s of flame, a shot costs 6 s, each of the five barrels refills it to full ONCE per run
+// The temper run, after BO4 and the BO3 remaster: 25 s of flame, a shot spends it all, each of the five barrels refills it to full ONCE per run
 // (it burns while a tempered gun is out and goes out once spent), the flame flickers in the last 5 s, switching
 // weapon or going down ends it (the player keeps the Blundergat: back to the fireplace).
 
@@ -168,7 +168,8 @@ mg_run_flame_on( player )
     return flame;
 }
 
-// self = carrier. Each shot of the tempered gun costs 6 s (BO4).
+// self = carrier. Firing the tempered gun spends its essence: the blue flame dies and it is back to the fireplace
+// (the BO3 remaster; BO4 only took 6 s a shot).
 mg_run_shot_watch( weapon )
 {
     level endon( "end_game" );
@@ -180,10 +181,10 @@ mg_run_shot_watch( weapon )
     {
         self waittill( "weapon_fired", fired );
 
-        if ( isdefined( fired ) && fired == weapon && isdefined( self.mg_temper_left ) )
+        if ( isdefined( fired ) && fired == weapon )
         {
-            self.mg_temper_left = self.mg_temper_left - 6.0;
-            mg_debug_print( "MG: shot fired, temper " + int( self.mg_temper_left ) + " s" );
+            mg_run_fail( "the tempered gun was fired: its essence is spent" );
+            return;
         }
     }
 }

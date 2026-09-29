@@ -34,13 +34,12 @@ mg_fx_table()
     t["embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat";
     t["blue_fire"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
     // the souls: the wolf heads' own (a soul leaves the body and flies; a full catcher glows)
-    t["soul_release"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
-    t["soul"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
-    t["soul_start"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
+    t["soul_release"] = "weapon/lightning_hands/lightning_hands_impact"; // a blue burst where the soul leaves the body
+    t["soul"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // the soul waiting: the Hell's Redeemer's blue fire
     t["soul_trail"] = "weapon/lightning_hands/lightning_hands_muzzleflash_trail"; // the BO3 remaster's soul trail
     t["soul_arrive"] = "weapon/tomahawk/fx_tomahawk_charge_ug"; // a soul-energy flash (the wolf heads' impact is their bite blood)
     t["soul_hit"] = "weapon/tomahawk/fx_tomahawk_charge"; // the soul taken by a player
-    t["soul_full"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
+    t["soul_full"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // a lit skull's blue fire
     // the hearth: a real fire; the hell portal of the wolf heads opens in it for the tempered gun
     t["hearth_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
     t["hearth_blue"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell";
@@ -48,9 +47,9 @@ mg_fx_table()
     t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the deposit's flare-up
     t["gun_vanish"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a gun not taken in time vanishes
     // the run: fire in the barrels, the temper riding the gun
-    t["barrel_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm";
+    t["barrel_fire"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // the barrels' blue flame (the remaster's is blue)
     t["barrel_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // a barrel spent on a refill
-    t["gun_flame"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
+    t["gun_flame"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // the tempered gun's blue essence
     // the forge: the generator's own sparks and smoke, afterlife ghosts, the quest-item glow on the gun to take
     t["ghost"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
     t["sparks"] = "maps/zombie_alcatraz/fx_alcatraz_generator_sparks";
@@ -87,6 +86,9 @@ mg_fx_init()
     }
 }
 
+// A looping effect on its own entity (mg_fx_stop deletes it). The effect is played one frame AFTER the entity is
+// spawned: an entity the clients have not received yet drops any effect played on it (its sounds still play later),
+// and a short settle follows before the caller moves or links it.
 mg_fx_loop( key, origin, angles )
 {
     if ( !isdefined( level._effect["mg_" + key] ) )
@@ -101,15 +103,19 @@ mg_fx_loop( key, origin, angles )
     if ( isdefined( angles ) )
         ent.angles = angles;
 
+    wait 0.05;
+
+    if ( !isdefined( ent ) )
+        return undefined;
+
     playfxontag( level._effect["mg_" + key], ent, "tag_origin" );
-    // an effect whose entity moves or links on its spawn frame may never draw: callers get it settled
-    wait 0.15;
+    wait 0.1;
     return ent;
 }
 
 // A burst. Played on a short-lived entity, never loose: several zm_prison effects loop (the wolf heads' bite blood,
 // the soul streak, the generator sparks), and a looping effect fired with playfx never stops and piles up; deleting
-// its entity ends it.
+// its entity ends it. Returns at once (the play itself waits a frame for the entity to reach the clients).
 mg_fx_once( key, origin, seconds )
 {
     if ( !isdefined( level._effect["mg_" + key] ) )
@@ -123,17 +129,17 @@ mg_fx_once( key, origin, seconds )
 
     ent = spawn( "script_model", origin );
     ent setmodel( "tag_origin" );
-    playfxontag( level._effect["mg_" + key], ent, "tag_origin" );
-    ent thread mg_fx_once_end( seconds );
+    ent thread mg_fx_once_play( level._effect["mg_" + key], seconds );
 }
 
 // self = a burst's entity
-mg_fx_once_end( seconds )
+mg_fx_once_play( fx, seconds )
 {
+    self endon( "death" );
+    wait 0.05;
+    playfxontag( fx, self, "tag_origin" );
     wait( seconds );
-
-    if ( isdefined( self ) )
-        self delete();
+    self delete();
 }
 
 mg_fx_stop( ent )
