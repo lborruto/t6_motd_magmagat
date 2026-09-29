@@ -33,12 +33,12 @@ mg_fx_table()
     t["fire_xsm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
     t["embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat";
     t["blue_fire"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
-    // the souls: the wolf heads' own (a soul leaves the body, flies, bursts in; a full catcher glows)
+    // the souls: the wolf heads' own (a soul leaves the body and flies; a full catcher glows)
     t["soul_release"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
     t["soul"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
     t["soul_start"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
     t["soul_trail"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
-    t["soul_arrive"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_impact";
+    t["soul_arrive"] = "weapon/tomahawk/fx_tomahawk_charge_ug"; // a soul-energy flash (the wolf heads' impact is their bite blood)
     t["soul_hit"] = "weapon/tomahawk/fx_tomahawk_charge"; // the soul taken by a player
     t["soul_full"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
     // the hearth: a real fire; the hell portal of the wolf heads opens in it for the tempered gun
@@ -104,7 +104,10 @@ mg_fx_loop( key, origin, angles )
     return ent;
 }
 
-mg_fx_once( key, origin )
+// A burst. Played on a short-lived entity, never loose: several zm_prison effects loop (the wolf heads' bite blood,
+// the soul streak, the generator sparks), and a looping effect fired with playfx never stops and piles up; deleting
+// its entity ends it.
+mg_fx_once( key, origin, seconds )
 {
     if ( !isdefined( level._effect["mg_" + key] ) )
     {
@@ -112,7 +115,22 @@ mg_fx_once( key, origin )
         return;
     }
 
-    playfx( level._effect["mg_" + key], origin );
+    if ( !isdefined( seconds ) )
+        seconds = 2.5;
+
+    ent = spawn( "script_model", origin );
+    ent setmodel( "tag_origin" );
+    playfxontag( level._effect["mg_" + key], ent, "tag_origin" );
+    ent thread mg_fx_once_end( seconds );
+}
+
+// self = a burst's entity
+mg_fx_once_end( seconds )
+{
+    wait( seconds );
+
+    if ( isdefined( self ) )
+        self delete();
 }
 
 mg_fx_stop( ent )
