@@ -47,6 +47,7 @@ mg_barrels_set( lit )
 
         if ( isdefined( ent ) )
         {
+            ent playloopsound( "amb_fire_sml" );
             level thread mg_fx_keepalive( ent );
             level.mg_barrel_fx[level.mg_barrel_fx.size] = ent;
         }

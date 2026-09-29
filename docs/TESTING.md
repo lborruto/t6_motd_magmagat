@@ -28,6 +28,12 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       `MG_FORGE_GUN`; none say "undefined".
 - [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `give`, `magma`, `shock` (all at once) / `shock gun`, `fx`, `snd`.
 
+## 0b. The look, in one pass
+
+- [ ] `!mg tour`: eight labelled stops (the fireplace, a soul leaving a body and flying to its skull, a full skull,
+      the hell portal and the rising gun, a burning barrel, the forge, the lava blob, the molten pool). Every
+      effect is visible and every sound heard; note the step number of anything to change.
+
 ## 1. Locked / ready
 
 - [ ] Before anyone reaches the Golden Gate Bridge (the plane's landing): state stays `locked`, no prompt at the hearth even with a Blundergat in

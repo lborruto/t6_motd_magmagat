@@ -39,15 +39,31 @@ mg_hearth_fire()
         if ( isdefined( level.mg_hearth_fx ) )
             mg_fx_stop( level.mg_hearth_fx );
 
-        if ( mg_state_is( "pickup" ) )
-            level.mg_hearth_fx = mg_fx_loop( "hearth_blue", pos );
-        else if ( mg_state_is( "souls" ) )
-            level.mg_hearth_fx = mg_fx_loop( "hearth_fire", pos );
-        else
-            level.mg_hearth_fx = mg_fx_loop( "hearth_fire", pos );
+        if ( isdefined( level.mg_hearth_portal ) )
+        {
+            mg_fx_once( "hearth_close", level.mg_hearth_portal.origin );
+            mg_fx_stop( level.mg_hearth_portal );
+            level.mg_hearth_portal = undefined;
+        }
+
+        level.mg_hearth_fx = mg_fx_loop( "hearth_fire", pos );
 
         if ( isdefined( level.mg_hearth_fx ) )
+        {
+            level.mg_hearth_fx playloopsound( "amb_fire_med" );
             level thread mg_fx_keepalive( level.mg_hearth_fx );
+        }
+
+        // the tempered gun waits in the hell portal of the wolf heads, facing the room
+        if ( mg_state_is( "pickup" ) )
+        {
+            out = vectortoangles( mg_coord( "MG_HEARTH_USE" ).origin - pos );
+            level.mg_hearth_portal = mg_fx_loop( "hearth_blue", pos, ( 0, out[1], 0 ) );
+            mg_snd_near( "evt_wolfhead_spawn", pos, 1200 );
+
+            if ( isdefined( level.mg_hearth_portal ) )
+                level.mg_hearth_portal playloopsound( "evt_wolfhead_fire_loop" );
+        }
 
         level waittill( "mg_state" );
     }
@@ -190,11 +206,14 @@ mg_hearth_zombie_died( zombie )
     level thread mg_orb_spawn( zombie.origin + ( 0, 0, 30 ) );
 }
 
-// An orb: rises 30 units, lives 20 s, collected by any player within 48 units.
+// An orb: the soul leaves the body (the wolf heads' soul streak and sound), then waits 30 units up for 20 s,
+// collected by any player within 48 units.
 mg_orb_spawn( pos )
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
+    mg_fx_once( "soul_release", pos );
+    mg_snd_near( "evt_soulsuck_body", pos, 900 );
     orb = mg_fx_loop( "soul", pos );
 
     if ( !isdefined( orb ) )
@@ -236,21 +255,26 @@ mg_orb_spawn( pos )
         return;
 
     level.mg_orbs++;
+    n = level.mg_orbs;
     taker mg_snd_player( "zmb_quest_forcefield_end" );
     mg_fx_once( "soul_hit", taker.origin + ( 0, 0, 40 ) );
+    mg_debug_print( "MG: orb " + n + "/18 by " + taker.name );
 
-    // the soul flies to the skull it fills (owner 2026-09-20): skull 0 for orbs 1-6, 1 for 7-12, 2 for 13-18
+    // the soul flies to the skull it fills (owner 2026-09-20): skull 0 for orbs 1-6, 1 for 7-12, 2 for 13-18; the
+    // skull lights when its sixth soul ARRIVES
+    idx = int( ( n - 1 ) / 6 );
     target = mg_coord( "MG_HEARTH" ).origin + ( 0, 0, 20 );
-    skull = level.mg_skulls[int( ( level.mg_orbs - 1 ) / 6 )];
 
-    if ( isdefined( skull ) )
-        target = skull.origin + ( 0, 0, 8 );
+    if ( isdefined( level.mg_skulls[idx] ) )
+        target = level.mg_skulls[idx].origin + ( 0, 0, 4 );
 
-    level thread mg_trail( "soul_trail", from, target, 900 );
-    mg_debug_print( "MG: orb " + level.mg_orbs + "/18 by " + taker.name );
+    session = level.mg_hearth_session;
+    mg_trail( "soul_trail", from, target, 700 );
+    mg_fx_once( "soul_arrive", target );
+    mg_snd_near( "evt_soulsuck_body", target, 900 );
 
-    if ( level.mg_orbs == 6 || level.mg_orbs == 12 || level.mg_orbs == 18 )
-        mg_skull_light( level.mg_orbs / 6 - 1 );
+    if ( n % 6 == 0 && mg_state_is( "souls" ) && level.mg_hearth_session == session && level.mg_orbs >= n )
+        mg_skull_light( idx );
 }
 
 // skull index 0..2 turns blue and stays so until the hearth resets
@@ -267,13 +291,17 @@ mg_skull_light( idx )
     if ( isdefined( level.mg_skull_fx[idx] ) )
         mg_fx_stop( level.mg_skull_fx[idx] );
 
-    ent = mg_fx_loop( "soul_full", skull.origin + ( 0, 0, 6 ) );
+    ent = mg_fx_loop( "soul_full", skull.origin + ( 0, 0, 2 ) );
     level.mg_skull_fx[idx] = ent;
 
     if ( isdefined( ent ) )
+    {
+        // a full dream catcher's glow and hum
+        ent playloopsound( "evt_runeglow_loop" );
         level thread mg_fx_keepalive( ent );
+    }
 
-    mg_snd_near( "zmb_afterlife_zombie_warp_in", skull.origin, 600 );
+    mg_snd_near( "zmb_afterlife_zombie_warp_in", skull.origin, 900 );
 }
 
 mg_skulls_dark()

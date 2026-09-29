@@ -25,36 +25,45 @@ mg_out( text )
 // key -> asset path. Every path is in tools/assets/assets_zm_prison.txt. Dvars mg_fx_<key> override a path at load.
 mg_fx_table()
 {
+    // one key per visible role; each is the effect zm_prison itself plays for that job (maps/mp/zm_prison_fx.gsc,
+    // clientscripts/mp/zm_prison_weap_quest.csc), overridable in game with the dvar mg_fx_<key>
     t = [];
     t["fire_md"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
     t["fire_sm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm";
     t["fire_xsm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
     t["embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat";
     t["blue_fire"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
-    t["soul"] = "maps/zombie_alcatraz/fx_alcatraz_light_round_oo"; // owner pick 2026-09-20
+    // the souls: the wolf heads' own (a soul leaves the body, flies, bursts in; a full catcher glows)
+    t["soul_release"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
+    t["soul"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
     t["soul_start"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
-    t["soul_full"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // owner pick (teleport_ball)
-    t["soul_hit"] = "weapon/tomahawk/fx_tomahawk_charge"; // owner pick (tomahawk_charge_up)
-    t["soul_trail"] = "weapon/tomahawk/fx_tomahawk_trail_charged"; // owner pick
+    t["soul_trail"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_start";
+    t["soul_arrive"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charge_impact";
+    t["soul_hit"] = "weapon/tomahawk/fx_tomahawk_charge"; // the soul taken by a player
+    t["soul_full"] = "maps/zombie_alcatraz/fx_alcatraz_soul_charged";
+    // the hearth: a real fire; the hell portal of the wolf heads opens in it for the tempered gun
+    t["hearth_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
+    t["hearth_blue"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell";
+    t["hearth_close"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell_close";
+    // the run: fire in the barrels, the temper riding the gun
+    t["barrel_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm";
+    t["gun_flame"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
+    // the forge: the generator's own sparks and smoke, afterlife ghosts, the quest-item glow on the gun to take
     t["ghost"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
-    t["sparks"] = "maps/zombie_alcatraz/fx_alcatraz_elevator_spark"; // owner pick
-    t["smoke"] = "maps/zombie_alcatraz/fx_alcatraz_plane_fire_trail"; // owner pick
-    t["glow"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // owner pick (Magmagat ready)
+    t["sparks"] = "maps/zombie_alcatraz/fx_alcatraz_generator_sparks";
+    t["smoke"] = "maps/zombie_alcatraz/fx_alcatraz_generator_smk";
+    t["glow"] = "maps/zombie_alcatraz/fx_alcatraz_quest_item_glow";
     t["glint"] = "maps/zombie_alcatraz/fx_alcatraz_key_glint";
+    t["forge_rise"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm";
+    // the weapon: the lava blob's fire trail, its impact, the lava gib, zombies on fire (the tomahawk's burning torso)
     t["ball"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire";
     t["ball_hit"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact";
-    t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // owner pick
+    t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso";
     t["explo"] = "maps/zombie/fx_zmb_tranzit_lava_torso_explo";
     t["blue_spark"] = "electrical/fx_elec_spark_bounce_blue_lg";
-    // one key per visible role (owner picks 2026-09-20)
-    t["hearth_fire"] = "maps/zombie/fx_zmb_meat_trail";
-    t["hearth_blue"] = "maps/zombie_alcatraz/fx_alcatraz_tomahawk_pickup";
-    t["barrel_fire"] = "weapon/tomahawk/fx_tomahawk_trail_ug";
-    t["gun_flame"] = "weapon/tomahawk/fx_tomahawk_trail_ug";
     t["patch_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
     t["magma_hold"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // the flame riding a held Magmagat
     t["magmus_hold"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the same on the Magmus Operandi, bigger
-    t["forge_rise"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the Magmagat rising out of the forge
     return t;
 }
 
@@ -90,6 +99,8 @@ mg_fx_loop( key, origin, angles )
         ent.angles = angles;
 
     playfxontag( level._effect["mg_" + key], ent, "tag_origin" );
+    // an effect whose entity moves or links on its spawn frame may never draw: callers get it settled
+    wait 0.15;
     return ent;
 }
 
@@ -136,12 +147,12 @@ mg_fx_keepalive( ent )
 mg_trail( fxkey, from, to, speed )
 {
     level endon( "end_game" );
-    ent = mg_fx_loop( fxkey, from );
+    // aimed along the flight: the soul streak points where it goes
+    ent = mg_fx_loop( fxkey, from, vectortoangles( to - from ) );
 
     if ( !isdefined( ent ) )
         return;
 
-    wait 0.15;
     time = distance( from, to ) / speed;
 
     if ( time < 0.3 )

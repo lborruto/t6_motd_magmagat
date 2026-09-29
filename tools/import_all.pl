@@ -27,11 +27,13 @@ my @bakes = (
         '--tint', '0.30,0.48,0.78', '--tile', '4' ],
 );
 
-# [ our xmodel, BO3 model, importer options ]
+# [ our xmodel, BO3 model, importer options ]. The owner's anchors were placed with the vanilla props these replace, so
+# each mesh is moved to put its pivot where that prop had it (the BO3 models pivot at their base).
 my @props = (
     [ 'mg_barrel_blue', 'p7_slu_barrel_metal_02_blue_dmg',
-        '--skip', 'transparency', '--skip', 'decal', '--color', "dmg_blue=$work/mg_barrel_blue_c.png" ],
-    [ 'mg_skull', 'p7_zm_zod_skull' ],
+        '--skip', 'transparency', '--skip', 'decal', '--color', "dmg_blue=$work/mg_barrel_blue_c.png",
+        '--offset', '0,0,-22.37' ],    # p6_zm_al_wood_barrel_01 pivots at mid height
+    [ 'mg_skull', 'p7_zm_zod_skull', '--offset', '0,0,-3.51' ],    # BO2's own skull mesh; p6_zm_al_skull pivots at its centre
 );
 
 system( 'perl', "$FindBin::Bin/dump_game.pl" ) == 0 or die "import_all.pl: the dump failed\n";    # the material template
