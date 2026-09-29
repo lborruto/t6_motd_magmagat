@@ -73,7 +73,7 @@ mg_forge_prompt_text( player )
         return "Press [{+activate}] to take the Magmagat";
 
     carrying = mg_state_is( "run" ) && isdefined( level.mg_carrier ) && level.mg_carrier == player;
-    open_owner = is_true( level.mg_forge_open ) && isdefined( mg_has_blundergat( player ) ) && !is_true( player.mg_magma_any );
+    open_owner = is_true( level.mg_forge_open ) && isdefined( mg_has_blundergat( player ) ) && !isdefined( mg_has_magma( player ) );
 
     if ( !carrying && !open_owner )
         return undefined;
@@ -122,7 +122,7 @@ mg_forge_press( player )
 
     weapon = mg_has_blundergat( player );
 
-    if ( is_true( level.mg_forge_open ) && isdefined( weapon ) && !is_true( player.mg_magma_any ) )
+    if ( is_true( level.mg_forge_open ) && isdefined( weapon ) && !isdefined( mg_has_magma( player ) ) )
         mg_forge_place( player, weapon, 0 );
 }
 
@@ -191,39 +191,28 @@ mg_forge_place( player, weapon, tempered )
     mg_fx_stop( smoke );
     mg_fx_once( "explo", c.origin );
     mg_snd_near( "zmb_hellbox_open", c.origin, 800 );
+    gun delete();
+    gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin, c.angles );
     level.mg_forge_ready_gun = gun;
     level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
     level.mg_forge_busy = 0;
     level.mg_forge_place_ents = [];
 }
 
-// Take the Magmagat: the same weapon name, with the personality.
+// Take the Magmagat (the Magmus Operandi when a Sweeper was forged).
 mg_forge_take( player )
 {
     if ( !isdefined( level.mg_forge_ready_gun ) || !is_player_valid( player ) )
         return;
 
     weapon = level.mg_forge_gun_weapon;
-    current = player getcurrentweapon();
-    primaries = player getweaponslistprimaries();
-
-    if ( !player hasweapon( weapon ) )
-    {
-        if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( player ) )
-            player takeweapon( current );
-
-        player giveweapon( weapon );
-    }
-
-    player switchtoweapon( weapon );
-    player givemaxammo( weapon );
     level.mg_forge_ready_gun delete();
     level.mg_forge_ready_gun = undefined;
     mg_fx_stop( level.mg_forge_ready_glow );
     level.mg_forge_ready_glow = undefined;
     level.mg_forge_gun_weapon = undefined;
     level.mg_forge_placer = undefined;
-    mg_weapon_grant( player, weapon );
+    player mg_weapon_grant( weapon );
 
     if ( !mg_state_is( "done" ) )
     {
@@ -262,7 +251,7 @@ mg_forge_fabricate( state )
     {
         c = mg_coord( "MG_FORGE_GUN" );
         level.mg_forge_gun_weapon = "blundergat_zm";
-        level.mg_forge_ready_gun = spawn_weapon_model( "blundergat_zm", undefined, c.origin, c.angles );
+        level.mg_forge_ready_gun = spawn_weapon_model( "magmagat_zm", undefined, c.origin, c.angles );
         level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
     }
 }

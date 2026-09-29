@@ -1,14 +1,16 @@
 #!/usr/bin/perl
-# deploy.pl - install Magmagat into the game folder.
+# deploy.pl - install Magmagat's scripts into our mod folder (tools/build_mod.pl installs its mod.ff beside them).
 #
 #   perl tools/deploy.pl                packed: ONE file if it fits, else two, else three (tools/pack.pl decides)
 #   perl tools/deploy.pl --parts N      force N packed files
 #   perl tools/deploy.pl --multi        the sources side by side (development install: !mg debug)
 #   perl tools/deploy.pl --game DIR     install somewhere else
 #
-# Game folder: %localappdata%\Plutonium\storage\t6\scripts\zm\zm_prison
-# Plutonium auto-loads every *.gsc in that folder, so the layouts must never coexist: each mode removes what the
-# others installed (two copies of a function = a fatal duplicate at load).
+# Game folder: %localappdata%\Plutonium\storage\t6\mods\zm_magmagat\scripts\zm\zm_prison: the scripts ship inside the
+# mod folder, so they only run when the player picks the mod (which also loads our mod.ff with the Magmagat).
+# Plutonium auto-loads every *.gsc there, so the layouts must never coexist: each mode removes what the others
+# installed, and the loose install of the older releases (scripts\zm\zm_prison) too (two copies of a function =
+# a fatal duplicate at load).
 #
 # Why "one file if it fits": a T6 script addresses every function and import name as a 16-bit offset into its
 # string block, so that block cannot pass 65535 bytes (measured with tools/gsc_header.pl on the compiled binary;
@@ -18,6 +20,7 @@ use strict;
 use warnings;
 use File::Basename qw(dirname basename);
 use File::Copy qw(copy);
+use File::Path qw(make_path);
 use File::Spec;
 
 my $tools = dirname( File::Spec->rel2abs( $0 ) );
@@ -27,7 +30,8 @@ my $local = $ENV{LOCALAPPDATA};
 die "deploy.pl: LOCALAPPDATA is not set (this tool installs into %LOCALAPPDATA%\\Plutonium\\storage\\t6)\n" unless defined $local && length $local;
 $local =~ s/\x5c/\//g;
 
-my $game = "$local/Plutonium/storage/t6/scripts/zm/zm_prison";
+my $game = "$local/Plutonium/storage/t6/mods/zm_magmagat/scripts/zm/zm_prison";
+my $legacy = "$local/Plutonium/storage/t6/scripts/zm/zm_prison";
 my $packed_base = 'zm_prison_magmagat';
 my $mode = 'single';
 my $forced_parts = 0;
@@ -41,7 +45,8 @@ for ( my $i = 0; $i < @ARGV; $i++ ) {
     else  { die "deploy.pl: unknown option $a\n" }
 }
 
-die "deploy.pl: game folder not found: $game\n" unless -d $game;
+make_path($game);
+die "deploy.pl: cannot create $game\n" unless -d $game;
 
 my @sources = sort glob("$repo/mg_*.gsc");
 die "deploy.pl: no mg_*.gsc in $repo\n" unless @sources;
@@ -50,7 +55,7 @@ die "deploy.pl: no mg_*.gsc in $repo\n" unless @sources;
 sub clean_game {
     my $n = 0;
 
-    for my $f ( glob("$game/mg_*.gsc"), glob("$game/$packed_base*.gsc") ) {
+    for my $f ( map { ( glob("$_/mg_*.gsc"), glob("$_/$packed_base*.gsc") ) } $game, $legacy ) {
         unlink $f and $n++;
     }
 

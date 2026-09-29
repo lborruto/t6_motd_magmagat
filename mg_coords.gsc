@@ -11,9 +11,8 @@
 mg_models_init()
 {
     level.mg_models = [];
-    level.mg_models["skull"] = "p6_zm_al_skull";
-    level.mg_models["barrel"] = "p6_zm_al_wood_barrel_01";
-    level.mg_models["candle"] = "p6_zm_al_candle_med_on";
+    level.mg_models["skull"] = "mg_skull"; // mod.ff (tools/import_all.pl): the BO3 remaster's skull
+    level.mg_models["barrel"] = "mg_barrel_blue"; // mod.ff: the BO3 remaster's blue metal barrel
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
     level.mg_models["ball"] = "tag_origin"; // owner 2026-09-20: the dart model read as the Acid Gat; the fire fx alone is the ball
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
@@ -41,28 +40,6 @@ mg_precache()
     foreach ( kind, name in level.mg_models )
         if ( name != "tag_origin" )
             precachemodel( name );
-
-    // owner 2026-09-28: the real models come from our mod.ff (mods/zm_magmagat); only precached when that mod is
-    // the one loaded, so the loose scripts still run without it
-    if ( mg_mod_loaded() )
-    {
-        foreach ( name in mg_mod_models() )
-            precachemodel( name );
-    }
-}
-
-// 1 when Plutonium runs our fastfile mod (the Mods menu sets fs_game to mods/<folder>).
-mg_mod_loaded()
-{
-    return issubstr( tolower( getdvar( "fs_game" ) ), "zm_magmagat" );
-}
-
-// Every xmodel our mod.ff ships (mod/zone_source/mod.zone).
-mg_mod_models()
-{
-    list = [];
-    list[list.size] = "mg_test_barrel";
-    return list;
 }
 
 mg_coords_init()

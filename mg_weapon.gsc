@@ -5,17 +5,98 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
 
-// The Magmagat is the Blundergat with a script personality (spec section 4): each shot also launches a lava
-// ball; a zombie that catches it burns 0.6 s and explodes (150 units); a miss leaves an 8 s magma patch.
+// The Magmagat is its own weapon, magmagat_zm, shipped in our mod.ff (tools/build_weapon.pl: the Blundergat's rig
+// and animations, a lava skin); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. Each shot also
+// launches a lava ball; a zombie that catches it burns 0.6 s and explodes (150 units); a miss leaves an 8 s patch.
+// The Acid Gat kit refuses it by itself: vanilla only takes a blundergat_zm / blundergat_upgraded_zm.
 
 mg_weapon_init()
 {
     level.mg_patches = [];
-    // chained, not replaced: vanilla _zm_ai_brutus.gsc:127 installs its own hook on this map (paid unlock of a
-    // Brutus-locked table); ours only adds the Magmagat refusal on the Acid Gat station
-    level.mg_prev_craftable_validation = level.custom_craftable_validation;
-    level.custom_craftable_validation = ::mg_acid_station_validation;
+    mg_weapon_register();
     level thread mg_weapon_connect_watch();
+}
+
+// init() only (precacheitem).
+mg_weapon_precache()
+{
+    precacheitem( "magmagat_zm" );
+    precacheitem( "magmagat_upgraded_zm" );
+}
+
+// Pack-a-Punch reads level.zombie_weapons[name].upgrade_name (vanilla _zm_weapons::can_upgrade_weapon): the
+// Magmagat copies the Blundergat's entry, out of the Mystery Box.
+mg_weapon_register()
+{
+    base = level.zombie_weapons["blundergat_zm"];
+    s = spawnstruct();
+    s.weapon_name = "magmagat_zm";
+    s.upgrade_name = "magmagat_upgraded_zm";
+    s.weapon_classname = "weapon_magmagat_zm";
+    s.is_in_box = 0;
+
+    if ( isdefined( base ) )
+    {
+        s.hint = base.hint;
+        s.cost = base.cost;
+        s.vox = base.vox;
+        s.vox_response = base.vox_response;
+        s.ammo_cost = base.ammo_cost;
+    }
+
+    level.zombie_weapons["magmagat_zm"] = s;
+    level.zombie_weapons_upgraded["magmagat_upgraded_zm"] = "magmagat_zm";
+    level.zombie_include_weapons["magmagat_zm"] = 0;
+}
+
+// The Magmagat a Blundergat becomes at the forge.
+mg_magma_of( weapon )
+{
+    if ( isdefined( weapon ) && weapon == "blundergat_upgraded_zm" )
+        return "magmagat_upgraded_zm";
+
+    return "magmagat_zm";
+}
+
+mg_is_magma( weapon )
+{
+    return isdefined( weapon ) && ( weapon == "magmagat_zm" || weapon == "magmagat_upgraded_zm" );
+}
+
+// The Magmagat this player carries, or undefined.
+mg_has_magma( player )
+{
+    if ( !isdefined( player ) )
+        return undefined;
+
+    if ( player hasweapon( "magmagat_upgraded_zm" ) )
+        return "magmagat_upgraded_zm";
+
+    if ( player hasweapon( "magmagat_zm" ) )
+        return "magmagat_zm";
+
+    return undefined;
+}
+
+// self = player. Swaps the held Blundergat (or gives one) for its Magmagat.
+mg_weapon_grant( weapon )
+{
+    magma = mg_magma_of( weapon );
+    current = self getcurrentweapon();
+    primaries = self getweaponslistprimaries();
+
+    if ( isdefined( weapon ) && self hasweapon( weapon ) )
+        self takeweapon( weapon );
+    else if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( self ) )
+        self takeweapon( current );
+
+    if ( !self hasweapon( magma ) )
+        self giveweapon( magma );
+
+    self switchtoweapon( magma );
+    self givemaxammo( magma );
+    self mg_snd_player( "zmb_hellbox_arrive" );
+    mg_debug_print( "MG: " + self.name + " holds a " + magma );
 }
 
 mg_weapon_connect_watch()
@@ -23,81 +104,12 @@ mg_weapon_connect_watch()
     level endon( "end_game" );
 
     foreach ( player in getplayers() )
-        player thread mg_weapon_player_watch();
+        player thread mg_weapon_shot_loop();
 
     for ( ;; )
     {
         level waittill( "connected", player );
-        player thread mg_weapon_player_watch();
-    }
-}
-
-mg_is_magma( player, weapon )
-{
-    return isdefined( player ) && isdefined( weapon ) && isdefined( player.mg_magma ) && is_true( player.mg_magma[weapon] );
-}
-
-mg_weapon_grant( player, weapon )
-{
-    if ( !isdefined( player ) || !isdefined( weapon ) )
-        return;
-
-    if ( !isdefined( player.mg_magma ) )
-        player.mg_magma = [];
-
-    player.mg_magma[weapon] = 1;
-    player.mg_magma_any = 1;
-    title = "Magmagat";
-
-    if ( weapon == "blundergat_upgraded_zm" )
-        title = "Magmus Operandi";
-
-    player mg_snd_player( "zmb_hellbox_arrive" );
-    mg_debug_print( "MG: " + player.name + " holds a " + title + " (" + weapon + ")" );
-}
-
-// self = player. Shots, Pack-a-Punch carry-over, loss of the weapon.
-mg_weapon_player_watch()
-{
-    self endon( "disconnect" );
-    level endon( "end_game" );
-
-    if ( is_true( self.mg_weapon_watched ) )
-        return;
-
-    self.mg_weapon_watched = 1;
-    self.mg_balls = 0;
-    self thread mg_weapon_shot_loop();
-
-    while ( true )
-    {
-        wait 0.5;
-
-        if ( !isdefined( self.mg_magma ) )
-            continue;
-
-        // Pack-a-Punch: the plain flag moves to the upgraded name when the Sweeper appears
-        if ( is_true( self.mg_magma["blundergat_zm"] ) && !self hasweapon( "blundergat_zm" ) && self hasweapon( "blundergat_upgraded_zm" ) )
-        {
-            self.mg_magma["blundergat_zm"] = 0;
-            self.mg_magma["blundergat_upgraded_zm"] = 1;
-        }
-
-        // both gone (box swap, wall buy, death without Tombstone): the personality is lost
-        any = 0;
-
-        foreach ( name, on in self.mg_magma )
-        {
-            if ( is_true( on ) && self hasweapon( name ) )
-                any = 1;
-        }
-
-        if ( !any && is_true( self.mg_magma_any ) )
-        {
-            self.mg_magma = [];
-            self.mg_magma_any = 0;
-            mg_debug_print( "MG: " + self.name + " lost the Magmagat" );
-        }
+        player thread mg_weapon_shot_loop();
     }
 }
 
@@ -107,11 +119,17 @@ mg_weapon_shot_loop()
     self endon( "disconnect" );
     level endon( "end_game" );
 
+    if ( is_true( self.mg_weapon_watched ) )
+        return;
+
+    self.mg_weapon_watched = 1;
+    self.mg_balls = 0;
+
     while ( true )
     {
         self waittill( "weapon_fired", weapon );
 
-        if ( !mg_is_magma( self, weapon ) )
+        if ( !mg_is_magma( weapon ) )
             continue;
 
         if ( self.mg_balls >= 3 )
@@ -330,32 +348,4 @@ mg_burn_clear( seconds )
     self endon( "death" );
     wait( seconds );
     self.mg_burning = 0;
-}
-
-// self = the craftable trigger vanilla is validating (_zm_craftables / zm_alcatraz_utility call
-// `trigger [[ level.custom_craftable_validation ]]( player )`). Vanilla's own hook runs first; then only the
-// Acid Gat station (targetname blundergat_upgrade) refuses a Magmagat (spec section 4).
-mg_acid_station_validation( player )
-{
-    if ( isdefined( level.mg_prev_craftable_validation ) )
-    {
-        if ( !( self [[ level.mg_prev_craftable_validation ]]( player ) ) )
-            return 0;
-    }
-
-    if ( !isdefined( self.targetname ) || self.targetname != "blundergat_upgrade" )
-        return 1;
-
-    if ( !isdefined( player ) )
-        return 1;
-
-    weapon = mg_has_blundergat( player );
-
-    if ( isdefined( weapon ) && mg_is_magma( player, weapon ) )
-    {
-        player mg_snd_player( "zmb_quest_nixie_count" );
-        return 0;
-    }
-
-    return 1;
 }

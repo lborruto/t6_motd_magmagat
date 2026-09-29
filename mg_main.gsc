@@ -23,6 +23,7 @@ init()
     level.mg_version = "0.1.0";
     mg_fx_init();
     mg_precache();
+    mg_weapon_precache();
     level thread mg_boot();
 }
 

@@ -41,7 +41,7 @@ mg_debug_command( sub, arg, args )
                 return 1;
             }
 
-            mg_weapon_grant( self, weapon );
+            self mg_weapon_grant( weapon );
             return 1;
 
         case "shock":
@@ -140,11 +140,11 @@ mg_debug_command( sub, arg, args )
             self mg_out( "MG: preview removed" );
             return 1;
 
-        // owner 2026-09-28: spawn any precached model 80 in front (the mod.ff test props)
+        // owner 2026-09-28: spawn any precached model 80 in front (the mod.ff props)
         case "model":
             if ( !isdefined( arg ) )
             {
-                self mg_out( "MG: mod loaded " + mg_mod_loaded() + " (fs_game '" + getdvar( "fs_game" ) + "'), usage: !mg model <xmodel>" );
+                self mg_out( "Usage: !mg model <xmodel>   e.g. !mg model mg_barrel_blue" );
                 return 1;
             }
 

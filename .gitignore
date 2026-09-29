@@ -1,3 +1,6 @@
 release/
 *.bak
 mod/out/
+mod/work/
+mod/props/
+mod/weapon/

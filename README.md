@@ -4,12 +4,16 @@ A new wonder weapon and its quest for Black Ops II Zombies, Mob of the Dead, on 
 
 ## Install
 
-1. Download the latest release.
-2. Drop every `zm_prison_magmagat*.gsc` file into
-   `%localappdata%\Plutonium\storage\t6\scripts\zm\zm_prison\` (create the folder if needed).
-3. Play Mob of the Dead.
+1. Download `zm_magmagat-<version>.zip` from the latest release and unzip it.
+2. Drop the `zm_magmagat` folder into `%localappdata%\Plutonium\storage\t6\mods\`, so you end up with
+   `...\t6\mods\zm_magmagat\mod.ff`, `mod.json` and `scripts\`.
+3. In game: **Mods** → **zm_magmagat** → load it, then play Mob of the Dead.
 
-Nothing else is needed. Works with other loose scripts.
+That folder is the whole mod: the quest scripts, the Magmagat and the props. Nothing goes into `scripts\zm\`.
+Updating from a version before the mod folder? Delete the old `zm_prison_magmagat*.gsc` from
+`...\t6\scripts\zm\zm_prison\` first, or the game loads the quest twice and refuses it.
+
+The Mods menu runs one mod at a time; loose scripts in `scripts\zm\` still load beside it.
 
 ## Play
 
@@ -19,4 +23,5 @@ walkthrough behind spoiler folds.
 ## Credits
 
 Quest design after the BO3 custom map "Mob of the Dead Remastered" by nekoBoy and Blood of the Dead by
-Treyarch. Built on the Dead Frequency toolchain. MIT licence.
+Treyarch. The blue barrels and the mantle skulls are that map's models; the Magmagat is Treyarch's Blundergat,
+recoloured. Built with OpenAssetTools and on the Dead Frequency toolchain. MIT licence (the code).

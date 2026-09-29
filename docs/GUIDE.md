@@ -72,7 +72,8 @@ converts straight away, no fresh temper run needed.
 <details>
 <summary>The weapon</summary>
 
-The Magmagat still looks and reloads like a Blundergat, but every shot now also throws a ball of lava. A
+The Magmagat is a weapon of its own: the Blundergat's frame, charred, with two lava tanks glowing on its
+sides, and its own name. It reloads like a Blundergat, but every shot now also throws a ball of lava. A
 ball that lands on a zombie sticks and explodes it and everything around it a moment later; a shot that
 misses leaves a burning patch on the ground instead, which keeps damaging zombies that walk through it for a
 few seconds.
@@ -81,9 +82,9 @@ Brutus is different: a lava ball or a patch burns him steadily, but neither one 
 always survives the fire.
 
 Switching to another weapon, or going down, ends nothing about the Magmagat itself — once forged, it is
-yours to keep and carry like any other weapon. The Acid Gat kit, however, refuses a Magmagat outright: the
-forge already claimed that gun, so it has nothing left to give it. Pack-a-Punch it normally instead: the
-Magmagat comes out as the Magmus Operandi, one tier up, same personality. It also works the other way round:
+yours to keep and carry like any other weapon. The Acid Gat kit, however, refuses a Magmagat outright: it
+only takes a Blundergat, and the forge already claimed that one. Pack-a-Punch it normally instead: the
+Magmagat comes out as the Magmus Operandi, one tier up, armoured, same personality. It also works the other way round:
 a Sweeper, the Pack-a-Punched Blundergat, tempered and forged comes out as the Magmus Operandi directly.
 
 </details>

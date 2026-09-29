@@ -8,8 +8,9 @@ developer_script 1
 set mg_debug 1
 ```
 
-Install first: `perl tools/deploy.pl` from the repo (Git Bash). Check it loaded: console `set mg_debug 1`,
-then in chat `!mg status` (it answers with the version, state, orbs, carrier, timer and every anchor
+Install first, from the repo (Git Bash): `perl tools/build_mod.pl` (mod.ff + mod.json) and `perl tools/deploy.pl`
+(the scripts), both into `mods/zm_magmagat`; then Mods -> zm_magmagat in game. Check it loaded: console
+`set mg_debug 1`, then in chat `!mg status` (it answers with the version, state, orbs, carrier, timer and every anchor
 resolved). Every `!mg` answer is also printed to the console as `[MG] ...`.
 
 Tick each box in game; where a `!mg goto <state>` shortcut exists it is given next to the honest-play check,
@@ -19,6 +20,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 0. Load
 
 - [ ] No red error popup on map load.
+- [ ] The five route barrels are the remaster's blue metal barrels and the three mantle skulls its skulls
+      (`!mg show` previews them; `!mg model mg_barrel_blue` / `!mg model mg_skull` spawn one in front of you).
 - [ ] `!mg status` prints the version, the state (`locked` at boot), orbs 0, no carrier, no timer, and a
       resolved line for every anchor.
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
@@ -78,8 +81,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] `!mg goto forge` (or carry the tempered gun to the powered generator honestly): state is `forge`.
 - [ ] At the generator: press once to power it (spark fx + sound), then place the tempered gun - it rests
       on the generator and ghosts for a few seconds.
-- [ ] Take the Magmagat: state becomes `done`, `!mg status` confirms it, and the weapon now behaves as the
-      Magmagat (see section 6).
+- [ ] After the ghosts, the gun on the generator has turned into the Magmagat (charred, lava tanks).
+- [ ] Take the Magmagat: state becomes `done`, `!mg status` confirms it, the weapon is `magmagat_zm` (its name
+      shows "Magmagat" on the HUD) and behaves as in section 6. A forged Sweeper gives `magmagat_upgraded_zm`.
 - [ ] **Forge stays open once done**: with the quest already `done`, place a fresh, unrelated plain
       Blundergat on the generator - it converts to a Magmagat directly, no new temper run required.
 
@@ -96,24 +100,25 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       lava alone, however many balls land on him.
 - [ ] **Brutus vs a patch**: walk Brutus through a magma patch. He burns and takes damage over time, but
       again never dies from the patch alone.
-- [ ] **Pack-a-Punch carry-over ("Sweeper in, Magmus Operandi out")**: Pack-a-Punch a Magmagat
-      (`blundergat_zm` with the personality). It comes back as `blundergat_upgraded_zm` (the Sweeper) and
-      keeps the personality, now titled Magmus Operandi, with one more shell per shot.
-- [ ] **Acid Gat kit refuses a Magmagat**: try to use the Acid Gat upgrade station on a weapon that already
-      has the Magmagat personality. It must be refused with a hint (the forge already claimed the gun), and
-      the weapon must remain unchanged.
-- [ ] A plain Blundergat (no personality) still upgrades at the Acid Gat station normally - confirm the
-      refusal is specific to a flagged Magmagat, not a blanket block.
+- [ ] **Look**: in first person the Magmagat is the Blundergat's frame, charred, with two glowing lava tanks;
+      dropped or on the generator it has the same colours.
+- [ ] **Pack-a-Punch ("Magmagat in, Magmus Operandi out")**: Pack-a-Punch a Magmagat. It comes back as
+      `magmagat_upgraded_zm`, named Magmus Operandi, with the armour kit in lava colours, the lava ball on every shot
+      and one more shell per shot (the Sweeper's stats).
+- [ ] **Acid Gat kit refuses a Magmagat**: holding only a Magmagat, use the Acid Gat upgrade station. The
+      game's own "missing Blundergat" hint shows and the Magmagat stays as it is.
+- [ ] A plain Blundergat still upgrades at the Acid Gat station normally.
 - [ ] With a Magmagat in hand, a Brutus-locked craftable table still charges its unlock price and unlocks;
       other craftables (shield, plane parts) still craft normally.
-- [ ] Losing the personality (box swap, wall buy replacing the weapon, death without Tombstone) clears the
-      flag; the forge (once `done`) can re-grant it to a fresh Blundergat.
+- [ ] Losing the Magmagat (box swap, wall buy replacing it, death without Tombstone) loses it like any weapon;
+      the forge (once `done`) converts a fresh Blundergat again.
+- [ ] The Mystery Box never offers a Magmagat.
 
 ## 7. Debug tools
 
 - [ ] `!mg give` gives and switches to a plain Blundergat.
-- [ ] `!mg magma` grants the Magmagat personality to the Blundergat currently in hand (refuses with a message
-      if you are not holding one).
+- [ ] `!mg magma` swaps the Blundergat in hand for its Magmagat (a Sweeper for the Magmus Operandi; refuses
+      with a message if you are not holding one).
 - [ ] `!mg fx <n>` / `!mg fx <name>` / `!mg fx next` / `!mg fx prev` / `!mg fx stop` auditions a registered
       effect where you aim for 8 s, and the console prints the index/name. Confirm there is no fx grid (not
       part of this mod).
@@ -138,4 +143,4 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       all green.
 - [ ] `"C:/Games/t6/gsc-tools/gsc-tool.exe" -m comp -g t6 -s pc -y <file>` prints `compiled t6/<file>` for
       every changed source.
-- [ ] `perl tools/deploy.pl` installs without error.
+- [ ] `perl tools/build_mod.pl` and `perl tools/deploy.pl` install without error.

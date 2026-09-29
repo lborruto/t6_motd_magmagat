@@ -4,21 +4,25 @@ This file is for people who want to read, build, test or change the mod. Players
 [README](../README.md) and, for spoilers, [GUIDE.md](GUIDE.md). The owner's in-game test protocol is
 [TESTING.md](TESTING.md).
 
-The sources are the `mg_*.gsc` files in the repository root. The release is a BUILD of them: `tools/pack.pl`
-concatenates the sources into one loadable file (or a few, when the sources no longer fit one). Never edit a
-packed file; edit a source and pack again.
+The mod is ONE folder, `mods\zm_magmagat\`: a `mod.ff` fastfile (the props and the Magmagat weapons), a
+`mod.json`, and the quest scripts in `scripts\zm\zm_prison\`. The scripts' sources are the `mg_*.gsc` files in the
+repository root; the release carries a BUILD of them: `tools/pack.pl` concatenates the sources into one loadable
+file (or a few, when the sources no longer fit one). Never edit a packed file; edit a source and pack again.
+The fastfile is built from the game's own files and a Greyhound export of the BO3 map (see "The mod.ff").
 
 The version string `!mg status` prints (`level.mg_version` in `mg_main.gsc`) moves whenever the mechanics
 change.
 
 ## Toolchain facts that bite
 
-- Plutonium T6 loads every `*.gsc` in `scripts\zm\` and `scripts\zm\zm_prison\` (root level only) and all
-  loaded scripts share ONE namespace: a function defined twice is a fatal duplicate at load. So the packed
-  files and the sources must never sit in the game folder together (`tools/deploy.pl` handles this for you).
+- Plutonium T6 loads every `*.gsc` in `scripts\zm\` and `scripts\zm\zm_prison\` (root level only), and the same
+  folders inside the mod picked in the Mods menu (`mods\zm_magmagat\scripts\zm\zm_prison\`). All loaded scripts
+  share ONE namespace: a function defined twice is a fatal duplicate at load. So the packed files and the
+  sources must never sit in the game folders together, nor an old loose install beside the mod
+  (`tools/deploy.pl` handles both for you).
 - A compiled T6 script addresses every function and import name as a 16-bit offset into its string block, so
   that block cannot pass 65535 bytes. Over it the game reads names from the wrong place and prints nonsense
-  `Unresolved external` errors. Today the nine `mg_*.gsc` sources fit into ONE packed file
+  `Unresolved external` errors. Today the ten `mg_*.gsc` sources fit into ONE packed file
   (`release/zm_prison_magmagat.gsc`); if the sources grow past the limit, `tools/pack.pl --parts N` splits
   them into `zm_prison_magmagat_1.gsc` / `_2.gsc` (or more) instead, and both `tools/deploy.pl` and the
   release workflow already try 1, then 2, then 3 parts, so nothing else needs to change when that day comes.
@@ -38,16 +42,18 @@ change.
 |---|---|
 | `mg_main.gsc` | `init()` (zm_prison guard, precache, version), `mg_boot()`, chat listener `!mg`, command dispatch, help |
 | `mg_systems.gsc` | ported helpers: `mg_debug_print`, `mg_out`, `mg_fx_init`, `mg_fx_loop/once/stop`, `mg_fx_keepalive`, `mg_snd_near`, `mg_prompt`, `mg_press_use`, `mg_bar_*`, `mg_hud_title`, `mg_death_listen_add/remove`, `mg_zombies_near`, `mg_trail`, HUD disconnect cleanup |
-| `mg_coords.gsc` | anchor registry `mg_coord( key )` / `mg_coord_set`, `mg_apply_overrides()` (owner spots pasted here), `mg_models_init` / `mg_model( kind )` / `mg_precache()` |
+| `mg_coords.gsc` | anchor registry `mg_coord( key )` / `mg_coord_set`, `mg_apply_overrides()` (owner spots pasted here), `mg_models_init` / `mg_model( kind )` / `mg_precache()` (the barrel and skull models come from our mod.ff) |
 | `mg_place.gsc` | live placement mode `!mg grab <KEY>` / `drop` / `cancel` / `rot` / `up` (ported from Dead Frequency's `df_place.gsc`), anchor previews `mg_preview_show` / `mg_preview_refresh` / `mg_preview_hide` / `mg_preview_teleport` |
 | `mg_quest.gsc` | `level.mg_state`, `mg_state_set( s )`, `mg_state_is( s )`, `level notify( "mg_state", s )`, bridge gate, `mg_goto( state )` fabrication, `mg_status_lines()` |
 | `mg_hearth.gsc` | fireplace prompt, souls (orbs, skulls), pickup window |
 | `mg_run.gsc` | temper timer, barrels, carrier fail rules |
 | `mg_forge.gsc` | forge power, place, ghosts, take; open forge in `done` |
-| `mg_weapon.gsc` | Magmagat personality: `mg_weapon_grant( player, weapon )`, shot watcher, lava ball, magma patch, Acid Gat refusal, Pack-a-Punch carry-over |
+| `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, shot watcher, lava ball, magma patch |
 | `mg_debug.gsc` | shock pistol, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg spots` |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
-| `.github/workflows/release.yml` | release when the packed build changes |
+| `tools/import_all.pl`, `tools/import_prop.pl`, `tools/bake_layers.pl`, `tools/build_weapon.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain and the release (see "The mod.ff") |
+| `mod/zone_source/mod.zone`, `mod/mod.json`, `mod/templates/` | the fastfile's asset list (its blocks are written by the tools), the mod's name card, the material template for BO3 props |
+| `.github/workflows/check.yml` | lints and a pack test on every push (the release is built locally: it needs the game's files) |
 | `README.md`, `LICENSE`, `docs/GUIDE.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md` | end-user and contributor docs |
 
 Anchor keys (all in `mg_coords.gsc`): `MG_HEARTH` (gun rest in the fire), `MG_HEARTH_USE` (where the player
@@ -76,7 +82,7 @@ is available it also compiles the result and reads the exact number from the bin
 alone and fails at load with `Unresolved external`; `pack.pl` dies if one is missing. Today the sources pack
 into ONE file.
 
-### tools/deploy.pl (install into the game folder)
+### tools/deploy.pl (install the scripts into the mod folder)
 
 ```
 perl tools/check_links.pl .
@@ -86,17 +92,47 @@ perl tools/deploy.pl --multi        # the sources side by side (development inst
 perl tools/deploy.pl --game DIR
 ```
 
-Game folder: `%localappdata%\Plutonium\storage\t6\scripts\zm\zm_prison\`. Each mode removes what the other
-modes installed before, because the two layouts must never coexist. Never hand-edit an installed file.
+Game folder: `%localappdata%\Plutonium\storage\t6\mods\zm_magmagat\scripts\zm\zm_prison\`. Each mode removes what
+the other modes installed before, and the loose install of the older releases in `scripts\zm\zm_prison\`,
+because two layouts must never coexist. Never hand-edit an installed file. `tools/build_mod.pl` installs the
+`mod.ff` and `mod.json` beside them.
 
-### The GitHub Action (`.github/workflows/release.yml`)
+### The mod.ff (props and the Magmagat)
 
-On every push to `main` / `master` that touches a `mg_*.gsc`, the pack / lint tools, the sound bank tables
-or the workflow itself: run `lint_includes`, `lint_calls`, `lint_sounds` and `check_links`, then pack (one
-file, else two, else three), then publish a GitHub Release tagged with the version, with every
-`release/zm_prison_magmagat*.gsc` attached. A release is only published when the packed build actually
-changed from the latest one. A push that only touches docs creates no release. `workflow_dispatch` starts
-one by hand.
+```
+perl tools/import_all.pl       # the BO3 props from the Greyhound export -> mod/props
+perl tools/build_weapon.pl     # the Magmagat weapons from BO2's Blundergat -> mod/weapon (--redump to dump again)
+perl tools/build_mod.pl        # OpenAssetTools Linker -> mod/out/mod.ff + mod.json, installed into the mod folder
+perl tools/deploy.pl           # the scripts, beside it
+perl tools/release.pl          # release/zm_magmagat/ (the folder players drop into mods\) + its zip
+```
+
+Needs OpenAssetTools (`C:/Games/t6/openassettools`, env `MG_OAT`), the BO2 install (env `MG_BO2`) and, for the
+props, Greyhound's export of the BO3 map "Mob of the Dead Remastered" (`C:/Games/t6/Greyhound-1.49.4.0`, env
+`MG_GREYHOUND`: its models in `exported_files/black_ops_3_sp/xmodels`, the map's textures loaded from its `.xpak` in
+`exported_files/black_ops_3/ximages`). `mod/props`, `mod/weapon`, `mod/work` and `mod/out` are generated from the
+games' files and are never committed.
+
+- **Props** (`tools/import_all.pl` lists them): each BO3 model becomes a rigid T6 xmodel (Greyhound's glTF, Z-up
+  centimetres, turned to the Linker's Y-up inches; at most 4 LODs), one material per surface cloned from a vanilla
+  lit template, and its textures embedded in the fastfile as `*mg_<name>` images. A texture given a plain name makes
+  the Linker write a STREAMED image, which T6 only looks for in its own `.ipak` files: it never shows. A BO3 layered
+  material (a paint and a rust layer through a mask) is baked into one colour map by `tools/bake_layers.pl`;
+  `--skip` drops surfaces T6 cannot draw (the barrel's transparent shell, its alpha decal).
+- **The Magmagat** (`tools/build_weapon.pl`): the Unlinker dumps zm_prison's weapons, models, materials and images
+  (the map's images sit in DLC `.ipak` files it only opens under a name it loads itself, so they are hard-linked as
+  unused language bases for the dump). `magmagat_zm` copies `blundergat_zm` and shows the Acid Gat's tanks;
+  `magmagat_upgraded_zm` copies `blundergat_upgraded_zm` (armour kit attached). Same bones, animations, sounds and
+  effects; the view / world / armour models get our materials, whose colour and ember maps are the Blundergat's
+  recoloured by `tools/recolor.pl` (the emberglow shader of the Acid Gat animates the lava). The display names come
+  from `english/localizedstrings/mg_weapons.str`.
+
+### The GitHub Action (`.github/workflows/check.yml`)
+
+On every push and pull request: run `lint_includes`, `lint_calls`, `lint_sounds` and `check_links`, then pack
+(one file, else two, else three) to prove the scripts still load. It publishes nothing: the release needs the
+mod.ff, which is built from the games' files, so `tools/release.pl` builds it locally and the zip is attached to a
+GitHub Release by hand (`gh release create v<version> release/zm_magmagat-<version>.zip`).
 
 ## The lints (run all four before every push)
 
@@ -123,7 +159,8 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | `!mg spots` | print every anchor (`[SPOT] KEY \| x y z \| p y r`) |
 | `!mg help` | full command list |
 | `!mg give` | give a plain Blundergat |
-| `!mg magma` | grant the Magmagat personality to the Blundergat in hand |
+| `!mg magma` | swap the Blundergat in hand for its Magmagat (the Sweeper for the Magmus Operandi) |
+| `!mg model <xmodel>` | spawn any precached model 80 units in front of you (the mod.ff props: `mg_barrel_blue`, `mg_skull`) |
 | `!mg shock` | zap every Afterlife shock box and panel of the map at once (doors, generator panels) |
 | `!mg shock gun` | toggle the debug shock pistol (zaps the shock box or panel you shoot) |
 | `!mg fx [<n>\|<name>\|next\|prev\|stop]` | audition a registered effect where you aim, 8 s (no fx grid in this mod) |
@@ -152,8 +189,8 @@ owner records the real spots in game with this mod's own live placement mode (`m
 A `!mg drop` prints two lines, both to the console:
 
 ```
-[SPOT] MG_BARREL_1 | -600 9100 1336 | 0 0 0 | p6_zm_al_wood_barrel_01
-mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), "p6_zm_al_wood_barrel_01" );
+[SPOT] MG_BARREL_1 | -600 9100 1336 | 0 0 0 | mg_barrel_blue
+mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), "mg_barrel_blue" );
 ```
 
 Paste the `mg_coord_override(...)` line into `mg_apply_overrides()` in `mg_coords.gsc` to make it permanent
@@ -166,8 +203,9 @@ repository and are never edited here — see "Rules every change must keep" belo
 
 ## Rules every change must keep
 
-1. **Loose GSC only.** No fastfile, no edits to any file outside this repository except the game folder
-   install done by `tools/deploy.pl`.
+1. **One mod folder.** Everything the player installs is `mods\zm_magmagat\` (`tools/release.pl`). No edits to any
+   file outside this repository except the installs done by `tools/build_mod.pl` and `tools/deploy.pl`. Files
+   generated from the games (`mod/props`, `mod/weapon`, `mod/work`, dumps, textures) are never committed.
 2. **Never edit another mod's files.** In particular `zm_scavenger.gsc`, `cheats_zm.gsc`, `motd_solo.gsc`,
    `b2op-plutonium.gsc` and `nav_autocomplete.gsc` are off limits; read them for reference only.
 3. **Every source starts with the three utility includes**, then `#include scripts\zm\zm_prison\mg_<other>;`
@@ -176,8 +214,8 @@ repository and are never edited here — see "Rules every change must keep" belo
    is a fatal load error).
 5. **No builtin that does not exist in T6** (`array_remove`, `toupper`, `stopfxontag`, ...). Grep the
    decompiled vanilla scripts before using anything unfamiliar.
-6. **`precachemodel` only inside `init()`, before any wait.** Model names must appear in
-   `tools/assets/assets_zm_prison.txt`; fx names must appear there too and be registered with `loadfx` in
+6. **`precachemodel` / `precacheitem` only inside `init()`, before any wait.** Model names must appear in
+   `tools/assets/assets_zm_prison.txt` or in our `mod/zone_source/mod.zone`; fx names must appear there and be registered with `loadfx` in
    `mg_fx_init`; sound aliases must exist in `tools/assets/soundbank/*.aliases.csv`.
 7. **Console output via `mg_out` / `mg_debug_print`, gated by dvar `mg_debug`**; screen text via
    `iprintln`. `!mg` commands need `set mg_debug 1`.
