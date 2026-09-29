@@ -570,20 +570,15 @@ mg_lockdown_watch()
     }
 }
 
-// The fire walls: vanilla's laundry blockers stand at a doorway's centre on the floor at angles
-// (271.285, 159.957, 289.8 - the door's yaw); a window's wall runs across its zbarrier's facing (+90).
+// The remaster's lockdown: one effect outlining the office's door and walls, where its exploder fx_mg_quest_lockdown
+// stands (BO3 -4432 3971 2720, no rotation), brought onto BO2's office by the fit of the two maps' office windows
+// (BO2 = BO3 x 1.015 / 1.019 + 3605 / 4976, the remaster's office being a little smaller; tools/assets/bo3_fx.tsv
+// stretches the effect the same way).
 mg_lockdown_on()
 {
     mg_lockdown_off();
-    spots = [];
-    spots[0] = array( ( -447, 9305, 1336 ), 270 ); // the office door (zombie_door activate_warden_office)
-    spots[1] = array( ( -704, 9453, 1369 ), 270 + 90 ); // the windows: the office's three zbarriers
-    spots[2] = array( ( -1115, 9071, 1367 ), 0 + 90 );
-    spots[3] = array( ( -510, 8456, 1367 ), 90 + 90 );
     level.mg_lock_fx = [];
-
-    foreach ( spot in spots )
-        level thread mg_lockdown_wall( spot[0], ( 271.285, 159.957, 289.8 - spot[1] ) );
+    level thread mg_lockdown_wall( ( -951.4, 9027.4, 1368 ), ( 0, 0, 0 ) );
 }
 
 // a wall still spawning when the lockdown ends goes at once

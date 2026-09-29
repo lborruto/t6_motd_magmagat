@@ -30,7 +30,7 @@ prompt shows): the gun goes into the fire, a laugh answers, and the quest begins
 Every zombie a player kills **that dies inside the Warden's Office** releases its soul; the killer can stand
 anywhere. The soul bursts out of the body and rises over it as a glowing orb for **3 seconds**: walk into it before
 it fades. A soul you take flies to its skull on the mantle. You need **15 souls**: the three skulls light up blue at
-**5**, **10** and **15**. While the office takes souls, walls of fire stand in its door and windows.
+**5**, **10** and **15**. While the office takes souls, its door and walls are outlined in light: it is locked down.
 
 The office belongs to the player who placed the gun. If that player spends **10 seconds** outside it, the souls
 taken so far are lost (the skulls go dark). **30 seconds** outside, or dying, and the fire lets go: the gun is lost.

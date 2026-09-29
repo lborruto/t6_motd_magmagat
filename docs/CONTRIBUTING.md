@@ -103,6 +103,7 @@ because two layouts must never coexist. Never hand-edit an installed file. `tool
 perl tools/import_all.pl       # the BO3 props from the Greyhound export -> mod/props
 perl tools/build_weapon.pl     # the Magmagat weapons from BO2's Blundergat -> mod/weapon (--redump to dump again)
 perl tools/import_sounds.pl    # the BO3 remaster's quest sounds -> mod/sound (the mod.all sound bank)
+perl tools/bo3_fx.pl           # the BO3 remaster's effects -> mod/fx (needs the BO3 snapshot, see PORTING_BO3_ASSETS.md)
 perl tools/build_mod.pl        # OpenAssetTools Linker -> mod/out/mod.ff + mod.json, installed into the mod folder
 perl tools/deploy.pl           # the scripts, beside it
 perl tools/release.pl          # release/zm_magmagat/ (the folder players drop into mods\) + its zip, to try it locally
@@ -188,7 +189,7 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 |---|---|
 | `!mg status` | state, orbs, carrier, timer, anchors resolved |
 | `!mg tour` | every step's effects and sounds in their real place, one after the other (teleports you, labels each step): the quick review of the quest's look |
-| `!mg lockdown` | the office lockdown's fire walls (door and three windows) for 10 s, to check their placement |
+| `!mg lockdown` | the office lockdown (the remaster's effect outlining the door and walls) for 10 s, to check its placement |
 | `!mg bridge` | meet the bridge requirement (the gate's own event: setting the vanilla flag would also open the bridge's spawn zone) |
 | `!mg goto <locked\|ready\|souls\|pickup\|run\|forge\|done>` | fabricate the state (gives a Blundergat when the state needs one) |
 | `!mg spots` | print every anchor (`[SPOT] KEY \| x y z \| p y r`) |

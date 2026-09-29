@@ -111,6 +111,28 @@ is the realistic scope for a first pass.
   convention: [t6-fastfile-mods](https://github.com/JezuzLizard/t6-fastfile-mods),
   [Loading Mods into Plutonium](https://plutonium.pw/docs/modding/loading-mods/))
 
+### 6. Effects (done: `tools/bo3_fx.pl`)
+BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effects, so the mod carries both halves:
+
+1. **A T6 effect format for OAT.** `tools/oat/t6-fx-json.patch` (against OpenAssetTools `f8f54426`, GPL-3.0 like OAT)
+   adds a T6 `FxEffectDef` JSON dumper to the Unlinker and a loader to the Linker, field for field (`fx/<name>.json`;
+   a vanilla effect round-trips byte for byte). Build: clone OAT, `git apply` the patch, `generate.bat` (or
+   `premake5 vs2022`), then MSBuild the solution targets `Tools\LinkerCli` and `Tools\UnlinkerCli` (Release, Win32)
+   with the VS 2022 Build Tools (C++). `tools/build_mod.pl` uses that Linker (`MG_OAT_FX`).
+2. **BO3's compiled effects.** A compiled T7 effect points at its materials by address, so it is read from the
+   running game: start BO3 on the remaster's map and run `tools/bo3mem/Bo3Snapshot.exe mod/work/bo3mem/fx.bin`
+   (build line in its source; it finds the asset pools with HydraX's signature and copies every loaded effect with
+   the memory it reaches, read-only). `tools/MgFx7.pm` turns a T7 effect into T6's; its layout was worked out
+   against the BO2 effects the remaster ported unchanged (header 144 bytes, element 608, velocity samples 96 = T6's,
+   visual samples 80; the element fields, flags, atlas, trail and rotation conversions are commented there).
+3. **Textures.** Greyhound with "Load xImage from the game" on, images only, exports the effect textures
+   (`black_ops_3_sp/ximages`). `tools/bo3_fx.pl` clones a vanilla zm_prison effect material per BO3 material (blend,
+   premultiplied emissive blend, additive, distortion, cloud, decal) and embeds the texture.
+
+The effects in the mod are listed in `tools/assets/bo3_fx.tsv`; they become `mg/<name>`. Not carried over: BO3's
+sound elements and spawn sounds (BO3 aliases; the mod plays its sounds from script), BO3-only element types, and the
+view-model attachment of `_vm` effects (T6 script cannot play an effect on the view model).
+
 ## Limits found
 - No T6 material authoring pipeline in OAT — you edit an existing compiled material's image
   slots/settings rather than writing one from a human-readable source format.

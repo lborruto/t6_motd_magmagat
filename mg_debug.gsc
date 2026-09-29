@@ -17,7 +17,7 @@
 // self = player
 mg_debug_lockdown()
 {
-    self mg_out( "MG: lockdown walls on for 10 s (the office door and its three windows)" );
+    self mg_out( "MG: lockdown on for 10 s (the office door and walls outlined)" );
     mg_lockdown_on();
     wait 10;
 
@@ -59,7 +59,7 @@ mg_debug_command( sub, arg, args )
             self thread mg_debug_tour();
             return 1;
 
-        // the office lockdown's fire walls for 10 s (door and windows), outside the quest
+        // the office lockdown for 10 s, outside the quest
         case "lockdown":
             self thread mg_debug_lockdown();
             return 1;

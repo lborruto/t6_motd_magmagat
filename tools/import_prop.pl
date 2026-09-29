@@ -13,6 +13,7 @@
 #   perl tools/import_prop.pl [options] <greyhound xmodel dir> <prop name> [ximages dir]
 #     --skip <regex>              drop the surfaces whose BO3 material matches (e.g. a transparent overlay shell)
 #     --color <regex>=<png>       use this colour map for the matching material (e.g. one baked by tools/bake_layers.pl)
+#     --material <name>          every surface uses this existing material (e.g. mc/mg_lava, built by tools/build_weapon.pl)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
 #   e.g. perl tools/import_prop.pl C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_3_sp/xmodels/p8_zm_esc_barrel_wood_01 mg_barrel
@@ -28,7 +29,8 @@ use Getopt::Long;
 
 my ( @skip, %color_for );
 my $offset = '0,0,0';
-GetOptions( 'skip=s' => \@skip, 'color=s' => \%color_for, 'offset=s' => \$offset ) or die "import_prop.pl: bad options\n";
+my $use_material;
+GetOptions( 'skip=s' => \@skip, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material ) or die "import_prop.pl: bad options\n";
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
@@ -101,6 +103,7 @@ my $tmpl = decode_json( slurp($tmpl_path) );
 my %ours_of;
 for my $idx ( 0 .. $#mat_order ) {
     my $srcname = $mat_order[$idx];
+    if ( defined $use_material ) { $ours_of{$srcname} = $use_material; next }
     my $t = $mat{$srcname};
     my $m = decode_json( encode_json($tmpl) );
     my ($ckey) = grep { $srcname =~ /$_/ } sort keys %color_for;

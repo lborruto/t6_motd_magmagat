@@ -270,6 +270,7 @@ mg_lava_ball( weapon )
     pos = ball.origin;
     ball delete();
     mg_fx_once( "ball_hit", pos );
+    mg_fx_once( "scorch", pos, 10, ( 270, 0, 0 ) ); // a decal projects along the effect's forward: up from the floor
     self thread mg_patch( pos, weapon );
 }
 

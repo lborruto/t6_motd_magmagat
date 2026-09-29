@@ -29,6 +29,11 @@ my @props = (
     # the temper run's drums: the remaster stands this one at each of its five str_barrel_fire spots (only the flame is blue)
     [ 'mg_barrel_green', 'p7_zm_gen_barrel_metal_55gal_green_drk_lod', '--offset', '0,0,-22.37', '--color', "green_drk=$work/i_mtl_p7_barrel_metal_55gal_green_drk_c.png" ],    # p6_zm_al_wood_barrel_01 pivots at mid height
     [ 'mg_skull', 'p7_zm_zod_skull', '--offset', '0,0,-3.51' ],    # BO2's own skull mesh; p6_zm_al_skull pivots at its centre
+    # the lava splat meshes the remaster's magma effects throw (tools/bo3_fx.pl names them mg_<BO3 name>), and BO4's lava
+    # blob: their BO3 shader is procedural, so they take the mod's own lava (mc/mg_lava, the BO3 lava texture)
+    [ 'mg_fx_magma_splat02_mesh', 'fx_magma_splat02_mesh', '--material', 'mc/mg_lava' ],
+    [ 'mg_fx_magma_splat03_mesh', 'fx_magma_splat03_mesh', '--material', 'mc/mg_lava' ],
+    [ 'mg_magma_blob', 'p8_fxp_magma_blob', '--material', 'mc/mg_lava' ],
 );
 
 system( 'perl', "$FindBin::Bin/dump_game.pl" ) == 0 or die "import_all.pl: the dump failed\n";    # the material template

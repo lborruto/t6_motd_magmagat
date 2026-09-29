@@ -22,11 +22,12 @@ mg_out( text )
 }
 
 // ---- fx -----------------------------------------------------------------------------------------------------
-// key -> asset path. Every path is in tools/assets/assets_zm_prison.txt. Dvars mg_fx_<key> override a path at load.
+// key -> asset path: zm_prison's own (tools/assets/assets_zm_prison.txt) or the BO3 remaster's, shipped in mod.ff as mg/<name>
+// (tools/bo3_fx.pl, tools/assets/bo3_fx.tsv). Dvars mg_fx_<key> override a path at load.
 mg_fx_table()
 {
-    // one key per visible role; each is the effect zm_prison itself plays for that job (maps/mp/zm_prison_fx.gsc,
-    // clientscripts/mp/zm_prison_weap_quest.csc), overridable in game with the dvar mg_fx_<key>
+    // one key per visible role: the BO3 remaster's own effect where it has one (its souls, blue flames, lockdown, press,
+    // Harry's Magmagat), else the one zm_prison plays for that job (maps/mp/zm_prison_fx.gsc)
     t = [];
     t["fire_md"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
     t["fire_sm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm";
@@ -34,36 +35,37 @@ mg_fx_table()
     t["embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat";
     t["blue_fire"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
     // the souls: the wolf heads' own (a soul leaves the body and flies; a full catcher glows)
-    t["soul_release"] = "weapon/lightning_hands/lightning_hands_impact"; // a blue burst where the soul leaves the body
-    t["soul"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // the soul waiting: the Hell's Redeemer's blue fire
-    t["soul_trail"] = "weapon/lightning_hands/lightning_hands_muzzleflash_trail"; // the BO3 remaster's soul trail
+    t["soul_release"] = "mg/fx_alcatraz_soul_charge_start"; // the remaster's: a soul leaving its body
+    t["soul"] = "mg/fx_alcatraz_soul_charged"; // the remaster's: a soul waiting to be taken
+    t["soul_trail"] = "mg/lightning_hands_muzzleflash_trail"; // the remaster's soul in flight
     t["soul_arrive"] = "weapon/tomahawk/fx_tomahawk_charge_ug"; // a soul-energy flash (the wolf heads' impact is their bite blood)
     t["soul_hit"] = "weapon/tomahawk/fx_tomahawk_charge"; // the soul taken by a player
-    t["soul_full"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // a lit skull's blue fire
+    t["soul_full"] = "mg/fx_alcatraz_blue_flame_skull"; // the remaster's lit skull
     // the hearth: a real fire; the hell portal of the wolf heads opens in it for the tempered gun
     t["hearth_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
-    t["hearth_blue"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell";
+    t["hearth_blue"] = "mg/fx_alcatraz_blue_flame_loop"; // the remaster's blue fire, the tempered gun in it
     t["hearth_close"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell_close";
-    t["lockdown"] = "maps/zombie_alcatraz/fx_alcatraz_door_blocker"; // the laundry lockdown's fire wall (vanilla exploder 1000)
+    t["lockdown"] = "mg/fx_alcatraz_lockdown_wardens"; // the remaster's lockdown: the office's door and walls outlined
     t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the deposit's flare-up
     t["gun_vanish"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a gun not taken in time vanishes
     // the run: fire in the barrels, the temper riding the gun
-    t["barrel_fire"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // the barrels' blue flame (the remaster's is blue)
-    t["barrel_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // a barrel spent on a refill
-    t["gun_flame"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // the tempered gun's blue essence
+    t["barrel_fire"] = "mg/fx_alcatraz_blue_flame_loop"; // the remaster's drum flame
+    t["barrel_flare"] = "mg/fx_alcatraz_blue_flame_flare_up"; // the remaster's: a drum refilling the temper
+    t["gun_flame"] = "mg/fx_alcatraz_blue_flame_vm"; // the remaster's tempered-gun flame
     // the forge: the generator's own sparks and smoke, the quest-item glow on the gun to take
-    t["sparks"] = "maps/zombie_alcatraz/fx_alcatraz_generator_sparks";
+    t["sparks"] = "mg/fx_alcatraz_magmagat_power"; // the remaster's: the forge powered
     t["smoke"] = "maps/zombie_alcatraz/fx_alcatraz_generator_smk";
     t["glow"] = "maps/zombie_alcatraz/fx_alcatraz_quest_item_glow";
     t["glint"] = "maps/zombie_alcatraz/fx_alcatraz_key_glint";
-    t["forge_rise"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm";
+    t["forge_rise"] = "mg/fx_prison_magmagat_press_fire"; // the remaster's press at work
     // the weapon: the lava blob's fire trail, its impact, the lava gib, zombies on fire (the tomahawk's burning torso)
-    t["ball"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire";
-    t["ball_hit"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact";
+    t["ball"] = "mg/fx_magmagat_trail_bolt"; // the remaster's blob in flight (Harry's Magmagat)
+    t["ball_hit"] = "mg/fx_magmagat_impact"; // the blob landing
+    t["scorch"] = "mg/fx_prison_magmagat_impact_decal"; // its scorch
     t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso";
-    t["explo"] = "maps/zombie/fx_zmb_tranzit_lava_torso_explo";
+    t["explo"] = "mg/fx_magmagat_explode"; // the blob bursting
     t["blue_spark"] = "electrical/fx_elec_spark_bounce_blue_lg";
-    t["patch_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
+    t["patch_fire"] = "mg/fx_prison_magmagat_aoe"; // the remaster's lava pool
     t["magma_hold"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // the flame riding a held Magmagat
     t["magmus_hold"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the same on the Magmus Operandi, bigger
     return t;
@@ -116,7 +118,7 @@ mg_fx_loop( key, origin, angles )
 // A burst. Played on a short-lived entity, never loose: several zm_prison effects loop (the wolf heads' bite blood,
 // the soul streak, the generator sparks), and a looping effect fired with playfx never stops and piles up; deleting
 // its entity ends it. Returns at once (the play itself waits a frame for the entity to reach the clients).
-mg_fx_once( key, origin, seconds )
+mg_fx_once( key, origin, seconds, angles )
 {
     if ( !isdefined( level._effect["mg_" + key] ) )
     {
@@ -129,6 +131,10 @@ mg_fx_once( key, origin, seconds )
 
     ent = spawn( "script_model", origin );
     ent setmodel( "tag_origin" );
+
+    if ( isdefined( angles ) )
+        ent.angles = angles;
+
     ent thread mg_fx_once_play( level._effect["mg_" + key], seconds );
 }
 

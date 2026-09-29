@@ -58,9 +58,12 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       then a humming blue orb rises over it for 3 s. Walk into it: a flash and the soul-suck sound, and the soul (a
       blue lightning streak) flies to its skull and flashes in; the count increases (`!mg status`: x/15). No blood.
 - [ ] An orb nobody takes fades after 3 s and does not count; later kills still reach 15.
-- [ ] **Lockdown**: while the office takes souls, a fire wall stands in the office door and in each of its three
-      windows (vanilla's laundry blocker); they go at 15 souls or when the step ends. `!mg lockdown` shows them for
-      10 s at any time: each wall must fill its opening (report one that stands edge-on or off to the side).
+- [ ] **Lockdown**: while the office takes souls, the remaster's lockdown outlines the office's door and walls in
+      light; it goes at 15 souls or when the step ends. `!mg lockdown` shows it for 10 s at any time: the lines must
+      sit on the door frame and along the walls (report any floating in the room or outside it).
+- [ ] **The BO3 effects** (`!mg tour`): the blue flames (fireplace, drums, skulls, tempered gun), the souls, the
+      press fire, Harry's lava blob trail / impact / burst, the lava pool and its scorch are the remaster's own. Report
+      any drawn as a black or white square, a wrong colour, or invisible.
 - [ ] The killer may stand outside (a shot through the window at a zombie inside counts); a zombie that dies
       outside the office never gives a soul.
 - [ ] Skulls light at 5, 10 and 15 (the skull becomes the afterlife skull, a blue glow and a hum; the third has its

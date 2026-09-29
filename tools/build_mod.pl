@@ -11,7 +11,10 @@
 # write them. The sound bank comes out as mod.all.sabl / mod.all.sabs beside mod.ff: they are installed with it.
 # mod.json gets the version of mg_main.gsc (level.mg_version), written to mod/out/mod.json.
 #
-# Env overrides: MG_OAT (the OpenAssetTools folder), MG_BO2 (the BO2 install).
+# mod/fx (tools/bo3_fx.pl) holds the BO3 effects: they need the mod's OpenAssetTools build, whose Linker loads T6
+# effects (upstream's has no effect loader; docs/PORTING_BO3_ASSETS.md).
+#
+# Env overrides: MG_OAT_FX (that OpenAssetTools build), MG_BO2 (the BO2 install).
 use strict;
 use warnings;
 use File::Copy qw(copy);
@@ -20,20 +23,21 @@ use FindBin;
 
 my $repo = "$FindBin::Bin/..";
 my $install = !grep { $_ eq '--no-install' } @ARGV;
-my $oat = $ENV{MG_OAT} // 'C:/Games/t6/openassettools';
+my $oat = $ENV{MG_OAT_FX} // 'C:/Games/t6/oat-src/build/bin/Release_x86';
 my $bo2 = $ENV{MG_BO2} // 'C:/Program Files (x86)/Steam/steamapps/common/Call of Duty Black Ops II';
 my $zones = "$bo2/zone/all";
 
-die "build_mod.pl: no Linker at $oat/Linker.exe (set MG_OAT)\n" unless -f "$oat/Linker.exe";
+die "build_mod.pl: no Linker at $oat/Linker.exe (set MG_OAT_FX)\n" unless -f "$oat/Linker.exe";
 die "build_mod.pl: no BO2 zones at $zones (set MG_BO2)\n" unless -f "$zones/zm_prison.ff";
 
 chdir "$repo/mod" or die "build_mod.pl: no mod/ folder\n";
 -d 'props' or die "build_mod.pl: no mod/props: run perl tools/import_all.pl first\n";
 -d 'weapon' or die "build_mod.pl: no mod/weapon: run perl tools/build_weapon.pl first\n";
 -d 'sound' or die "build_mod.pl: no mod/sound: run perl tools/import_sounds.pl first\n";
+-d 'fx' or die "build_mod.pl: no mod/fx: run perl tools/bo3_fx.pl first\n";
 my @cmd = ( "$oat/Linker.exe", '--base-folder', '.', '--output-folder', 'out',
     '--load', "$zones/common_zm.ff", '--load', "$zones/zm_prison.ff",
-    '--add-asset-search-path', '?base?/props;?base?/weapon;?base?/sound', 'mod' );
+    '--add-asset-search-path', '?base?/props;?base?/weapon;?base?/sound;?base?/fx', 'mod' );
 system(@cmd) == 0 or die "build_mod.pl: the Linker failed (exit " . ( $? >> 8 ) . ")\n";
 -f 'out/mod.ff' or die "build_mod.pl: no out/mod.ff after the build\n";
 printf "build_mod.pl: mod/out/mod.ff, %d bytes\n", -s 'out/mod.ff';

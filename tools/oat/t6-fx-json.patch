@@ -1,0 +1,749 @@
+diff --git a/src/ObjCommon/Game/T6/Fx/FxCommonT6.cpp b/src/ObjCommon/Game/T6/Fx/FxCommonT6.cpp
+new file mode 100644
+index 00000000..81442af5
+--- /dev/null
++++ b/src/ObjCommon/Game/T6/Fx/FxCommonT6.cpp
+@@ -0,0 +1,11 @@
++#include "FxCommonT6.h"
++
++#include <format>
++
++namespace fx
++{
++    std::string GetJsonFileNameForAssetNameT6(const std::string& assetName)
++    {
++        return std::format("fx/{}.json", assetName);
++    }
++} // namespace fx
+diff --git a/src/ObjCommon/Game/T6/Fx/FxCommonT6.h b/src/ObjCommon/Game/T6/Fx/FxCommonT6.h
+new file mode 100644
+index 00000000..c175a250
+--- /dev/null
++++ b/src/ObjCommon/Game/T6/Fx/FxCommonT6.h
+@@ -0,0 +1,9 @@
++#pragma once
++
++#include <string>
++
++namespace fx
++{
++    // An effect "a/b/c" lives in "fx/a/b/c.json": the FxEffectDef written field for field (tools/fx in the Magmagat mod)
++    std::string GetJsonFileNameForAssetNameT6(const std::string& assetName);
++} // namespace fx
+diff --git a/src/ObjLoading/Game/T6/Fx/FxJsonLoaderT6.cpp b/src/ObjLoading/Game/T6/Fx/FxJsonLoaderT6.cpp
+new file mode 100644
+index 00000000..0d1bec86
+--- /dev/null
++++ b/src/ObjLoading/Game/T6/Fx/FxJsonLoaderT6.cpp
+@@ -0,0 +1,383 @@
++#include "FxJsonLoaderT6.h"
++
++#include "Game/T6/Fx/FxCommonT6.h"
++#include "Game/T6/T6.h"
++#include "Utils/Logging/Log.h"
++
++#include <format>
++#include <nlohmann/json.hpp>
++#include <stdexcept>
++
++using namespace nlohmann;
++using namespace T6;
++
++namespace
++{
++    class FxError final : public std::runtime_error
++    {
++    public:
++        explicit FxError(const std::string& message)
++            : std::runtime_error(message)
++        {
++        }
++    };
++
++    class JsonLoader
++    {
++    public:
++        JsonLoader(MemoryManager& memory, AssetCreationContext& context, AssetRegistration<AssetFx>& registration)
++            : m_memory(memory),
++              m_context(context),
++              m_registration(registration)
++        {
++        }
++
++        void Load(const json& j, FxEffectDef& fx) const
++        {
++            if (j.at("_type").get<std::string>() != "fx" || j.at("_version").get<unsigned>() != 1u)
++                throw FxError("expected _type fx of _version 1");
++
++            fx.flags = j.at("flags").get<uint16_t>();
++            fx.efPriority = static_cast<char>(j.at("efPriority").get<int>());
++            fx.elemDefCountLooping = j.at("elemDefCountLooping").get<int16_t>();
++            fx.elemDefCountOneShot = j.at("elemDefCountOneShot").get<int16_t>();
++            fx.elemDefCountEmission = j.at("elemDefCountEmission").get<int16_t>();
++            fx.totalSize = j.at("totalSize").get<int>();
++            fx.msecLoopingLife = j.at("msecLoopingLife").get<int>();
++            fx.msecNonLoopingLife = j.at("msecNonLoopingLife").get<int>();
++            Vec(j.at("boundingBoxDim"), fx.boundingBoxDim.v, 3);
++            Vec(j.at("boundingBoxCentre"), fx.boundingBoxCentre.v, 3);
++            fx.occlusionQueryDepthBias = j.at("occlusionQueryDepthBias").get<float>();
++            fx.occlusionQueryFadeIn = j.at("occlusionQueryFadeIn").get<int>();
++            fx.occlusionQueryFadeOut = j.at("occlusionQueryFadeOut").get<int>();
++            Range(j.at("occlusionQueryScaleRange"), fx.occlusionQueryScaleRange);
++
++            const auto& elems = j.at("elemDefs");
++            const auto count = fx.elemDefCountLooping + fx.elemDefCountOneShot + fx.elemDefCountEmission;
++            if (static_cast<size_t>(count) != elems.size())
++                throw FxError(std::format("the elem counts add up to {} but elemDefs has {}", count, elems.size()));
++
++            fx.elemDefs = count > 0 ? m_memory.Alloc<FxElemDef>(count) : nullptr;
++            for (auto i = 0; i < count; i++)
++                ElemDef(elems[i], fx.elemDefs[i]);
++        }
++
++    private:
++        static void Vec(const json& j, float* out, const size_t n)
++        {
++            if (j.size() != n)
++                throw FxError(std::format("expected {} numbers", n));
++
++            for (auto i = 0u; i < n; i++)
++                out[i] = j[i].get<float>();
++        }
++
++        static void Range(const json& j, FxFloatRange& r)
++        {
++            r.base = j.at(0).get<float>();
++            r.amplitude = j.at(1).get<float>();
++        }
++
++        static void Range(const json& j, FxIntRange& r)
++        {
++            r.base = j.at(0).get<int>();
++            r.amplitude = j.at(1).get<int>();
++        }
++
++        static void Vec3Range(const json& j, FxElemVec3Range& r)
++        {
++            Vec(j.at("base"), r.base.v, 3);
++            Vec(j.at("amplitude"), r.amplitude.v, 3);
++        }
++
++        static void VelFrame(const json& j, FxElemVelStateInFrame& f)
++        {
++            Vec3Range(j.at("velocity"), f.velocity);
++            Vec3Range(j.at("totalDelta"), f.totalDelta);
++        }
++
++        static void VisState(const json& j, FxElemVisualState& s)
++        {
++            const auto& c = j.at("color");
++            for (auto i = 0; i < 4; i++)
++                s.color[i] = static_cast<char>(c.at(i).get<int>());
++            s.rotationDelta = j.at("rotationDelta").get<float>();
++            s.rotationTotal = j.at("rotationTotal").get<float>();
++            s.size[0] = j.at("size").at(0).get<float>();
++            s.size[1] = j.at("size").at(1).get<float>();
++            s.scale = j.at("scale").get<float>();
++        }
++
++        const char* OptString(const json& j) const
++        {
++            if (j.is_null())
++                return nullptr;
++
++            return m_memory.Dup(j.get<std::string>().c_str());
++        }
++
++        Material* LoadMaterial(const json& j) const
++        {
++            if (j.is_null())
++                return nullptr;
++
++            const auto name = j.get<std::string>();
++            auto* material = m_context.LoadDependency<AssetMaterial>(name);
++            if (!material)
++                throw FxError(std::format("could not find material \"{}\"", name));
++
++            m_registration.AddDependency(material);
++            return material->Asset();
++        }
++
++        // an effect named by an element (runner, impact, death, emitted, attached): a reference by name
++        void EffectRef(const json& j, FxEffectDefRef& ref) const
++        {
++            ref.name = nullptr;
++            if (j.is_null())
++                return;
++
++            const auto name = j.get<std::string>();
++            ref.name = m_memory.Dup(name.c_str());
++            m_registration.AddIndirectAssetReference(m_context.LoadIndirectAssetReference<AssetFx>(name));
++        }
++
++        void Visual(const json& j, FxElemVisuals& v, const FxElemType type) const
++        {
++            v.anonymous = nullptr;
++            if (j.is_null())
++                return;
++
++            const auto name = j.get<std::string>();
++            switch (type)
++            {
++            case FX_ELEM_TYPE_MODEL:
++            {
++                auto* model = m_context.LoadDependency<AssetXModel>(name);
++                if (!model)
++                    throw FxError(std::format("could not find xmodel \"{}\"", name));
++                m_registration.AddDependency(model);
++                v.model = model->Asset();
++                break;
++            }
++            case FX_ELEM_TYPE_RUNNER:
++                EffectRef(j, v.effectDef);
++                break;
++            case FX_ELEM_TYPE_SOUND:
++                v.soundName = m_memory.Dup(name.c_str());
++                break;
++            case FX_ELEM_TYPE_SPOT_LIGHT:
++            {
++                auto* light = m_context.LoadDependency<AssetLightDef>(name);
++                if (!light)
++                    throw FxError(std::format("could not find lightdef \"{}\"", name));
++                m_registration.AddDependency(light);
++                v.lightDef = light->Asset();
++                break;
++            }
++            case FX_ELEM_TYPE_OMNI_LIGHT:
++                break;
++            default:
++                v.material = LoadMaterial(j);
++                break;
++            }
++        }
++
++        void ElemDef(const json& j, FxElemDef& e) const
++        {
++            e.flags = j.at("flags").get<int>();
++            e.spawn.looping.intervalMsec = j.at("spawn").at(0).get<int>();
++            e.spawn.looping.count = j.at("spawn").at(1).get<int>();
++            Range(j.at("spawnRange"), e.spawnRange);
++            Range(j.at("fadeInRange"), e.fadeInRange);
++            Range(j.at("fadeOutRange"), e.fadeOutRange);
++            e.spawnFrustumCullRadius = j.at("spawnFrustumCullRadius").get<float>();
++            Range(j.at("spawnDelayMsec"), e.spawnDelayMsec);
++            Range(j.at("lifeSpanMsec"), e.lifeSpanMsec);
++            for (auto i = 0; i < 3; i++)
++                Range(j.at("spawnOrigin").at(i), e.spawnOrigin[i]);
++            Range(j.at("spawnOffsetRadius"), e.spawnOffsetRadius);
++            Range(j.at("spawnOffsetHeight"), e.spawnOffsetHeight);
++            for (auto i = 0; i < 3; i++)
++            {
++                Range(j.at("spawnAngles").at(i), e.spawnAngles[i]);
++                Range(j.at("angularVelocity").at(i), e.angularVelocity[i]);
++            }
++            Range(j.at("initialRotation"), e.initialRotation);
++            e.rotationAxis = j.at("rotationAxis").get<unsigned>();
++            Range(j.at("gravity"), e.gravity);
++            Range(j.at("reflectionFactor"), e.reflectionFactor);
++
++            const auto& a = j.at("atlas");
++            e.atlas.behavior = static_cast<char>(a.at("behavior").get<int>());
++            e.atlas.index = static_cast<char>(a.at("index").get<int>());
++            e.atlas.fps = static_cast<char>(a.at("fps").get<int>());
++            e.atlas.loopCount = static_cast<char>(a.at("loopCount").get<int>());
++            e.atlas.colIndexBits = static_cast<char>(a.at("colIndexBits").get<int>());
++            e.atlas.rowIndexBits = static_cast<char>(a.at("rowIndexBits").get<int>());
++            e.atlas.entryCountAndIndexRange = a.at("entryCountAndIndexRange").get<uint16_t>();
++
++            e.windInfluence = j.at("windInfluence").get<float>();
++            const auto type = j.at("elemType").get<int>();
++            if (type < 0 || type >= FX_ELEM_TYPE_COUNT)
++                throw FxError(std::format("elemType {} is not a T6 element type", type));
++            e.elemType = static_cast<FxElemType>(type);
++
++            // the zone writes velIntervalCount + 1 / visStateIntervalCount + 1 samples
++            const auto& vel = j.at("velSamples");
++            const auto& vis = j.at("visSamples");
++            if (vel.empty() || vis.empty())
++                throw FxError("an element needs at least one velSample and one visSample");
++            e.velIntervalCount = static_cast<char>(vel.size() - 1);
++            e.visStateIntervalCount = static_cast<char>(vis.size() - 1);
++            e.velSamples = m_memory.Alloc<FxElemVelStateSample>(vel.size());
++            for (auto i = 0u; i < vel.size(); i++)
++            {
++                VelFrame(vel[i].at("local"), e.velSamples[i].local);
++                VelFrame(vel[i].at("world"), e.velSamples[i].world);
++            }
++            e.visSamples = m_memory.Alloc<FxElemVisStateSample>(vis.size());
++            for (auto i = 0u; i < vis.size(); i++)
++            {
++                VisState(vis[i].at("base"), e.visSamples[i].base);
++                VisState(vis[i].at("amplitude"), e.visSamples[i].amplitude);
++            }
++
++            const auto& visuals = j.at("visuals");
++            e.visualCount = static_cast<char>(visuals.size());
++            e.visuals.instance.anonymous = nullptr;
++            if (e.elemType == FX_ELEM_TYPE_DECAL)
++            {
++                if (!visuals.empty())
++                {
++                    e.visuals.markArray = m_memory.Alloc<FxElemMarkVisuals>(visuals.size());
++                    for (auto i = 0u; i < visuals.size(); i++)
++                    {
++                        e.visuals.markArray[i].materials[0] = LoadMaterial(visuals[i].at(0));
++                        e.visuals.markArray[i].materials[1] = LoadMaterial(visuals[i].at(1));
++                    }
++                }
++            }
++            else if (visuals.size() > 1)
++            {
++                e.visuals.array = m_memory.Alloc<FxElemVisuals>(visuals.size());
++                for (auto i = 0u; i < visuals.size(); i++)
++                    Visual(visuals[i], e.visuals.array[i], e.elemType);
++            }
++            else if (visuals.size() == 1)
++                Visual(visuals[0], e.visuals.instance, e.elemType);
++
++            Vec(j.at("collMins"), e.collMins.v, 3);
++            Vec(j.at("collMaxs"), e.collMaxs.v, 3);
++            EffectRef(j.at("effectOnImpact"), e.effectOnImpact);
++            EffectRef(j.at("effectOnDeath"), e.effectOnDeath);
++            EffectRef(j.at("effectEmitted"), e.effectEmitted);
++            Range(j.at("emitDist"), e.emitDist);
++            Range(j.at("emitDistVariance"), e.emitDistVariance);
++            EffectRef(j.at("effectAttached"), e.effectAttached);
++
++            e.extended.unknownDef = nullptr;
++            if (e.elemType == FX_ELEM_TYPE_TRAIL)
++            {
++                const auto& t = j.at("trail");
++                auto* trail = m_memory.Alloc<FxTrailDef>();
++                trail->scrollTimeMsec = t.at("scrollTimeMsec").get<int>();
++                trail->repeatDist = t.at("repeatDist").get<int>();
++                trail->splitDist = t.at("splitDist").get<int>();
++                const auto& verts = t.at("verts");
++                const auto& inds = t.at("inds");
++                trail->vertCount = static_cast<int>(verts.size());
++                trail->verts = trail->vertCount > 0 ? m_memory.Alloc<FxTrailVertex>(verts.size()) : nullptr;
++                for (auto i = 0u; i < verts.size(); i++)
++                {
++                    trail->verts[i].pos.x = verts[i].at(0).get<float>();
++                    trail->verts[i].pos.y = verts[i].at(1).get<float>();
++                    trail->verts[i].normal.x = verts[i].at(2).get<float>();
++                    trail->verts[i].normal.y = verts[i].at(3).get<float>();
++                    trail->verts[i].texCoord = verts[i].at(4).get<float>();
++                }
++                trail->indCount = static_cast<int>(inds.size());
++                trail->inds = trail->indCount > 0 ? m_memory.Alloc<uint16_t>(inds.size()) : nullptr;
++                for (auto i = 0u; i < inds.size(); i++)
++                    trail->inds[i] = inds[i].get<uint16_t>();
++                e.extended.trailDef = trail;
++            }
++            else if (e.elemType == FX_ELEM_TYPE_SPOT_LIGHT)
++            {
++                const auto& s = j.at("spotLight");
++                auto* spot = m_memory.Alloc<FxSpotLightDef>();
++                spot->fovInnerFraction = s.at("fovInnerFraction").get<float>();
++                spot->startRadius = s.at("startRadius").get<float>();
++                spot->endRadius = s.at("endRadius").get<float>();
++                e.extended.spotLightDef = spot;
++            }
++
++            e.sortOrder = static_cast<char>(j.at("sortOrder").get<int>());
++            e.lightingFrac = static_cast<char>(j.at("lightingFrac").get<int>());
++            e.alphaFadeTimeMsec = j.at("alphaFadeTimeMsec").get<uint16_t>();
++            e.maxWindStrength = j.at("maxWindStrength").get<uint16_t>();
++            e.spawnIntervalAtMaxWind = j.at("spawnIntervalAtMaxWind").get<uint16_t>();
++            e.lifespanAtMaxWind = j.at("lifespanAtMaxWind").get<uint16_t>();
++            if (e.elemType == FX_ELEM_TYPE_CLOUD)
++                Range(j.at("cloudDensityRange"), e.u.cloudDensityRange);
++            else
++            {
++                e.u.billboard.topWidth = j.at("billboardTrim").at(0).get<float>();
++                e.u.billboard.bottomWidth = j.at("billboardTrim").at(1).get<float>();
++            }
++            e.spawnSound.spawnSound = OptString(j.at("spawnSound"));
++            e.billboardPivot.x = j.at("billboardPivot").at(0).get<float>();
++            e.billboardPivot.y = j.at("billboardPivot").at(1).get<float>();
++        }
++
++        MemoryManager& m_memory;
++        AssetCreationContext& m_context;
++        AssetRegistration<AssetFx>& m_registration;
++    };
++
++    class FxLoader final : public AssetCreator<AssetFx>
++    {
++    public:
++        FxLoader(MemoryManager& memory, ISearchPath& searchPath)
++            : m_memory(memory),
++              m_search_path(searchPath)
++        {
++        }
++
++        AssetCreationResult CreateAsset(const std::string& assetName, AssetCreationContext& context) override
++        {
++            const auto file = m_search_path.Open(fx::GetJsonFileNameForAssetNameT6(assetName));
++            if (!file.IsOpen())
++                return AssetCreationResult::NoAction();
++
++            auto* fx = m_memory.Alloc<FxEffectDef>();
++            fx->name = m_memory.Dup(assetName.c_str());
++            AssetRegistration<AssetFx> registration(assetName, fx);
++
++            try
++            {
++                const JsonLoader loader(m_memory, context, registration);
++                loader.Load(json::parse(*file.m_stream), *fx);
++            }
++            catch (const std::exception& e)
++            {
++                con::error("Failed to load fx \"{}\": {}", assetName, e.what());
++                return AssetCreationResult::Failure();
++            }
++
++            return AssetCreationResult::Success(context.AddAsset(std::move(registration)));
++        }
++
++    private:
++        MemoryManager& m_memory;
++        ISearchPath& m_search_path;
++    };
++} // namespace
++
++namespace fx
++{
++    std::unique_ptr<AssetCreator<AssetFx>> CreateJsonLoaderT6(MemoryManager& memory, ISearchPath& searchPath)
++    {
++        return std::make_unique<FxLoader>(memory, searchPath);
++    }
++} // namespace fx
+diff --git a/src/ObjLoading/Game/T6/Fx/FxJsonLoaderT6.h b/src/ObjLoading/Game/T6/Fx/FxJsonLoaderT6.h
+new file mode 100644
+index 00000000..f12ffc7b
+--- /dev/null
++++ b/src/ObjLoading/Game/T6/Fx/FxJsonLoaderT6.h
+@@ -0,0 +1,13 @@
++#pragma once
++
++#include "Asset/IAssetCreator.h"
++#include "Game/T6/T6.h"
++#include "SearchPath/ISearchPath.h"
++#include "Utils/MemoryManager.h"
++
++#include <memory>
++
++namespace fx
++{
++    std::unique_ptr<AssetCreator<T6::AssetFx>> CreateJsonLoaderT6(MemoryManager& memory, ISearchPath& searchPath);
++} // namespace fx
+diff --git a/src/ObjLoading/Game/T6/ObjLoaderT6.cpp b/src/ObjLoading/Game/T6/ObjLoaderT6.cpp
+index 70eb451b..101c0356 100644
+--- a/src/ObjLoading/Game/T6/ObjLoaderT6.cpp
++++ b/src/ObjLoading/Game/T6/ObjLoaderT6.cpp
+@@ -45,6 +45,7 @@
+ #include "Weapon/AttachmentUniqueGdtLoaderT6.h"
+ #include "Weapon/AttachmentUniqueRawLoaderT6.h"
+ #include "Weapon/CamoJsonLoaderT6.h"
++#include "Fx/FxJsonLoaderT6.h"
+ #include "Weapon/FlameTableLoaderT6.h"
+ #include "Weapon/WeaponGdtLoaderT6.h"
+ #include "Weapon/WeaponRawLoaderT6.h"
+@@ -418,6 +419,7 @@ namespace T6
+             collection.AddAssetCreator(attachment_unique::CreateRawLoaderT6(memory, searchPath, zone));
+             collection.AddAssetCreator(attachment_unique::CreateGdtLoaderT6(memory, searchPath, gdt, zone));
+             collection.AddAssetCreator(camo::CreateJsonLoaderT6(memory, searchPath));
++            collection.AddAssetCreator(fx::CreateJsonLoaderT6(memory, searchPath));
+             // collection.AddAssetCreator(std::make_unique<AssetLoaderSoundDriverGlobals>(memory));
+             // collection.AddAssetCreator(std::make_unique<AssetLoaderFx>(memory));
+             // collection.AddAssetCreator(std::make_unique<AssetLoaderImpactFx>(memory));
+diff --git a/src/ObjWriting/Game/T6/Fx/FxJsonDumperT6.cpp b/src/ObjWriting/Game/T6/Fx/FxJsonDumperT6.cpp
+new file mode 100644
+index 00000000..0751bdcd
+--- /dev/null
++++ b/src/ObjWriting/Game/T6/Fx/FxJsonDumperT6.cpp
+@@ -0,0 +1,243 @@
++#include "FxJsonDumperT6.h"
++
++#include "Game/T6/Fx/FxCommonT6.h"
++
++#include <iomanip>
++#include <nlohmann/json.hpp>
++
++using namespace nlohmann;
++using namespace T6;
++
++namespace
++{
++    const char* AssetName(const char* input)
++    {
++        if (input && input[0] == ',')
++            return &input[1];
++
++        return input;
++    }
++
++    json Str(const char* s)
++    {
++        if (!s)
++            return nullptr;
++
++        return AssetName(s);
++    }
++
++    json Range(const FxFloatRange& r)
++    {
++        return json::array({r.base, r.amplitude});
++    }
++
++    json Range(const FxIntRange& r)
++    {
++        return json::array({r.base, r.amplitude});
++    }
++
++    json Vec(const float* v, const int n)
++    {
++        auto j = json::array();
++        for (auto i = 0; i < n; i++)
++            j.push_back(v[i]);
++
++        return j;
++    }
++
++    json Vec3Range(const FxElemVec3Range& r)
++    {
++        return json{{"base", Vec(r.base.v, 3)}, {"amplitude", Vec(r.amplitude.v, 3)}};
++    }
++
++    json VelFrame(const FxElemVelStateInFrame& f)
++    {
++        return json{{"velocity", Vec3Range(f.velocity)}, {"totalDelta", Vec3Range(f.totalDelta)}};
++    }
++
++    json VisState(const FxElemVisualState& s)
++    {
++        return json{
++            {"color",
++             json::array({static_cast<uint8_t>(s.color[0]), static_cast<uint8_t>(s.color[1]), static_cast<uint8_t>(s.color[2]), static_cast<uint8_t>(s.color[3])})},
++            {"rotationDelta", s.rotationDelta},
++            {"rotationTotal", s.rotationTotal},
++            {"size", json::array({s.size[0], s.size[1]})},
++            {"scale", s.scale},
++        };
++    }
++
++    json Visual(const FxElemVisuals& v, const FxElemType type)
++    {
++        if (!v.anonymous)
++            return nullptr;
++
++        switch (type)
++        {
++        case FX_ELEM_TYPE_MODEL:
++            return Str(v.model->name);
++        case FX_ELEM_TYPE_RUNNER:
++            return Str(v.effectDef.name);
++        case FX_ELEM_TYPE_SOUND:
++            return Str(v.soundName);
++        case FX_ELEM_TYPE_SPOT_LIGHT:
++            return Str(v.lightDef->name);
++        case FX_ELEM_TYPE_OMNI_LIGHT:
++            return nullptr;
++        default:
++            return Str(v.material->info.name);
++        }
++    }
++
++    json ElemDef(const FxElemDef& e)
++    {
++        json j;
++        j["flags"] = e.flags;
++        j["spawn"] = json::array({e.spawn.looping.intervalMsec, e.spawn.looping.count});
++        j["spawnRange"] = Range(e.spawnRange);
++        j["fadeInRange"] = Range(e.fadeInRange);
++        j["fadeOutRange"] = Range(e.fadeOutRange);
++        j["spawnFrustumCullRadius"] = e.spawnFrustumCullRadius;
++        j["spawnDelayMsec"] = Range(e.spawnDelayMsec);
++        j["lifeSpanMsec"] = Range(e.lifeSpanMsec);
++        j["spawnOrigin"] = json::array({Range(e.spawnOrigin[0]), Range(e.spawnOrigin[1]), Range(e.spawnOrigin[2])});
++        j["spawnOffsetRadius"] = Range(e.spawnOffsetRadius);
++        j["spawnOffsetHeight"] = Range(e.spawnOffsetHeight);
++        j["spawnAngles"] = json::array({Range(e.spawnAngles[0]), Range(e.spawnAngles[1]), Range(e.spawnAngles[2])});
++        j["angularVelocity"] = json::array({Range(e.angularVelocity[0]), Range(e.angularVelocity[1]), Range(e.angularVelocity[2])});
++        j["initialRotation"] = Range(e.initialRotation);
++        j["rotationAxis"] = e.rotationAxis;
++        j["gravity"] = Range(e.gravity);
++        j["reflectionFactor"] = Range(e.reflectionFactor);
++        j["atlas"] = json{
++            {"behavior", static_cast<int>(e.atlas.behavior)},
++            {"index", static_cast<int>(e.atlas.index)},
++            {"fps", static_cast<int>(e.atlas.fps)},
++            {"loopCount", static_cast<int>(e.atlas.loopCount)},
++            {"colIndexBits", static_cast<int>(e.atlas.colIndexBits)},
++            {"rowIndexBits", static_cast<int>(e.atlas.rowIndexBits)},
++            {"entryCountAndIndexRange", e.atlas.entryCountAndIndexRange},
++        };
++        j["windInfluence"] = e.windInfluence;
++        j["elemType"] = static_cast<int>(e.elemType);
++
++        auto vel = json::array();
++        if (e.velSamples)
++        {
++            for (auto i = 0; i <= e.velIntervalCount; i++)
++                vel.push_back(json{{"local", VelFrame(e.velSamples[i].local)}, {"world", VelFrame(e.velSamples[i].world)}});
++        }
++        j["velSamples"] = vel;
++
++        auto vis = json::array();
++        if (e.visSamples)
++        {
++            for (auto i = 0; i <= e.visStateIntervalCount; i++)
++                vis.push_back(json{{"base", VisState(e.visSamples[i].base)}, {"amplitude", VisState(e.visSamples[i].amplitude)}});
++        }
++        j["visSamples"] = vis;
++
++        auto visuals = json::array();
++        if (e.elemType == FX_ELEM_TYPE_DECAL)
++        {
++            for (auto i = 0; i < e.visualCount && e.visuals.markArray; i++)
++            {
++                const auto& mark = e.visuals.markArray[i];
++                visuals.push_back(json::array({mark.materials[0] ? Str(mark.materials[0]->info.name) : json(nullptr),
++                                               mark.materials[1] ? Str(mark.materials[1]->info.name) : json(nullptr)}));
++            }
++        }
++        else if (e.visualCount > 1)
++        {
++            for (auto i = 0; i < e.visualCount && e.visuals.array; i++)
++                visuals.push_back(Visual(e.visuals.array[i], e.elemType));
++        }
++        else if (e.visualCount == 1)
++            visuals.push_back(Visual(e.visuals.instance, e.elemType));
++        j["visuals"] = visuals;
++
++        j["collMins"] = Vec(e.collMins.v, 3);
++        j["collMaxs"] = Vec(e.collMaxs.v, 3);
++        j["effectOnImpact"] = Str(e.effectOnImpact.name);
++        j["effectOnDeath"] = Str(e.effectOnDeath.name);
++        j["effectEmitted"] = Str(e.effectEmitted.name);
++        j["emitDist"] = Range(e.emitDist);
++        j["emitDistVariance"] = Range(e.emitDistVariance);
++        j["effectAttached"] = Str(e.effectAttached.name);
++
++        if (e.elemType == FX_ELEM_TYPE_TRAIL && e.extended.trailDef)
++        {
++            const auto& t = *e.extended.trailDef;
++            auto verts = json::array();
++            for (auto i = 0; i < t.vertCount; i++)
++                verts.push_back(json::array({t.verts[i].pos.x, t.verts[i].pos.y, t.verts[i].normal.x, t.verts[i].normal.y, t.verts[i].texCoord}));
++            auto inds = json::array();
++            for (auto i = 0; i < t.indCount; i++)
++                inds.push_back(t.inds[i]);
++            j["trail"] = json{{"scrollTimeMsec", t.scrollTimeMsec}, {"repeatDist", t.repeatDist}, {"splitDist", t.splitDist}, {"verts", verts}, {"inds", inds}};
++        }
++
++        if (e.elemType == FX_ELEM_TYPE_SPOT_LIGHT && e.extended.spotLightDef)
++        {
++            const auto& s = *e.extended.spotLightDef;
++            j["spotLight"] = json{{"fovInnerFraction", s.fovInnerFraction}, {"startRadius", s.startRadius}, {"endRadius", s.endRadius}};
++        }
++
++        j["sortOrder"] = static_cast<int>(e.sortOrder);
++        j["lightingFrac"] = static_cast<int>(static_cast<uint8_t>(e.lightingFrac));
++        j["alphaFadeTimeMsec"] = e.alphaFadeTimeMsec;
++        j["maxWindStrength"] = e.maxWindStrength;
++        j["spawnIntervalAtMaxWind"] = e.spawnIntervalAtMaxWind;
++        j["lifespanAtMaxWind"] = e.lifespanAtMaxWind;
++        if (e.elemType == FX_ELEM_TYPE_CLOUD)
++            j["cloudDensityRange"] = Range(e.u.cloudDensityRange);
++        else
++            j["billboardTrim"] = json::array({e.u.billboard.topWidth, e.u.billboard.bottomWidth});
++        j["spawnSound"] = Str(e.spawnSound.spawnSound);
++        j["billboardPivot"] = json::array({e.billboardPivot.x, e.billboardPivot.y});
++
++        return j;
++    }
++
++    json FxToJson(const FxEffectDef& fx)
++    {
++        json j;
++        j["_type"] = "fx";
++        j["_version"] = 1;
++        j["_game"] = "t6";
++        j["flags"] = fx.flags;
++        j["efPriority"] = static_cast<int>(fx.efPriority);
++        j["elemDefCountLooping"] = fx.elemDefCountLooping;
++        j["elemDefCountOneShot"] = fx.elemDefCountOneShot;
++        j["elemDefCountEmission"] = fx.elemDefCountEmission;
++        j["totalSize"] = fx.totalSize;
++        j["msecLoopingLife"] = fx.msecLoopingLife;
++        j["msecNonLoopingLife"] = fx.msecNonLoopingLife;
++        j["boundingBoxDim"] = Vec(fx.boundingBoxDim.v, 3);
++        j["boundingBoxCentre"] = Vec(fx.boundingBoxCentre.v, 3);
++        j["occlusionQueryDepthBias"] = fx.occlusionQueryDepthBias;
++        j["occlusionQueryFadeIn"] = fx.occlusionQueryFadeIn;
++        j["occlusionQueryFadeOut"] = fx.occlusionQueryFadeOut;
++        j["occlusionQueryScaleRange"] = Range(fx.occlusionQueryScaleRange);
++
++        auto elems = json::array();
++        const auto count = fx.elemDefCountLooping + fx.elemDefCountOneShot + fx.elemDefCountEmission;
++        for (auto i = 0; i < count && fx.elemDefs; i++)
++            elems.push_back(ElemDef(fx.elemDefs[i]));
++        j["elemDefs"] = elems;
++
++        return j;
++    }
++} // namespace
++
++namespace fx
++{
++    void JsonDumperT6::DumpAsset(AssetDumpingContext& context, const XAssetInfo<AssetFx::Type>& asset)
++    {
++        const auto assetFile = context.OpenAssetFile(GetJsonFileNameForAssetNameT6(asset.m_name));
++        if (!assetFile)
++            return;
++
++        *assetFile << std::setw(4) << FxToJson(*asset.Asset()) << "\n";
++    }
++} // namespace fx
+diff --git a/src/ObjWriting/Game/T6/Fx/FxJsonDumperT6.h b/src/ObjWriting/Game/T6/Fx/FxJsonDumperT6.h
+new file mode 100644
+index 00000000..f0ed1402
+--- /dev/null
++++ b/src/ObjWriting/Game/T6/Fx/FxJsonDumperT6.h
+@@ -0,0 +1,13 @@
++#pragma once
++
++#include "Dumping/AbstractAssetDumper.h"
++#include "Game/T6/T6.h"
++
++namespace fx
++{
++    class JsonDumperT6 final : public AbstractAssetDumper<T6::AssetFx>
++    {
++    protected:
++        void DumpAsset(AssetDumpingContext& context, const XAssetInfo<T6::AssetFx::Type>& asset) override;
++    };
++} // namespace fx
+diff --git a/src/ObjWriting/Game/T6/ObjWriterT6.cpp b/src/ObjWriting/Game/T6/ObjWriterT6.cpp
+index 05a30c1f..01882a72 100644
+--- a/src/ObjWriting/Game/T6/ObjWriterT6.cpp
++++ b/src/ObjWriting/Game/T6/ObjWriterT6.cpp
+@@ -26,6 +26,7 @@
+ #include "Weapon/AttachmentDumperT6.h"
+ #include "Weapon/AttachmentUniqueDumperT6.h"
+ #include "Weapon/CamoJsonDumperT6.h"
++#include "Fx/FxJsonDumperT6.h"
+ #include "Weapon/WeaponDumperT6.h"
+ #include "ZBarrier/ZBarrierDumperT6.h"
+ 
+@@ -66,7 +67,7 @@ void ObjWriter::RegisterAssetDumpers(AssetDumpingContext& context)
+     RegisterAssetDumper(std::make_unique<attachment_unique::DumperT6>());
+     RegisterAssetDumper(std::make_unique<camo::JsonDumperT6>());
+     RegisterAssetDumper(std::make_unique<sound::SndDriverGlobalsDumperT6>());
+-    // REGISTER_DUMPER(AssetDumperFxEffectDef, m_fx)
++    RegisterAssetDumper(std::make_unique<fx::JsonDumperT6>());
+     // REGISTER_DUMPER(AssetDumperFxImpactTable, m_fx_impact_table)
+     RegisterAssetDumper(std::make_unique<raw_file::DumperT6>());
+     RegisterAssetDumper(std::make_unique<string_table::DumperT6>());

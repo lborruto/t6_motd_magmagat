@@ -15,7 +15,7 @@ mg_models_init()
     level.mg_models["skull_lit"] = "p6_zm_al_skull_afterlife"; // zm_prison: a lit skull turns into the afterlife skull, as in BO4
     level.mg_models["barrel"] = "mg_barrel_green"; // mod.ff: the remaster's drum at its five barrel spots (dark green; the flame is blue)
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
-    level.mg_models["ball"] = "mg_lava_blob"; // mod.ff (tools/gen_lava_fx.pl): a lava blob, as BO4 flies (the Acid Gat dart read wrong)
+    level.mg_models["ball"] = "mg_magma_blob"; // mod.ff (tools/import_all.pl): BO4's own lava blob, p8_fxp_magma_blob
     level.mg_models["pool"] = "mg_lava_pool"; // mod.ff: the molten splat a miss leaves, as BO4 lays one
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
     level.mg_models["clip"] = "collision_clip_32x32x32"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none)
