@@ -54,9 +54,9 @@ my $zone = "$repo/mod/zone_source/mod.zone";
 open my $h, '<:raw', $zone or die "$zone: $!\n";
 my $z = do { local $/; <$h> };
 close $h;
-$z =~ s/\n?\/\/ props \(tools\/import_all\.pl\).*?\/\/ end props\n//s;
-$z =~ s/\s*\z/\n/;
-$z .= "\n// props (tools/import_all.pl)\n" . join( '', map { "xmodel,$_->[0]\n" } @props ) . "// end props\n";
+my $block = "// props (tools/import_all.pl)\n" . join( '', map { "xmodel,$_->[0]\n" } @props ) . "// end props\n";
+# in place when the block exists (the zone keeps its order), else appended
+if ( $z !~ s/\/\/ props \(tools\/import_all\.pl\).*?\/\/ end props\n/$block/s ) { $z =~ s/\s*\z/\n/; $z .= "\n$block" }
 open $h, '>:raw', $zone or die "$zone: $!\n";
 print $h $z;
 close $h;

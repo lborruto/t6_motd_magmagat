@@ -114,9 +114,9 @@ spit( "$raw/english/localizedstrings/mg_weapons.str", $str );
 # 7. the zone: our weapon block replaces the previous one
 my $zone = "$repo/mod/zone_source/mod.zone";
 my $z = slurp($zone);
-$z =~ s/\n?\/\/ weapon \(tools\/build_weapon\.pl\).*?\/\/ end weapon\n//s;
 my @lines = ( 'localize,mg_weapons', ( map { "xmodel,$_" } @models ), ( map { "weapon,$_->[0]" } @weapons ) );
-$z =~ s/\s*\z/\n/;
-$z .= "\n// weapon (tools/build_weapon.pl)\n" . join( "\n", @lines ) . "\n// end weapon\n";
+my $block = "// weapon (tools/build_weapon.pl)\n" . join( "\n", @lines ) . "\n// end weapon\n";
+# in place when the block exists (the zone keeps its order), else appended
+if ( $z !~ s/\/\/ weapon \(tools\/build_weapon\.pl\).*?\/\/ end weapon\n/$block/s ) { $z =~ s/\s*\z/\n/; $z .= "\n$block" }
 spit( $zone, $z );
 printf "build_weapon.pl: %d weapons, %d models\n", scalar @weapons, scalar @models;
