@@ -8,7 +8,7 @@
 <summary>Requirements</summary>
 
 You need a Blundergat (`blundergat_zm`) or its Pack-a-Punched form (`blundergat_upgraded_zm`) in hand, and
-the bridge must have been raised at least once. Nothing else has to happen first: the quest does not care
+someone must have reached the Golden Gate Bridge at least once (the plane's landing). Nothing else has to happen first: the quest does not care
 what round it is or how many players are in the game.
 
 </details>

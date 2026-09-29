@@ -24,6 +24,18 @@ mg_debug_command( sub, arg, args )
 {
     switch ( sub )
     {
+        // the bridge requirement met, as when the plane lands on the bridge (the gate's own event, no vanilla flag)
+        case "bridge":
+            if ( !mg_state_is( "locked" ) )
+            {
+                self mg_out( "MG: the fireplace is already open (state " + level.mg_state + ")" );
+                return 1;
+            }
+
+            level notify( "mg_bridge_reached" );
+            self mg_out( "MG: bridge reached: the fireplace takes a Blundergat" );
+            return 1;
+
         case "give":
             if ( !self hasweapon( "blundergat_zm" ) )
                 self giveweapon( "blundergat_zm" );

@@ -30,9 +30,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 1. Locked / ready
 
-- [ ] Before the bridge is raised: state stays `locked`, no prompt at the hearth even with a Blundergat in
+- [ ] Before anyone reaches the Golden Gate Bridge (the plane's landing): state stays `locked`, no prompt at the hearth even with a Blundergat in
       hand.
-- [ ] Raise the bridge (or `!mg goto ready`): state becomes `ready`. Holding `blundergat_zm` or
+- [ ] Reach the bridge, or `!mg bridge` (the same requirement met, without the plane), or `!mg goto ready`: state
+      becomes `ready`. `!mg bridge` in any other state says the fireplace is already open. Holding `blundergat_zm` or
       `blundergat_upgraded_zm`, pressing use at the hearth lays the gun in the fire (no on-screen prompt, as the original). Holding neither: no
       prompt.
 

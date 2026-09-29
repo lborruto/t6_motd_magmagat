@@ -179,6 +179,7 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | Command | Effect |
 |---|---|
 | `!mg status` | state, orbs, carrier, timer, anchors resolved |
+| `!mg bridge` | meet the bridge requirement (the gate's own event: setting the vanilla flag would also open the bridge's spawn zone) |
 | `!mg goto <locked\|ready\|souls\|pickup\|run\|forge\|done>` | fabricate the state (gives a Blundergat when the state needs one) |
 | `!mg spots` | print every anchor (`[SPOT] KEY \| x y z \| p y r`) |
 | `!mg help` | full command list |

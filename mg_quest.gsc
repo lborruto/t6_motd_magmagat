@@ -29,20 +29,40 @@ mg_state_set( s )
     level notify( "mg_state", s );
 }
 
-// ready when the bridge has been visited once (vanilla flag set when the plane lands there)
+// ready when the bridge has been reached once (vanilla flag set when the plane lands there). The gate waits for our
+// own "mg_bridge_reached": the vanilla flag sends it in play, `!mg bridge` sends it to test the gate (setting the
+// vanilla flag by hand would also open the bridge's spawn zone).
 mg_bridge_gate()
 {
     level endon( "end_game" );
 
     if ( !flag_exists( "activate_player_zone_bridge" ) )
-    {
         mg_debug_print( "MG: flag activate_player_zone_bridge missing, the fireplace opens at once" );
-    }
     else
-        flag_wait( "activate_player_zone_bridge" );
+    {
+        level thread mg_bridge_flag_watch();
+        level waittill( "mg_bridge_reached" );
+    }
 
-    if ( mg_state_is( "locked" ) )
-        mg_state_set( "ready" );
+    // every "mg_bridge_reached" opens a locked fireplace (a `!mg goto locked` can be undone by `!mg bridge`)
+    while ( true )
+    {
+        if ( mg_state_is( "locked" ) )
+        {
+            mg_state_set( "ready" );
+            mg_debug_print( "MG: the bridge was reached, the fireplace takes a Blundergat" );
+        }
+
+        level waittill( "mg_bridge_reached" );
+    }
+}
+
+mg_bridge_flag_watch()
+{
+    level endon( "end_game" );
+    level endon( "mg_bridge_reached" );
+    flag_wait( "activate_player_zone_bridge" );
+    level notify( "mg_bridge_reached" );
 }
 
 // The Blundergat variant the player holds, or undefined (Sweeper counts, the Acid Gat does not).
