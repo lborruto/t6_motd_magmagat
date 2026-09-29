@@ -35,7 +35,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 0b. The look, in one pass
 
-- [ ] `!mg tour`: eight labelled stops (the fireplace, a soul leaving a body and flying to its skull, a full skull,
+- [ ] `!mg tour`: eight labelled stops (the fireplace, a soul orb rising, taken and flying to its skull, a full skull,
       the hell portal and the rising gun, a burning barrel, the forge, the lava blob, the molten pool). Every
       effect is visible and every sound heard (the BO3 remaster's own: the flame burst when the gun goes in, the soul
       kill and its hum, the press at the forge, the warden's line at the end); note the step number of anything to change.
@@ -55,8 +55,12 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] `!mg goto souls` (or press use at the hearth with a gun in `ready`): the gun leaves your hands into the fire,
       the three skulls are dark, state is `souls`.
 - [ ] A zombie a player kills that dies inside the Warden's Office: a blue burst and the soul-kill sound at the body,
-      then the soul (a blue lightning streak, humming) rises and flies by itself to its skull and flashes in; the
-      count increases (`!mg status`: x/15). No blood anywhere.
+      then a humming blue orb rises over it for 3 s. Walk into it: a flash and the soul-suck sound, and the soul (a
+      blue lightning streak) flies to its skull and flashes in; the count increases (`!mg status`: x/15). No blood.
+- [ ] An orb nobody takes fades after 3 s and does not count; later kills still reach 15.
+- [ ] **Lockdown**: while the office takes souls, a fire wall stands in the office door and in each of its three
+      windows (vanilla's laundry blocker); they go at 15 souls or when the step ends. `!mg lockdown` shows them for
+      10 s at any time: each wall must fill its opening (report one that stands edge-on or off to the side).
 - [ ] The killer may stand outside (a shot through the window at a zombie inside counts); a zombie that dies
       outside the office never gives a soul.
 - [ ] Skulls light at 5, 10 and 15 (the skull becomes the afterlife skull, a blue glow and a hum; the third has its
@@ -104,13 +108,18 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] Fire at a zombie: a lava blob (a lumpy molten ball with a fire trail) tumbles to it, sticks half a second,
       then the zombie dies (kill credit and points to you); zombies within 128 units take 400 and catch fire.
+- [ ] **No buckshot**: the shot itself does no damage (fire at a zombie behind a wall or at a Brutus helmet: nothing
+      but the blob hurts). Ammo is BO4's: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
+- [ ] **The burn**: a zombie set alight burns until it dies, a share of its health each second that shrinks with
+      the round (most of it before round 9, a fifth or less from round 29). At most 12 burn with flames showing.
 - [ ] A strong zombie (high rounds, more than 1000 health) takes 1000, burns 4 s, then dies.
 - [ ] **Crawlers catch the blob too** (it links at `J_SpineUpper`), and a crawler that enters a pool dies at once.
 - [ ] A miss leaves a molten pool under the impact (a glowing splat with fire; a wall hit pools below it) for 5 s;
-      a fourth pool removes the oldest. Zombies nearby walk to it (the lure), catch fire stepping in, and burn.
+      a fourth pool removes the oldest. Zombies nearby walk to it (the lure), catch fire stepping in (10 % of their
+      health, then the burn).
 - [ ] Standing in your own pool hurts you a little.
 - [ ] **Brutus**: a blob on Brutus burns him for 5 s (10-20 % of his health a second, half from round 15): enough
-      to kill him. A pool burns him slowly.
+      to kill him. He walks through pools unharmed (as in BO4).
 - [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and
       barrels that glow and flicker) and every Blundergat animation plays on it without parts drifting (raise, reload,
       the hammer, the swivel, the loader, the left chains, sprint); on the generator and in other players' hands it
@@ -118,8 +127,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] **Held flame**: a small flame rides the gun while it is in hand (bigger on the Magmus Operandi). It goes out
       when you switch weapon, go down or lose the gun, and comes back when you raise it again. Co-op: the other
       player sees it on your gun.
-- [ ] **Shot**: an orange buckshot flash (bigger on the Magmus Operandi), red streaks for the pellets and a fire
-      whoosh with every shot, on top of the Blundergat's own sound.
+- [ ] **Shot**: an orange flash (bigger on the Magmus Operandi), one red streak and a fire whoosh with every shot, on
+      top of the Blundergat's own sound; every shot throws a blob.
 - [ ] **Pack-a-Punch**: a Magmagat comes back as `magmagat_upgraded_zm`, Magmus Operandi: the BO4 model with its
       armour kit, a 2-blob clip, the bigger pool lure.
 - [ ] **Acid Gat kit takes a Magmagat**: holding only a Magmagat, use the Acid Gat station: it goes in as a

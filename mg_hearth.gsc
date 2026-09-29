@@ -7,13 +7,15 @@
 #include scripts\zm\zm_prison\mg_run;
 
 // The fireplace, after BO4 Blood of the Dead (zm_escape_weap_quest_mg.gsc) and the BO3 remaster: the gun in the fire,
-// 15 souls from zombies that die in the Warden's Office flying by themselves to three skulls (5 / 10 / 15), the placer's 10 s / 30 s away rule, the deposit (the
-// skulls drain, a flare, the blue fire), 30 s to take the tempered gun.
+// 15 souls from zombies that die in the Warden's Office, taken by walking into them and flying to three skulls
+// (5 / 10 / 15), the placer's 10 s / 30 s away rule, the deposit (the skulls drain, a flare, the blue fire), 30 s to
+// take the tempered gun.
 
 mg_hearth_init()
 {
     level.mg_orbs = 0;
     level.mg_souls_sent = 0;
+    level.mg_souls_taken = 0;
     level.mg_skulls = [];
     level.mg_hearth_session = 0;
 
@@ -29,6 +31,8 @@ mg_hearth_init()
     level thread mg_hearth_fire();
     level thread mg_hearth_prompt_loop();
     level thread mg_hearth_state_watch();
+    level.mg_lock_gen = 0;
+    level thread mg_lockdown_watch();
 }
 
 // The hearth fire: normal flame in every state but pickup / run (blue) and locked (nothing extra).
@@ -147,6 +151,7 @@ mg_hearth_start( player )
     level.mg_hearth_owner = player;
     level.mg_orbs = 0;
     level.mg_souls_sent = 0;
+    level.mg_souls_taken = 0;
     c = mg_coord( "MG_HEARTH" );
     level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
     player mg_snd_player( "zmb_hellbox_lock" );
@@ -184,8 +189,8 @@ mg_hearth_round_watch()
     }
 }
 
-// souls: a zombie killed by a player that dies inside the office gives its soul (the killer may stand anywhere). The
-// count is reserved at once, so souls still in flight never pass 15.
+// souls: a zombie killed by a player that dies inside the office drops its soul (the killer may stand anywhere). The
+// count is reserved at once, so the orbs out never pass 15; an orb nobody takes gives its place back.
 mg_hearth_zombie_died( zombie )
 {
     if ( !mg_state_is( "souls" ) || level.mg_souls_sent >= 15 )
@@ -204,39 +209,98 @@ mg_hearth_zombie_died( zombie )
     }
 
     level.mg_souls_sent++;
-    mg_debug_print( "MG: soul " + level.mg_souls_sent + "/15 released at " + mg_vec_str( zombie.origin ) );
-    level thread mg_soul_fly( zombie.origin + ( 0, 0, 36 ), level.mg_souls_sent );
+    mg_debug_print( "MG: soul dropped at " + mg_vec_str( zombie.origin ) + " (" + level.mg_souls_sent + " out or taken)" );
+    level thread mg_soul_orb( zombie.origin );
 }
 
-// A soul, as the BO3 remaster flies it: out of the body (a blue burst, the soul kill), up, then by itself to the skull
-// it fills as the lightning-hands streak humming (the soul loop), and in with a flash. Its skull lights when its fifth
-// soul arrives.
+// A soul, as BO4 drops it: out of the body (a blue burst, the soul kill), an orb 22 units over the corpse that rises
+// 36 units in 3 s, humming. Walk into it (24 units around, 96 up) to take it: it bursts and flies to the skull it
+// fills. Nobody takes it and it fades, lost.
+mg_soul_orb( pos )
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    session = level.mg_hearth_session;
+    mg_fx_once( "soul_release", pos + ( 0, 0, 22 ) );
+    mg_snd_near( "mg_soul_kill", pos, 1200 );
+    start = pos + ( 0, 0, 22 );
+    orb = mg_fx_loop( "soul", start );
+
+    if ( !mg_state_is( "souls" ) || level.mg_hearth_session != session )
+    {
+        mg_fx_stop( orb );
+        return;
+    }
+
+    if ( !isdefined( orb ) )
+    {
+        level.mg_souls_sent--;
+        return;
+    }
+
+    mg_orb_track( orb );
+    orb playloopsound( "mg_soul_loop" );
+    orb moveto( start + ( 0, 0, 36 ), 3 );
+    taker = undefined;
+
+    for ( t = 0; t < 3 && !isdefined( taker ); t += 0.05 )
+    {
+        wait 0.05;
+
+        if ( !isdefined( orb ) || !mg_state_is( "souls" ) || level.mg_hearth_session != session )
+            return;
+
+        foreach ( p in getplayers() )
+        {
+            up = orb.origin[2] - p.origin[2];
+
+            if ( is_player_valid( p ) && distance2d( p.origin, orb.origin ) < 24 + 16 && up > -16 && up < 96 )
+            {
+                taker = p;
+                break;
+            }
+        }
+    }
+
+    from = orb.origin;
+    mg_fx_stop( orb );
+
+    if ( !isdefined( taker ) )
+    {
+        level.mg_souls_sent--;
+        mg_debug_print( "MG: a soul faded, nobody took it" );
+        return;
+    }
+
+    level.mg_souls_taken++;
+    mg_fx_once( "soul_hit", from );
+    taker playsoundtoplayer( "evt_soulsuck_body", taker );
+    level thread mg_soul_fly( from, level.mg_souls_taken );
+}
+
+// A soul taken, as the BO3 remaster flies it: up, then to the skull it fills as the lightning-hands streak humming
+// (the soul loop), and in with a flash. Its skull lights when its fifth soul arrives.
 mg_soul_fly( pos, n )
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
     session = level.mg_hearth_session;
-    mg_fx_once( "soul_release", pos );
-    mg_snd_near( "mg_soul_kill", pos, 1200 );
     idx = int( ( n - 1 ) / 5 );
     target = mg_coord( "MG_HEARTH" ).origin + ( 0, 0, 20 );
 
     if ( isdefined( level.mg_skulls[idx] ) )
         target = level.mg_skulls[idx].origin + ( 0, 0, 4 );
 
-    up = pos + ( 0, 0, 30 );
+    up = pos + ( 0, 0, 20 );
     soul = mg_fx_loop( "soul_trail", pos, vectortoangles( up - pos ) );
 
     if ( !isdefined( soul ) )
         return;
 
-    if ( !isdefined( level.mg_orb_ents ) )
-        level.mg_orb_ents = [];
-
-    level.mg_orb_ents[level.mg_orb_ents.size] = soul;
+    mg_orb_track( soul );
     soul playloopsound( "mg_soul_loop" );
-    soul moveto( up, 0.6, 0, 0.3 );
-    wait 0.6;
+    soul moveto( up, 0.4, 0, 0.2 );
+    wait 0.4;
 
     if ( !isdefined( soul ) )
         return;
@@ -475,9 +539,81 @@ mg_hearth_take( player )
     mg_run_start( player, weapon );
 }
 
+// a soul entity mg_orbs_clear removes
+mg_orb_track( ent )
+{
+    if ( !isdefined( level.mg_orb_ents ) )
+        level.mg_orb_ents = [];
+
+    level.mg_orb_ents[level.mg_orb_ents.size] = ent;
+}
+
+// The lockdown (the BO3 remaster's fx_mg_quest_lockdown, BO4's window and door barriers): while the office takes
+// souls a fire wall stands in its door and its three windows, gone at 15 souls or when the step ends. It is a look,
+// not a clip: the rule is the placer's 10 s / 30 s away, as in BO4.
+mg_lockdown_watch()
+{
+    level endon( "end_game" );
+    on = 0;
+
+    while ( true )
+    {
+        want = mg_state_is( "souls" ) && level.mg_orbs < 15;
+
+        if ( want && !on )
+            mg_lockdown_on();
+        else if ( !want && on )
+            mg_lockdown_off();
+
+        on = want;
+        wait 0.25;
+    }
+}
+
+// The fire walls: vanilla's laundry blockers stand at a doorway's centre on the floor at angles
+// (271.285, 159.957, 289.8 - the door's yaw); a window's wall runs across its zbarrier's facing (+90).
+mg_lockdown_on()
+{
+    mg_lockdown_off();
+    spots = [];
+    spots[0] = array( ( -447, 9305, 1336 ), 270 ); // the office door (zombie_door activate_warden_office)
+    spots[1] = array( ( -704, 9453, 1369 ), 270 + 90 ); // the windows: the office's three zbarriers
+    spots[2] = array( ( -1115, 9071, 1367 ), 0 + 90 );
+    spots[3] = array( ( -510, 8456, 1367 ), 90 + 90 );
+    level.mg_lock_fx = [];
+
+    foreach ( spot in spots )
+        level thread mg_lockdown_wall( spot[0], ( 271.285, 159.957, 289.8 - spot[1] ) );
+}
+
+// a wall still spawning when the lockdown ends goes at once
+mg_lockdown_wall( origin, angles )
+{
+    gen = level.mg_lock_gen;
+    wall = mg_fx_loop( "lockdown", origin, angles );
+
+    if ( gen != level.mg_lock_gen )
+        mg_fx_stop( wall );
+    else if ( isdefined( wall ) )
+        level.mg_lock_fx[level.mg_lock_fx.size] = wall;
+}
+
+mg_lockdown_off()
+{
+    if ( isdefined( level.mg_lock_fx ) )
+    {
+        foreach ( wall in level.mg_lock_fx )
+            mg_fx_stop( wall );
+    }
+
+    level.mg_lock_fx = [];
+    level.mg_lock_gen++;
+}
+
 mg_orbs_clear()
 {
     level.mg_souls_sent = 0;
+    level.mg_souls_taken = 0;
 
     if ( isdefined( level.mg_orb_ents ) )
     {
@@ -531,6 +667,7 @@ mg_hearth_state_watch()
             mg_skulls_dark();
             level.mg_orbs = 0;
             level.mg_souls_sent = 0;
+            level.mg_souls_taken = 0;
         }
     }
 }
@@ -567,6 +704,7 @@ mg_hearth_fabricate( state )
     {
         level.mg_orbs = 15;
         level.mg_souls_sent = 15;
+        level.mg_souls_taken = 15;
         mg_skull_light( 0 );
         mg_skull_light( 1 );
         mg_skull_light( 2 );

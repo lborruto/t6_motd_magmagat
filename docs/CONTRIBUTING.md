@@ -188,6 +188,7 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 |---|---|
 | `!mg status` | state, orbs, carrier, timer, anchors resolved |
 | `!mg tour` | every step's effects and sounds in their real place, one after the other (teleports you, labels each step): the quick review of the quest's look |
+| `!mg lockdown` | the office lockdown's fire walls (door and three windows) for 10 s, to check their placement |
 | `!mg bridge` | meet the bridge requirement (the gate's own event: setting the vanilla flag would also open the bridge's spawn zone) |
 | `!mg goto <locked\|ready\|souls\|pickup\|run\|forge\|done>` | fabricate the state (gives a Blundergat when the state needs one) |
 | `!mg spots` | print every anchor (`[SPOT] KEY \| x y z \| p y r`) |

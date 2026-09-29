@@ -28,8 +28,9 @@ prompt shows): the gun goes into the fire, a laugh answers, and the quest begins
 <summary>The souls</summary>
 
 Every zombie a player kills **that dies inside the Warden's Office** releases its soul; the killer can stand
-anywhere. The soul bursts out of the body and flies by itself to its skull on the mantle. You need **15 souls**:
-the three skulls light up blue at **5**, **10** and **15**.
+anywhere. The soul bursts out of the body and rises over it as a glowing orb for **3 seconds**: walk into it before
+it fades. A soul you take flies to its skull on the mantle. You need **15 souls**: the three skulls light up blue at
+**5**, **10** and **15**. While the office takes souls, walls of fire stand in its door and windows.
 
 The office belongs to the player who placed the gun. If that player spends **10 seconds** outside it, the souls
 taken so far are lost (the skulls go dark). **30 seconds** outside, or dying, and the fire lets go: the gun is lost.
@@ -73,17 +74,19 @@ temper run needed. The fireplace takes no more guns.
 
 The Magmagat is the Black Ops 4 gun: its own model and name, its molten canisters and barrels glowing and
 flickering, a small flame riding it while you hold it. It handles and reloads like a Blundergat, but it fires with
-a burst of flame and red-hot streaks, and every shot also throws a tumbling blob of lava.
+a burst of flame and a red-hot streak: no buckshot, every shot throws a tumbling blob of lava, and the blob does all
+the damage. The clip holds one (you start with 30, 36 at most).
 
 A blob that lands on a zombie sticks for half a second, then kills it (a stronger one takes a heavy hit and burns
-to death over 4 seconds); everything within about 10 feet takes a blast and catches fire. A miss leaves a molten
-pool for **5 seconds** (3 at most): zombies are drawn to it, catch fire when they step in, and crawlers die in it
-outright. Mind your feet: your own lava burns you too.
+to death over 4 seconds); everything within about 10 feet takes a blast and catches fire. A zombie on fire burns until
+it dies, fast in the early rounds, slower later. A miss leaves a molten pool for **5 seconds** (3 at most): zombies
+are drawn to it, catch fire when they step in, and crawlers die in it outright. Mind your feet: your own lava burns
+you too.
 
-Brutus takes the blob hard: it burns him for 5 seconds, enough to bring him down.
+Brutus takes the blob hard: it burns him for 5 seconds, enough to bring him down. The pools do not touch him.
 
 Once forged, the Magmagat is yours like any other weapon. Pack-a-Punch it and it comes out as the Magmus Operandi
-(two blobs a clip, a bigger lure). The Acid Gat kit takes it too: it goes in as the Blundergat it was, and comes
+(two blobs a clip, 25 to start and 30 at most, a bigger lure). The Acid Gat kit takes it too: it goes in as the Blundergat it was, and comes
 out as the Acid Gat.
 
 </details>

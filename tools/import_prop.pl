@@ -120,7 +120,9 @@ for my $idx ( 0 .. $#mat_order ) {
 
 # LODs with our material names
 my @lodjson;
-my @dist = ( 300, 700, 1500, 3000, 5000, 8000 );
+# switch distances; the last LOD stays drawn to 10000 units (a prop that vanished at its LOD0 distance, 300, was a bug)
+my @dist = ( 300, 700, 1500, 3000 );
+$dist[$#lods] = 10000;
 my $root;
 for my $k ( 0 .. $#lods ) {
     ($root) = slurp("$src/$lods[$k]") =~ /^BONE 0 -1 "([^"]+)"/m if $k == 0;
@@ -186,7 +188,7 @@ for my $k ( 0 .. $#lods ) {
     $g->{buffers}[0]{uri} = "data:application/octet-stream;base64," . encode_base64( $buf, "" );
     my $out = "model_export/${prop}_lod$k.gltf";
     spit( "$raw/$out", JSON::PP->new->pretty->canonical->encode($g) );
-    push @lodjson, { distance => $dist[$k] // 10000, file => $out };
+    push @lodjson, { distance => $dist[$k], file => $out };
 }
 # lighting origin = the centre of LOD0's vertex bounds, range = half its diagonal (the dumped vanilla props do the same)
 my @mn = ( 1e9, 1e9, 1e9 );

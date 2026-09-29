@@ -44,6 +44,7 @@ mg_fx_table()
     t["hearth_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
     t["hearth_blue"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell";
     t["hearth_close"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell_close";
+    t["lockdown"] = "maps/zombie_alcatraz/fx_alcatraz_door_blocker"; // the laundry lockdown's fire wall (vanilla exploder 1000)
     t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the deposit's flare-up
     t["gun_vanish"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a gun not taken in time vanishes
     // the run: fire in the barrels, the temper riding the gun

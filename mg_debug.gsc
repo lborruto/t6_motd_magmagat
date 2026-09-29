@@ -4,6 +4,7 @@
 #include scripts\zm\zm_prison\mg_systems;
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
+#include scripts\zm\zm_prison\mg_hearth;
 #include scripts\zm\zm_prison\mg_weapon;
 #include scripts\zm\zm_prison\mg_place;
 
@@ -12,6 +13,17 @@
 // was dropped: it needs a ground-trace helper and a "beacon" pedestal model that do not exist in this mod
 // (owner 2026-09-18); the required part (`!mg fx <n|name|next|prev|stop>`, `!mg snd <n|alias|next|prev>`)
 // ported unchanged.
+
+// self = player
+mg_debug_lockdown()
+{
+    self mg_out( "MG: lockdown walls on for 10 s (the office door and its three windows)" );
+    mg_lockdown_on();
+    wait 10;
+
+    if ( !mg_state_is( "souls" ) )
+        mg_lockdown_off();
+}
 
 mg_debug_init()
 {
@@ -45,6 +57,11 @@ mg_debug_command( sub, arg, args )
             }
 
             self thread mg_debug_tour();
+            return 1;
+
+        // the office lockdown's fire walls for 10 s (door and windows), outside the quest
+        case "lockdown":
+            self thread mg_debug_lockdown();
             return 1;
 
         case "give":
@@ -211,19 +228,32 @@ mg_debug_tour()
     self playsoundtoplayer( "zmb_easteregg_laugh", self );
     wait 4;
 
-    // 2. a soul: out of the body, flying by itself to the first skull, bursting in
-    spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90 + ( 0, 0, 36 );
-    self mg_tour_look( "2/8 A soul: leaves the body and flies by itself to its skull", use + ( 0, 0, 10 ), spot );
+    // 2. a soul: out of the body, the orb rising, taken, flying to the first skull, bursting in
+    spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90 + ( 0, 0, 22 );
+    self mg_tour_look( "2/8 A soul: the orb rises over the body; walk in, it flies to its skull", use + ( 0, 0, 10 ), spot );
     mg_fx_once( "soul_release", spot );
     self playsoundtoplayer( "mg_soul_kill", self );
-    up = spot + ( 0, 0, 30 );
+    orb = mg_fx_loop( "soul", spot );
+
+    if ( isdefined( orb ) )
+    {
+        orb playloopsound( "mg_soul_loop" );
+        orb moveto( spot + ( 0, 0, 24 ), 2 );
+        wait 2;
+        spot = orb.origin;
+        mg_fx_stop( orb );
+    }
+
+    mg_fx_once( "soul_hit", spot );
+    self playsoundtoplayer( "evt_soulsuck_body", self );
+    up = spot + ( 0, 0, 20 );
     soul = mg_fx_loop( "soul_trail", spot, vectortoangles( up - spot ) );
 
     if ( isdefined( soul ) )
     {
         soul playloopsound( "mg_soul_loop" );
-        soul moveto( up, 0.6, 0, 0.3 );
-        wait 0.6;
+        soul moveto( up, 0.4, 0, 0.2 );
+        wait 0.4;
         soul.angles = vectortoangles( skull - up );
         soul moveto( skull + ( 0, 0, 4 ), 1.5, 0.45, 0 );
         wait 1.5;
