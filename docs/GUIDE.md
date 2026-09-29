@@ -62,7 +62,7 @@ The remaster's own warning holds here too — do not get comfortable with the gu
 <summary>The forge</summary>
 
 Carry the tempered Blundergat to the generator in the Generator Room by the docks. Power it with one press,
-then place the gun on it. It ghosts for **5 seconds**, then take it back: it is now the Magmagat.
+then place the gun on it. It ghosts for **5 seconds**, bursts, and the Magmagat rises out of the fire: take it.
 
 Once the forge has produced a Magmagat this way, it stays open: any plain Blundergat placed on it afterward
 converts straight away, no fresh temper run needed.
@@ -72,8 +72,9 @@ converts straight away, no fresh temper run needed.
 <details>
 <summary>The weapon</summary>
 
-The Magmagat is a weapon of its own: the Blundergat's frame, charred, with two lava tanks glowing on its
-sides, and its own name. It reloads like a Blundergat, but every shot now also throws a ball of lava. A
+The Magmagat is a weapon of its own: the Blundergat's frame, charred, with two lava tanks glowing and
+flickering on its sides, a small flame riding it while you hold it, and its own name. It reloads like a
+Blundergat, but it fires with a burst of flame and red-hot streaks, and every shot also throws a ball of lava. A
 ball that lands on a zombie sticks and explodes it and everything around it a moment later; a shot that
 misses leaves a burning patch on the ground instead, which keeps damaging zombies that walk through it for a
 few seconds.

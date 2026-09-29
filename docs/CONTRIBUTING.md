@@ -124,8 +124,13 @@ games' files and are never committed.
   unused language bases for the dump). `magmagat_zm` copies `blundergat_zm` and shows the Acid Gat's tanks;
   `magmagat_upgraded_zm` copies `blundergat_upgraded_zm` (armour kit attached). Same bones, animations, sounds and
   effects; the view / world / armour models get our materials, whose colour and ember maps are the Blundergat's
-  recoloured by `tools/recolor.pl` (the emberglow shader of the Acid Gat animates the lava). The display names come
-  from `english/localizedstrings/mg_weapons.str`.
+  recoloured by `tools/recolor.pl` (the emberglow shader of the Acid Gat animates the lava: `%lava` in the tool turns
+  its glow, flicker and heat scroll up). The display names come from `english/localizedstrings/mg_weapons.str`.
+- **What the fastfile cannot carry** (OpenAssetTools v0.33): new particle effects (FxEffectDef is not loaded), new
+  tracers (the T6 tracer loader is not registered) and BO3 animations (no tool turns T7 xanims into T6 ones; the
+  Magmagat keeps the Blundergat's, as in Blood of the Dead). So the weapon file points at zm_prison's own effects
+  (orange buckshot muzzle flashes, `lmg_enemy` red tracers) and the script adds the rest with loaded effects: the
+  flame riding a held Magmagat (`mg_weapon_hold_loop`), the fire whoosh of each shot, the forge reveal.
 
 ### The GitHub Action (`.github/workflows/check.yml`)
 

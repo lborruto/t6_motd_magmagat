@@ -192,7 +192,19 @@ mg_forge_place( player, weapon, tempered )
     mg_fx_once( "explo", c.origin );
     mg_snd_near( "zmb_hellbox_open", c.origin, 800 );
     gun delete();
-    gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin, c.angles );
+    gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin - ( 0, 0, 10 ), c.angles );
+    level.mg_forge_place_ents[level.mg_forge_place_ents.size] = gun;
+    rise = mg_fx_loop( "forge_rise", c.origin - ( 0, 0, 6 ) );
+
+    if ( isdefined( rise ) )
+        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = rise;
+
+    mg_snd_near( "zmb_hellbox_slam_shake", c.origin, 800 );
+    gun moveto( c.origin, 1.5, 0.3, 0.6 );
+    gun rotateyaw( 360, 1.5, 0.3, 0.6 );
+    wait 1.5;
+    mg_fx_stop( rise );
+    mg_fx_once( "ball_hit", c.origin );
     level.mg_forge_ready_gun = gun;
     level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
     level.mg_forge_busy = 0;

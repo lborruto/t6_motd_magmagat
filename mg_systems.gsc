@@ -52,6 +52,9 @@ mg_fx_table()
     t["barrel_fire"] = "weapon/tomahawk/fx_tomahawk_trail_ug";
     t["gun_flame"] = "weapon/tomahawk/fx_tomahawk_trail_ug";
     t["patch_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
+    t["magma_hold"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // the flame riding a held Magmagat
+    t["magmus_hold"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the same on the Magmus Operandi, bigger
+    t["forge_rise"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the Magmagat rising out of the forge
     return t;
 }
 

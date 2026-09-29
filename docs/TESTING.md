@@ -81,7 +81,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] `!mg goto forge` (or carry the tempered gun to the powered generator honestly): state is `forge`.
 - [ ] At the generator: press once to power it (spark fx + sound), then place the tempered gun - it rests
       on the generator and ghosts for a few seconds.
-- [ ] After the ghosts, the gun on the generator has turned into the Magmagat (charred, lava tanks).
+- [ ] After the ghosts: a burst, then the Magmagat (charred, lava tanks) rises out of a flame and turns once on
+      the generator.
 - [ ] Take the Magmagat: state becomes `done`, `!mg status` confirms it, the weapon is `magmagat_zm` (its name
       shows "Magmagat" on the HUD) and behaves as in section 6. A forged Sweeper gives `magmagat_upgraded_zm`.
 - [ ] **Forge stays open once done**: with the quest already `done`, place a fresh, unrelated plain
@@ -100,8 +101,13 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       lava alone, however many balls land on him.
 - [ ] **Brutus vs a patch**: walk Brutus through a magma patch. He burns and takes damage over time, but
       again never dies from the patch alone.
-- [ ] **Look**: in first person the Magmagat is the Blundergat's frame, charred, with two glowing lava tanks;
-      dropped or on the generator it has the same colours.
+- [ ] **Look**: in first person the Magmagat is the Blundergat's frame, charred, with two lava tanks that glow and
+      flicker; dropped or on the generator it has the same colours.
+- [ ] **Held flame**: a small flame rides the gun while it is in hand (bigger on the Magmus Operandi). It goes out
+      when you switch weapon, go down or lose the gun, and comes back when you raise it again. Co-op: the other
+      player sees it on your gun.
+- [ ] **Shot**: an orange buckshot flash (bigger on the Magmus Operandi), red streaks for the pellets and a fire
+      whoosh with every shot, on top of the Blundergat's own sound.
 - [ ] **Pack-a-Punch ("Magmagat in, Magmus Operandi out")**: Pack-a-Punch a Magmagat. It comes back as
       `magmagat_upgraded_zm`, named Magmus Operandi, with the armour kit in lava colours, the lava ball on every shot
       and one more shell per shot (the Sweeper's stats).

@@ -8,6 +8,8 @@
 // The Magmagat is its own weapon, magmagat_zm, shipped in our mod.ff (tools/build_weapon.pl: the Blundergat's rig
 // and animations, a lava skin); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. Each shot also
 // launches a lava ball; a zombie that catches it burns 0.6 s and explodes (150 units); a miss leaves an 8 s patch.
+// The look lives in the weapon file (tools/build_weapon.pl: lava tanks, fire muzzle flash, red tracers); the script
+// adds the flame riding the held gun and the fire whoosh of every shot.
 // The Acid Gat kit refuses it by itself: vanilla only takes a blundergat_zm / blundergat_upgraded_zm.
 
 mg_weapon_init()
@@ -104,13 +106,75 @@ mg_weapon_connect_watch()
     level endon( "end_game" );
 
     foreach ( player in getplayers() )
+    {
         player thread mg_weapon_shot_loop();
+        player thread mg_weapon_hold_loop();
+    }
 
     for ( ;; )
     {
         level waittill( "connected", player );
         player thread mg_weapon_shot_loop();
+        player thread mg_weapon_hold_loop();
     }
+}
+
+// self = player. While a Magmagat is in hand (and the player is up) a small flame rides the gun; switching away,
+// going down or dropping the gun puts it out.
+mg_weapon_hold_loop()
+{
+    self endon( "disconnect" );
+    level endon( "end_game" );
+
+    if ( is_true( self.mg_hold_watched ) )
+        return;
+
+    self.mg_hold_watched = 1;
+    held = undefined;
+
+    while ( true )
+    {
+        wait 0.2;
+        weapon = self getcurrentweapon();
+
+        if ( !mg_is_magma( weapon ) || !is_player_valid( self ) )
+            weapon = undefined;
+
+        if ( isdefined( held ) && isdefined( weapon ) && held == weapon && isdefined( self.mg_hold_fx ) )
+            continue;
+
+        mg_fx_stop( self.mg_hold_fx );
+        self.mg_hold_fx = undefined;
+        held = weapon;
+
+        if ( !isdefined( weapon ) )
+            continue;
+
+        key = "magma_hold";
+
+        if ( weapon == "magmagat_upgraded_zm" )
+            key = "magmus_hold";
+
+        fx = mg_fx_loop( key, self gettagorigin( "tag_weapon_right" ) );
+
+        if ( !isdefined( fx ) )
+            continue;
+
+        fx linkto( self, "tag_weapon_right", ( 0, 0, 0 ), ( 0, 0, 0 ) );
+        fx thread mg_weapon_hold_owner( self );
+        self.mg_hold_fx = fx;
+    }
+}
+
+// self = the held flame. It dies with its owner (a disconnect ends the hold loop before it can clean up).
+mg_weapon_hold_owner( owner )
+{
+    self endon( "death" );
+
+    while ( isdefined( owner ) )
+        wait 0.5;
+
+    self delete();
 }
 
 // self = player
@@ -131,6 +195,8 @@ mg_weapon_shot_loop()
 
         if ( !mg_is_magma( weapon ) )
             continue;
+
+        mg_snd_near( "zmb_plane_fire_whoosh", self.origin, 900 );
 
         if ( self.mg_balls >= 3 )
             continue;
