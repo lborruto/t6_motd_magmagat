@@ -195,7 +195,6 @@ mg_weapon_shot_loop()
         return;
 
     self.mg_weapon_watched = 1;
-    self.mg_balls = 0;
 
     while ( true )
     {
@@ -205,10 +204,6 @@ mg_weapon_shot_loop()
             continue;
 
         mg_snd_near( "zmb_plane_fire_whoosh", self.origin, 900 );
-
-        if ( self.mg_balls >= 3 )
-            continue;
-
         self thread mg_lava_ball( weapon );
     }
 }
@@ -218,7 +213,6 @@ mg_lava_ball( weapon )
 {
     self endon( "disconnect" );
     level endon( "end_game" );
-    self.mg_balls++;
     eye = self geteye();
     fwd = anglestoforward( self getplayerangles() );
     trace = bullettrace( eye, eye + fwd * 3000, 1, self );
@@ -267,8 +261,6 @@ mg_lava_ball( weapon )
     if ( !isdefined( caught ) && isdefined( aimed ) && isalive( aimed ) && distancesquared( aimed.origin + ( 0, 0, 40 ), ball.origin ) < 80 * 80 )
         caught = aimed;
 
-    self.mg_balls--;
-
     if ( isdefined( caught ) && isalive( caught ) )
     {
         self thread mg_ball_explode( ball, caught, weapon );
@@ -282,7 +274,8 @@ mg_lava_ball( weapon )
 }
 
 // self = player. The blob sticks 0.5 s, then (BO4): the zombie dies if it has 1000 health or less, else takes 1000
-// and burns 4 s before dying; everyone within 128 units takes 400 and catches fire. Brutus burns instead.
+// and burns 4 s before dying; everyone within 128 units not already alight takes 400 and catches fire. Brutus burns
+// instead.
 mg_ball_explode( ball, zombie, weapon )
 {
     level endon( "end_game" );
@@ -317,27 +310,21 @@ mg_ball_explode( ball, zombie, weapon )
         else
         {
             zombie dodamage( 1000, pos, self, self, "none", "MOD_PROJECTILE", 0, weapon );
-            zombie thread mg_burn_fx( 4 );
+            zombie thread mg_burn( self, weapon );
             self thread mg_burn_then_die( zombie, 4, weapon );
         }
     }
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
-        if ( !isdefined( ai ) || !isalive( ai ) || ai == zombie || distancesquared( ai.origin, pos ) > 128 * 128 )
+        if ( !isdefined( ai ) || !isalive( ai ) || ai == zombie || is_true( ai.mg_burning ) || distancesquared( ai.origin, pos ) > 128 * 128 )
             continue;
 
         if ( isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
             continue;
 
+        ai thread mg_burn( self, weapon );
         ai dodamage( 400, pos, self, self, "none", "MOD_GRENADE_SPLASH", 0, weapon );
-
-        if ( isalive( ai ) && !is_true( ai.mg_burning ) )
-        {
-            ai.mg_burning = 1;
-            ai thread mg_burn_fx( 3 );
-            ai thread mg_burn_clear( 3 );
-        }
     }
 }
 
@@ -393,9 +380,8 @@ mg_brutus_burn( ai, ball, weapon )
 }
 
 // self = player. A molten pool (BO4): 5 s, 64 units across, 3 at most (the oldest goes). A zombie that walks in
-// catches fire: 10 % of its health at once, then a burn that scales with the round; a crawler dies at once. The pool
+// catches fire: 10 % of its health at once, then the burn; a crawler dies at once, Brutus walks through. The pool
 // lures zombies (128 units, 3 of them; the Magmus Operandi's 256 and 6) and hurts its owner (1 every 0.4 s).
-// Brutus burns 2 % of his health every 0.5 s in it.
 mg_patch( pos, weapon )
 {
     level endon( "end_game" );
@@ -451,11 +437,8 @@ mg_patch( pos, weapon )
             if ( !isdefined( ai ) || !isalive( ai ) || distancesquared( ai.origin, pos ) > 64 * 64 || abs( ai.origin[2] - pos[2] ) > 32 )
                 continue;
 
-            if ( isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
-            {
-                ai dodamage( int( ai.maxhealth * 0.016 ), pos, self, self, "none", "MOD_BURNED", 0, weapon );
+            if ( is_true( ai.mg_burning ) || isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
                 continue;
-            }
 
             if ( !is_true( ai.has_legs ) && isdefined( ai.has_legs ) )
             {
@@ -463,14 +446,8 @@ mg_patch( pos, weapon )
                 continue;
             }
 
-            if ( !is_true( ai.mg_burning ) )
-            {
-                ai.mg_burning = 1;
-                ai dodamage( int( ai.maxhealth * 0.1 ), pos, self, self, "none", "MOD_BURNED", 0, weapon );
-                ai thread mg_burn_fx( 3 );
-                ai thread mg_burn_clear( 3 );
-                self thread mg_pool_burn( ai, weapon );
-            }
+            ai thread mg_burn( self, weapon );
+            ai dodamage( int( ai.health * 0.1 ), pos, self, self, "none", "MOD_BURNED", 0, weapon );
         }
 
         // the owner is not immune to his own lava
@@ -500,24 +477,35 @@ mg_patch( pos, weapon )
     }
 }
 
-// self = player. A zombie set on fire by a pool burns a share of its health every second for 3 s (BO4 scales it with
-// the round: most of it early, a fifth late).
-mg_pool_burn( ai, weapon )
+// self = zombie. BO4's burn: once alight a zombie burns until it dies, a share of its maximum health every second that
+// shrinks with the round (60-90 % before round 9, 30-50 % to round 15, 20-30 % to round 28, then 15-20 %).
+mg_burn( attacker, weapon )
 {
-    ai endon( "death" );
-    frac = 0.75;
+    if ( is_true( self.mg_burning ) )
+        return;
 
-    if ( level.round_number >= 29 )
-        frac = 0.175;
-    else if ( level.round_number >= 9 )
-        frac = 0.75 - ( level.round_number - 9 ) * ( 0.575 / 20 );
+    self.mg_burning = 1;
+    self thread mg_burn_fx_hold();
+    self endon( "death" );
+    wait 0.05;
 
-    for ( i = 0; i < 3; i++ )
+    while ( isalive( self ) )
     {
-        wait 1;
+        if ( level.round_number < 9 )
+            frac = randomfloatrange( 0.6, 0.9 );
+        else if ( level.round_number < 16 )
+            frac = randomfloatrange( 0.3, 0.5 );
+        else if ( level.round_number < 29 )
+            frac = randomfloatrange( 0.2, 0.3 );
+        else
+            frac = randomfloatrange( 0.15, 0.2 );
 
-        if ( isalive( ai ) )
-            ai dodamage( int( ai.maxhealth * frac / 3 ), ai.origin, self, self, "none", "MOD_BURNED", 0, weapon );
+        if ( isdefined( attacker ) && isalive( attacker ) )
+            self dodamage( int( self.maxhealth * frac ), self.origin, attacker, attacker, "none", "MOD_BURNED", 0, weapon );
+        else
+            self dodamage( int( self.maxhealth * frac ), self.origin );
+
+        wait 1;
     }
 }
 
@@ -537,12 +525,26 @@ mg_patch_stop( fire )
     mg_fx_stop( fire );
 }
 
-// self = zombie
-mg_burn_clear( seconds )
+// self = a burning zombie: its flames until it dies, on 12 zombies at most (BO4's cap)
+mg_burn_fx_hold()
 {
-    self endon( "death" );
-    wait( seconds );
-    self.mg_burning = 0;
+    if ( !isdefined( level.mg_burn_fx_count ) )
+        level.mg_burn_fx_count = 0;
+
+    if ( level.mg_burn_fx_count >= 12 )
+        return;
+
+    level.mg_burn_fx_count++;
+    fx = mg_fx_loop( "burn", self.origin + ( 0, 0, 40 ) );
+
+    if ( isdefined( fx ) && isdefined( self ) && isalive( self ) )
+    {
+        fx linkto( self, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
+        self waittill( "death" );
+    }
+
+    mg_fx_stop( fx );
+    level.mg_burn_fx_count--;
 }
 
 // self = the craftable trigger vanilla validates (zm_alcatraz_utility blundergat_upgrade_station). Vanilla's own hook

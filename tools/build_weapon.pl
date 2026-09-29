@@ -77,18 +77,22 @@ for my $ours (qw(mg_magmagat_world mg_magmus_world)) {
 my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_world mg_lava_blob mg_lava_pool);
 
 # 5. weapon files: [ ours, the vanilla one it copies, field overrides ]; the effects are zm_prison's own (no new fx can be
-#    built): the orange buckshot flashes, lmg_enemy = the thick red tracer, drawn for every pellet. hideTags = the Acid
-#    Gat's: the plain shells and muzzle go, the lava set (the acid bones) shows
+#    built): the orange buckshot flashes, lmg_enemy = the thick red tracer. hideTags = the Acid Gat's: the plain shells
+#    and muzzle go, the lava set (the acid bones) shows. BO4's Magmagat fires the blob alone, no buckshot: one harmless
+#    shot (its streak) and the script's blob does all the damage; the ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25)
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
+my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0 );
 my @weapons = (
     [ 'magmagat_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MAGMAGAT', gunModel => 'mg_magmagat_view',
         worldModel => 'mg_magmagat_world', hideTags => $tank_tags, tracerType => 'lmg_enemy',
         viewFlashEffect => 'weapon/muzzleflashes/fx_muz_lg_gas_flash_buck_1p',
-        worldFlashEffect => 'weapon/muzzleflashes/fx_muz_lg_gas_flash_buck_3p' } ],
+        worldFlashEffect => 'weapon/muzzleflashes/fx_muz_lg_gas_flash_buck_3p', %blob_only, clipSize => 1, maxAmmo => 36,
+        startAmmo => 30 } ],
     [ 'magmagat_upgraded_zm', 'blundergat_upgraded_zm', { displayName => 'ZMWEAPON_MAGMAGAT_UPGRADED', gunModel => 'mg_magmus_view',
         worldModel => 'mg_magmus_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights",
         tracerType => 'lmg_enemy', viewFlashEffect => 'weapon/muzzleflashes/fx_muz_xlg_gas_flash_1p',
-        worldFlashEffect => 'weapon/muzzleflashes/fx_muz_xlg_gas_flash_3p' } ],
+        worldFlashEffect => 'weapon/muzzleflashes/fx_muz_xlg_gas_flash_3p', %blob_only, clipSize => 2, maxAmmo => 30,
+        startAmmo => 25 } ],
 );
 for my $w (@weapons) {
     my ( $ours, $src, $set ) = @$w;
