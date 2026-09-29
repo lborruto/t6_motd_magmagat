@@ -114,9 +114,7 @@ spit( "$raw/english/localizedstrings/mg_weapons.str", $str );
 # 7. the zone: our weapon block replaces the previous one
 my $zone = "$repo/mod/zone_source/mod.zone";
 my $z = slurp($zone);
-$z =~ s/
-/
-/g;    # a checkout may hand it over with CRLF endings
+$z =~ s/\r\n/\n/g;    # a checkout may hand it over with CRLF endings
 my @lines = ( 'localize,mg_weapons', ( map { "xmodel,$_" } @models ), ( map { "weapon,$_->[0]" } @weapons ) );
 my $block = "// weapon (tools/build_weapon.pl)\n" . join( "\n", @lines ) . "\n// end weapon\n";
 # in place when the block exists (the zone keeps its order), else appended
