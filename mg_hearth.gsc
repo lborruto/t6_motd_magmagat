@@ -6,13 +6,14 @@
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_run;
 
-// The fireplace, after BO4 Blood of the Dead (zm_escape_weap_quest_mg.gsc): the gun in the fire, 15 souls from zombies
-// that die in the Warden's Office, three skulls (5 / 10 / 15), the placer's 10 s / 30 s away rule, the deposit (the
+// The fireplace, after BO4 Blood of the Dead (zm_escape_weap_quest_mg.gsc) and the BO3 remaster: the gun in the fire,
+// 15 souls from zombies that die in the Warden's Office flying by themselves to three skulls (5 / 10 / 15), the placer's 10 s / 30 s away rule, the deposit (the
 // skulls drain, a flare, the blue fire), 30 s to take the tempered gun.
 
 mg_hearth_init()
 {
     level.mg_orbs = 0;
+    level.mg_souls_sent = 0;
     level.mg_skulls = [];
     level.mg_hearth_session = 0;
 
@@ -145,6 +146,7 @@ mg_hearth_start( player )
     level.mg_hearth_weapon = weapon;
     level.mg_hearth_owner = player;
     level.mg_orbs = 0;
+    level.mg_souls_sent = 0;
     c = mg_coord( "MG_HEARTH" );
     level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
     player mg_snd_player( "zmb_hellbox_lock" );
@@ -182,11 +184,11 @@ mg_hearth_round_watch()
     }
 }
 
-// souls: a zombie killed by a player that dies inside the office drops a soul (BO4: the zombie must be in the
-// house, the killer may stand anywhere).
+// souls: a zombie killed by a player that dies inside the office gives its soul (the killer may stand anywhere). The
+// count is reserved at once, so souls still in flight never pass 15.
 mg_hearth_zombie_died( zombie )
 {
-    if ( !mg_state_is( "souls" ) || level.mg_orbs >= 15 )
+    if ( !mg_state_is( "souls" ) || level.mg_souls_sent >= 15 )
         return;
 
     if ( !isdefined( zombie ) || !isdefined( zombie.attacker ) || !isplayer( zombie.attacker ) )
@@ -201,87 +203,70 @@ mg_hearth_zombie_died( zombie )
         return;
     }
 
-    mg_debug_print( "MG: soul released at " + mg_vec_str( zombie.origin ) );
-    level thread mg_orb_spawn( zombie.origin + ( 0, 0, 22 ) );
+    level.mg_souls_sent++;
+    mg_debug_print( "MG: soul " + level.mg_souls_sent + "/15 released at " + mg_vec_str( zombie.origin ) );
+    level thread mg_soul_fly( zombie.origin + ( 0, 0, 36 ), level.mg_souls_sent );
 }
 
-// A soul (BO4): it streaks out of the body, then rises 36 units over 3 s and fades if nobody walks into it
-// (32 units around, up to 96 above the feet). Taken, it flies to the skull it fills and bursts in; the skull lights
-// when its fifth soul arrives.
-mg_orb_spawn( pos )
+// A soul, as the BO3 remaster flies it: out of the body (a blue burst, the soul kill), up, then by itself to the skull
+// it fills as the lightning-hands streak humming (the soul loop), and in with a flash. Its skull lights when its fifth
+// soul arrives.
+mg_soul_fly( pos, n )
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
+    session = level.mg_hearth_session;
     mg_fx_once( "soul_release", pos );
-    mg_snd_near( "mg_soul_kill", pos, 1200 ); // the remaster's soul kill
-    orb = mg_fx_loop( "soul", pos );
-
-    if ( !isdefined( orb ) )
-        return;
-
-    orb playloopsound( "mg_soul_loop" );
-
-    if ( !isdefined( level.mg_orb_ents ) )
-        level.mg_orb_ents = [];
-
-    level.mg_orb_ents[level.mg_orb_ents.size] = orb;
-    orb moveto( pos + ( 0, 0, 36 ), 3 );
-    start = gettime();
-    taker = undefined;
-
-    while ( gettime() - start < 3000 && mg_state_is( "souls" ) && isdefined( orb ) )
-    {
-        foreach ( player in getplayers() )
-        {
-            if ( !is_player_valid( player ) )
-                continue;
-
-            dz = orb.origin[2] - player.origin[2];
-
-            if ( dz > -16 && dz < 96 && distance2dsquared( player.origin, orb.origin ) < 32 * 32 )
-            {
-                taker = player;
-                break;
-            }
-        }
-
-        if ( isdefined( taker ) )
-            break;
-
-        wait 0.05;
-    }
-
-    // mg_orbs_clear (a reset while the orb flew) may have deleted it under us
-    if ( !isdefined( orb ) )
-        return;
-
-    from = orb.origin;
-    mg_fx_stop( orb );
-
-    if ( !isdefined( taker ) || level.mg_orbs >= 15 )
-    {
-        // the soul fades
-        mg_snd_near( "zmb_afterlife_zombie_warp_out", from, 600 );
-        return;
-    }
-
-    level.mg_orbs++;
-    n = level.mg_orbs;
-    taker mg_snd_player( "zmb_quest_forcefield_end" );
-    mg_fx_once( "soul_hit", from );
-    mg_debug_print( "MG: soul " + n + "/15 by " + taker.name );
+    mg_snd_near( "mg_soul_kill", pos, 1200 );
     idx = int( ( n - 1 ) / 5 );
     target = mg_coord( "MG_HEARTH" ).origin + ( 0, 0, 20 );
 
     if ( isdefined( level.mg_skulls[idx] ) )
         target = level.mg_skulls[idx].origin + ( 0, 0, 4 );
 
-    session = level.mg_hearth_session;
-    mg_trail( "soul_trail", from, target, 700 );
+    up = pos + ( 0, 0, 30 );
+    soul = mg_fx_loop( "soul_trail", pos, vectortoangles( up - pos ) );
+
+    if ( !isdefined( soul ) )
+        return;
+
+    if ( !isdefined( level.mg_orb_ents ) )
+        level.mg_orb_ents = [];
+
+    level.mg_orb_ents[level.mg_orb_ents.size] = soul;
+    soul playloopsound( "mg_soul_loop" );
+    soul moveto( up, 0.6, 0, 0.3 );
+    wait 0.6;
+
+    if ( !isdefined( soul ) )
+        return;
+
+    soul.angles = vectortoangles( target - up );
+    time = distance( up, target ) / 450;
+
+    if ( time < 0.6 )
+        time = 0.6;
+
+    if ( time > 3 )
+        time = 3;
+
+    soul moveto( target, time, time * 0.3, 0 );
+    wait( time );
+
+    if ( !isdefined( soul ) )
+        return;
+
+    mg_fx_stop( soul );
+
+    if ( !mg_state_is( "souls" ) || level.mg_hearth_session != session )
+        return;
+
     mg_fx_once( "soul_arrive", target );
     mg_snd_near( "evt_soulsuck_body", target, 900 );
+    level.mg_orbs++;
+    mg_debug_print( "MG: soul " + level.mg_orbs + "/15 in its skull" );
 
-    if ( n % 5 == 0 && mg_state_is( "souls" ) && level.mg_hearth_session == session && level.mg_orbs >= n )
+    if ( n % 5 == 0 )
         mg_skull_light( idx );
 }
 
@@ -492,6 +477,8 @@ mg_hearth_take( player )
 
 mg_orbs_clear()
 {
+    level.mg_souls_sent = 0;
+
     if ( isdefined( level.mg_orb_ents ) )
     {
         foreach ( orb in level.mg_orb_ents )
@@ -543,6 +530,7 @@ mg_hearth_state_watch()
         {
             mg_skulls_dark();
             level.mg_orbs = 0;
+            level.mg_souls_sent = 0;
         }
     }
 }
@@ -578,6 +566,7 @@ mg_hearth_fabricate( state )
     if ( state == "pickup" )
     {
         level.mg_orbs = 15;
+        level.mg_souls_sent = 15;
         mg_skull_light( 0 );
         mg_skull_light( 1 );
         mg_skull_light( 2 );

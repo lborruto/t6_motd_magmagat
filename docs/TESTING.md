@@ -20,8 +20,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 0. Load
 
 - [ ] No red error popup on map load.
-- [ ] The five route barrels are the remaster's blue metal barrels and the three mantle skulls its skulls
-      (`!mg show` previews them; `!mg model mg_barrel_blue` / `!mg model mg_skull` spawn one in front of you).
+- [ ] The five route barrels are the remaster's dark-green drums and the three mantle skulls its skulls
+      (`!mg show` previews them; `!mg model mg_barrel_green` / `!mg model mg_skull` spawn one in front of you).
 - [ ] `!mg status` prints the version, the state (`locked` at boot), orbs 0, no carrier, no timer, and a
       resolved line for every anchor.
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
@@ -54,10 +54,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] `!mg goto souls` (or press use at the hearth with a gun in `ready`): the gun leaves your hands into the fire,
       the three skulls are dark, state is `souls`.
-- [ ] A zombie a player kills that dies inside the Warden's Office: its soul streaks out of the body (a soul-suck
-      sound) and rises for 3 s as a glowing orb. Walk into it: the count increases (`!mg status`: x/15), the soul
-      flies to its skull and flashes in.
-- [ ] A soul nobody takes fades after 3 s (a faint sound) and does not count.
+- [ ] A zombie a player kills that dies inside the Warden's Office: a blue burst and the soul-kill sound at the body,
+      then the soul (a blue lightning streak, humming) rises and flies by itself to its skull and flashes in; the
+      count increases (`!mg status`: x/15). No blood anywhere.
 - [ ] The killer may stand outside (a shot through the window at a zombie inside counts); a zombie that dies
       outside the office never gives a soul.
 - [ ] Skulls light at 5, 10 and 15 (the skull becomes the afterlife skull, a blue glow and a hum; the third has its
@@ -80,9 +79,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] `!mg goto run` (or take the tempered gun honestly): state is `run`, a flame rides the gun and the five barrels
       burn (no timer on screen: the flame is the only indicator; `!mg status` prints the seconds left).
-- [ ] Walking up to a burning barrel (64 units) refills the temper to 25 s: a flare, a whoosh, a rumble, and that
-      barrel goes out for the rest of the run. A spent barrel does nothing.
-- [ ] Firing a shot costs 6 s of temper (fire once and check `!mg status`).
+- [ ] The tempered gun and the five drums (the remaster's dark-green drums) carry a blue flame.
+- [ ] Walking up to a burning drum (64 units) refills the temper to 25 s: a flare, a whoosh, a rumble, and that
+      drum goes out for the rest of the run. A spent drum does nothing.
+- [ ] Firing the tempered gun once ends the run (the essence is spent), state `ready`.
 - [ ] In the last 5 s the flame flickers every half second with a rumble and a tick.
 - [ ] **Failure paths**: the temper runs out; you switch away from the gun (a quarter second is forgiven); you go
       down. Each: the flame dies, you keep the gun, state `ready` (temper again at the fireplace).
@@ -91,7 +91,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] `!mg goto forge` (or carry the tempered gun to the powered generator honestly): state is `forge`.
 - [ ] At the generator: press once to power it (the generator's sparks and the power-panel sound), then place the
-      tempered gun: two ghosts circle it for 5 s over the generator's smoke.
+      tempered gun: the press sound for 5 s over fire and the generator's smoke, two flame bursts.
 - [ ] After the ghosts: a burst, then the Magmagat rises out of a flame, turning once, and glows.
 - [ ] Take it within 30 s: state `done`, the weapon is `magmagat_zm` ("Magmagat" on the HUD). A Pack-a-Punched gun
       (Sweeper, Vitriolic Withering) gives `magmagat_upgraded_zm` (Magmus Operandi).

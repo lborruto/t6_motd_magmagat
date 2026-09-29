@@ -28,9 +28,8 @@ prompt shows): the gun goes into the fire, a laugh answers, and the quest begins
 <summary>The souls</summary>
 
 Every zombie a player kills **that dies inside the Warden's Office** releases its soul; the killer can stand
-anywhere. The soul streaks out of the body and rises for **3 seconds**: walk into it before it fades. A soul you
-take flies to its skull on the mantle. You need **15 souls**: the three skulls light up blue at **5**, **10** and
-**15**.
+anywhere. The soul bursts out of the body and flies by itself to its skull on the mantle. You need **15 souls**:
+the three skulls light up blue at **5**, **10** and **15**.
 
 The office belongs to the player who placed the gun. If that player spends **10 seconds** outside it, the souls
 taken so far are lost (the skulls go dark). **30 seconds** outside, or dying, and the fire lets go: the gun is lost.
@@ -45,13 +44,13 @@ second later it opens into a blue hell portal with the tempered gun rising in it
 
 You have **30 seconds** to take the tempered gun, or it is lost.
 
-In your hands its flame is a **25-second** temper that burns down on its own, and every shot costs **6 seconds**.
-Five barrels burn along the route (the office exit, down the stairs, the Citadel, the tunnels, the docks): walking
-up to one refills the temper to full, but each barrel works **once per run** and goes out after. In the last 5
-seconds the flame flickers and the gun shakes.
+The tempered gun carries a blue flame, its essence, and it is a **25-second** temper that burns down on its own. Do
+**not** fire it: a single shot spends the essence. Five drums burn blue along the route (the office exit, down the
+stairs, the Citadel, the tunnels, the docks): walking up to one refills the temper to full, but each works **once per
+run** and goes out after. In the last 5 seconds the flame flickers and the gun shakes.
 
-Switch weapons, go down, or let the temper run out, and the flame dies: you keep your gun, and it is back to the
-fireplace for a new temper.
+Fire it, switch weapons, go down, or let the temper run out, and the flame dies: you keep your gun, and it is back to
+the fireplace for a new temper.
 
 </details>
 
@@ -59,7 +58,7 @@ fireplace for a new temper.
 <summary>The forge</summary>
 
 Carry the tempered gun to the generator in the Generator Room by the docks. Power it with one press, then place
-the gun on it. Two ghosts work it for **5 seconds**, it bursts, and the Magmagat rises out of the fire. Take it
+the gun on it. The press works it for **5 seconds** in fire and smoke, it bursts, and the Magmagat rises out of the fire. Take it
 within **30 seconds** or it is lost. The first forge wakes the warden: a Brutus comes for you.
 
 A Pack-a-Punched gun (a Sweeper or a Vitriolic Withering) comes out as the **Magmus Operandi**.

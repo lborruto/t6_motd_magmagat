@@ -194,7 +194,7 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | `!mg help` | full command list |
 | `!mg give` | give a plain Blundergat |
 | `!mg magma` | swap the Blundergat in hand for its Magmagat (the Sweeper for the Magmus Operandi) |
-| `!mg model <xmodel>` | spawn any precached model 80 units in front of you (the mod.ff props: `mg_barrel_blue`, `mg_skull`) |
+| `!mg model <xmodel>` | spawn any precached model 80 units in front of you (the mod.ff props: `mg_barrel_green`, `mg_skull`) |
 | `!mg shock` | zap every Afterlife shock box and panel of the map at once (doors, generator panels) |
 | `!mg shock gun` | toggle the debug shock pistol (zaps the shock box or panel you shoot) |
 | `!mg fx [<n>\|<name>\|next\|prev\|stop]` | audition a registered effect where you aim, 8 s (no fx grid in this mod) |
@@ -223,8 +223,8 @@ owner records the real spots in game with this mod's own live placement mode (`m
 A `!mg drop` prints two lines, both to the console:
 
 ```
-[SPOT] MG_BARREL_1 | -600 9100 1336 | 0 0 0 | mg_barrel_blue
-mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), "mg_barrel_blue" );
+[SPOT] MG_BARREL_1 | -600 9100 1336 | 0 0 0 | mg_barrel_green
+mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), "mg_barrel_green" );
 ```
 
 Paste the `mg_coord_override(...)` line into `mg_apply_overrides()` in `mg_coords.gsc` to make it permanent

@@ -40,7 +40,7 @@ mg_barrels_set( lit )
         if ( !lit )
             continue;
 
-        ent = mg_fx_loop( "barrel_fire", barrel.origin + ( 0, 0, 30 ) );
+        ent = mg_fx_loop( "barrel_fire", barrel.origin + ( 0, 0, 14 ) );
 
         if ( isdefined( ent ) )
         {
@@ -57,7 +57,7 @@ mg_barrel_spend( barrel )
     barrel.mg_spent = 1;
     mg_fx_stop( barrel.mg_fx );
     barrel.mg_fx = undefined;
-    mg_fx_once( "barrel_flare", barrel.origin + ( 0, 0, 30 ) );
+    mg_fx_once( "barrel_flare", barrel.origin + ( 0, 0, 14 ) );
     mg_snd_near( "zmb_plane_fire_whoosh", barrel.origin, 900 );
 }
 

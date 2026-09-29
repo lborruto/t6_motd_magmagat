@@ -16,23 +16,14 @@ my $repo = "$FindBin::Bin/..";
 my $raw = "$repo/mod/props";
 my $work = "$repo/mod/work";
 
-# The blue barrels of the temper run: BO3 paints this one with two tiled layers through a mask, T6 gets them baked.
-my $blue = "$xm/p7_slu_barrel_metal_02_blue_dmg";
-my $blue_layers = "$blue/_images/mtl_p7_slu_barrel_metal_02_dmg_blue";
-my @bakes = (
-    [ "$work/mg_barrel_blue_c.png",
-        '--mask', "$xi/i_mtl_p7_slu_barrel_metal_02_dmg_m.png",
-        '--base', "$blue_layers/i_t7_micro_metal_painted_02_c.png",
-        '--top', "$blue_layers/i_t7_micro_metal_rust_heavy_01_c.png",
-        '--tint', '0.30,0.48,0.78', '--tile', '4' ],
-);
+# BO3 layered materials to bake into one colour map ([ out png, tools/bake_layers.pl options ]); none today
+my @bakes = ();
 
 # [ our xmodel, BO3 model, importer options ]. The owner's anchors were placed with the vanilla props these replace, so
 # each mesh is moved to put its pivot where that prop had it (the BO3 models pivot at their base).
 my @props = (
-    [ 'mg_barrel_blue', 'p7_slu_barrel_metal_02_blue_dmg',
-        '--skip', 'transparency', '--skip', 'decal', '--color', "dmg_blue=$work/mg_barrel_blue_c.png",
-        '--offset', '0,0,-22.37' ],    # p6_zm_al_wood_barrel_01 pivots at mid height
+    # the temper run's drums: the remaster stands this one at each of its five str_barrel_fire spots (only the flame is blue)
+    [ 'mg_barrel_green', 'p7_zm_gen_barrel_metal_55gal_green_drk_lod', '--offset', '0,0,-22.37' ],    # p6_zm_al_wood_barrel_01 pivots at mid height
     [ 'mg_skull', 'p7_zm_zod_skull', '--offset', '0,0,-3.51' ],    # BO2's own skull mesh; p6_zm_al_skull pivots at its centre
 );
 

@@ -50,8 +50,7 @@ mg_fx_table()
     t["barrel_fire"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // the barrels' blue flame (the remaster's is blue)
     t["barrel_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // a barrel spent on a refill
     t["gun_flame"] = "weapon/tomahawk/fx_tomahawk_trail_ug"; // the tempered gun's blue essence
-    // the forge: the generator's own sparks and smoke, afterlife ghosts, the quest-item glow on the gun to take
-    t["ghost"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
+    // the forge: the generator's own sparks and smoke, the quest-item glow on the gun to take
     t["sparks"] = "maps/zombie_alcatraz/fx_alcatraz_generator_sparks";
     t["smoke"] = "maps/zombie_alcatraz/fx_alcatraz_generator_smk";
     t["glow"] = "maps/zombie_alcatraz/fx_alcatraz_quest_item_glow";

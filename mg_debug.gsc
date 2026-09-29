@@ -167,7 +167,7 @@ mg_debug_command( sub, arg, args )
         case "model":
             if ( !isdefined( arg ) )
             {
-                self mg_out( "Usage: !mg model <xmodel>   e.g. !mg model mg_barrel_blue" );
+                self mg_out( "Usage: !mg model <xmodel>   e.g. !mg model mg_barrel_green" );
                 return 1;
             }
 
@@ -211,25 +211,25 @@ mg_debug_tour()
     self playsoundtoplayer( "zmb_easteregg_laugh", self );
     wait 4;
 
-    // 2. a soul: out of the body, waiting, taken, flying to the first skull, bursting in
-    spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90 + ( 0, 0, 30 );
-    self mg_tour_look( "2/8 A soul: leaves the body, waits, is taken, flies to its skull", use + ( 0, 0, 10 ), spot );
+    // 2. a soul: out of the body, flying by itself to the first skull, bursting in
+    spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90 + ( 0, 0, 36 );
+    self mg_tour_look( "2/8 A soul: leaves the body and flies by itself to its skull", use + ( 0, 0, 10 ), spot );
     mg_fx_once( "soul_release", spot );
     self playsoundtoplayer( "mg_soul_kill", self );
-    orb = mg_fx_loop( "soul", spot );
+    up = spot + ( 0, 0, 30 );
+    soul = mg_fx_loop( "soul_trail", spot, vectortoangles( up - spot ) );
 
-    if ( isdefined( orb ) )
-        orb playloopsound( "mg_soul_loop" );
+    if ( isdefined( soul ) )
+    {
+        soul playloopsound( "mg_soul_loop" );
+        soul moveto( up, 0.6, 0, 0.3 );
+        wait 0.6;
+        soul.angles = vectortoangles( skull - up );
+        soul moveto( skull + ( 0, 0, 4 ), 1.5, 0.45, 0 );
+        wait 1.5;
+        mg_fx_stop( soul );
+    }
 
-    if ( isdefined( orb ) )
-        orb moveto( spot + ( 0, 0, 30 ), 1 );
-
-    wait 2.5;
-    from = spot + ( 0, 0, 30 );
-    mg_fx_stop( orb );
-    self playsoundtoplayer( "zmb_quest_forcefield_end", self );
-    mg_fx_once( "soul_hit", from );
-    mg_trail( "soul_trail", from, skull + ( 0, 0, 4 ), 700 );
     mg_fx_once( "soul_arrive", skull + ( 0, 0, 4 ) );
     self playsoundtoplayer( "evt_soulsuck_body", self );
     wait 1.5;
@@ -270,7 +270,7 @@ mg_debug_tour()
     // 5. the run: a lit barrel, the temper on the gun
     b = mg_coord( "MG_BARREL_1" ).origin;
     self mg_tour_look( "5/8 The run: a barrel burning (refills the temper)", b + ( 90, 90, 40 ), b + ( 0, 0, 20 ) );
-    fire = mg_fx_loop( "barrel_fire", b + ( 0, 0, 30 ) );
+    fire = mg_fx_loop( "barrel_fire", b + ( 0, 0, 14 ) );
 
     if ( isdefined( fire ) )
         fire playloopsound( "amb_fire_sml" );
@@ -281,32 +281,28 @@ mg_debug_tour()
 
     // 6. the forge: power, the gun placed, ghosts, the burst, the Magmagat rising
     fc = mg_coord( "MG_FORGE_GUN" );
-    self mg_tour_look( "6/8 The forge: power, ghosts, the burst, the Magmagat rises", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
+    self mg_tour_look( "6/8 The forge: power, the press at work, the burst, the Magmagat rises", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
     mg_fx_once( "sparks", fc.origin );
     self playsoundtoplayer( "zmb_powerpanel_activate", self );
     wait 1.5;
     gun = spawn_weapon_model( "blundergat_zm", undefined, fc.origin, fc.angles );
     self playsoundtoplayer( "zmb_afterlife_shockbox_on", self );
     self playsoundtoplayer( "mg_press", self );
-    g1 = mg_fx_loop( "ghost", fc.origin + ( 40, 0, 20 ) );
-    g2 = mg_fx_loop( "ghost", fc.origin + ( -40, 0, 20 ) );
+    fire = mg_fx_loop( "forge_rise", fc.origin - ( 0, 0, 6 ) );
     smoke = mg_fx_loop( "smoke", fc.origin );
 
-    for ( i = 0; i < 6; i++ )
+    for ( i = 0; i < 5; i++ )
     {
-        a = i * 60;
+        wait 1;
 
-        if ( isdefined( g1 ) )
-            g1 moveto( fc.origin + ( cos( a ) * 40, sin( a ) * 40, 20 ), 0.5 );
-
-        if ( isdefined( g2 ) )
-            g2 moveto( fc.origin + ( cos( a + 180 ) * 40, sin( a + 180 ) * 40, 20 ), 0.5 );
-
-        wait 0.5;
+        if ( i == 1 || i == 3 )
+        {
+            mg_fx_once( "ball_hit", fc.origin );
+            self playsoundtoplayer( "mg_flame_burst", self );
+        }
     }
 
-    mg_fx_stop( g1 );
-    mg_fx_stop( g2 );
+    mg_fx_stop( fire );
     mg_fx_stop( smoke );
     mg_fx_once( "explo", fc.origin );
     self playsoundtoplayer( "zmb_hellbox_open", self );

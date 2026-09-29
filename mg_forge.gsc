@@ -8,7 +8,7 @@
 #include scripts\zm\zm_prison\mg_weapon;
 
 // The forge: the dock Generator Room's large generator. Power it (one press, as the BO3 remaster), place the tempered
-// gun, 5 s of ghosts (BO4's two smelter ghosts), take the Magmagat within 30 s or it is lost (BO4). The first forge
+// gun, 5 s of the press at work (the remaster's press sound and fire), take the Magmagat within 30 s or it is lost (BO4). The first forge
 // summons a Brutus (BO4). Once forged, any Blundergat or Acid Gat placed converts (level.mg_forge_open).
 
 mg_forge_init()
@@ -158,38 +158,30 @@ mg_forge_place( player, weapon, tempered )
     mg_snd_near( "zmb_afterlife_shockbox_on", c.origin, 800 );
     mg_snd_near( "mg_press", c.origin, 2000 ); // the remaster's magmagat press at work
 
-    // two ghosts circle the gun for 5 s
-    g1 = mg_fx_loop( "ghost", c.origin + ( 40, 0, 20 ) );
+    // the press works the gun for 5 s (the remaster: its press sound over the press fire; no ghosts), in the
+    // generator's own smoke, with flame bursts
+    fire = mg_fx_loop( "forge_rise", c.origin - ( 0, 0, 6 ) );
 
-    if ( isdefined( g1 ) )
-        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = g1;
-
-    g2 = mg_fx_loop( "ghost", c.origin + ( -40, 0, 20 ) );
-
-    if ( isdefined( g2 ) )
-        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = g2;
+    if ( isdefined( fire ) )
+        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = fire;
 
     smoke = mg_fx_loop( "smoke", c.origin );
 
     if ( isdefined( smoke ) )
         level.mg_forge_place_ents[level.mg_forge_place_ents.size] = smoke;
 
-    for ( i = 0; i < 10; i++ )
+    for ( i = 0; i < 5; i++ )
     {
-        a = i * 36;
-        b = a + 180;
+        wait 1;
 
-        if ( isdefined( g1 ) )
-            g1 moveto( c.origin + ( cos( a ) * 40, sin( a ) * 40, 20 ), 0.5 );
-
-        if ( isdefined( g2 ) )
-            g2 moveto( c.origin + ( cos( b ) * 40, sin( b ) * 40, 20 ), 0.5 );
-
-        wait 0.5;
+        if ( i == 1 || i == 3 )
+        {
+            mg_fx_once( "ball_hit", c.origin );
+            mg_snd_near( "mg_flame_burst", c.origin, 1500 );
+        }
     }
 
-    mg_fx_stop( g1 );
-    mg_fx_stop( g2 );
+    mg_fx_stop( fire );
     mg_fx_stop( smoke );
     mg_fx_once( "explo", c.origin );
     mg_snd_near( "zmb_hellbox_open", c.origin, 800 );
