@@ -47,8 +47,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] `!mg goto souls` (or press use at the hearth with a Blundergat in `ready`): the gun leaves your hands
       into the fire, the flame grows, the three skulls are dark, state is `souls`.
-- [ ] Kill a zombie while standing inside the Warden's Office, with the zombie also dying inside it: an orb
-      drops and, when collected, the count increases and travels visibly to the hearth.
+- [ ] Kill a zombie while standing inside the Warden's Office, with the zombie also dying inside it: its soul
+      streaks out of the body (a soul-suck sound) and waits as a glowing orb; walk into it: the count increases, the
+      soul flies to its skull and bursts in.
 - [ ] **Kills through the office window from outside do not count.** Stand outside the office and kill a
       zombie standing inside it (or the reverse): no orb. Confirm both directions of the rule (killer
       outside / zombie outside).
