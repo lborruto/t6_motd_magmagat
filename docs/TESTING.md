@@ -44,10 +44,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] Before anyone reaches the Golden Gate Bridge (the plane's landing): state stays `locked`, no prompt at the hearth even with a Blundergat in
       hand.
-- [ ] While `locked`, five broken boards cross the fireplace (`!mg goto locked` puts them back).
 - [ ] Reach the bridge, or `!mg bridge` (the same requirement met, without the plane), or `!mg goto ready`: state
-      becomes `ready` and the boards burn away (the remaster's burn effect, a flame burst). `!mg bridge` in any other
-      state says the fireplace is already open.
+      becomes `ready`. `!mg bridge` in any other state says the fireplace is already open.
 - [ ] Holding a Blundergat, a Sweeper, an Acid Gat or a Vitriolic Withering (`blundergat_zm`, `blundergat_upgraded_zm`,
       `blundersplat_zm`, `blundersplat_upgraded_zm`), pressing use at the hearth lays the gun in the fire (no on-screen
       prompt, as the original) and a laugh plays. Holding none of them: nothing.
@@ -56,9 +54,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] `!mg goto souls` (or press use at the hearth with a gun in `ready`): the gun leaves your hands into the fire,
       the three skulls are dark, state is `souls`.
-- [ ] A zombie a player kills that dies inside the Warden's Office: a blue burst and the soul-kill sound at the body,
-      then a humming blue orb rises over it for 3 s. Walk into it: a flash and the soul-suck sound, and the soul (a
-      blue lightning streak) flies to its skull and flashes in; the count increases (`!mg status`: x/15). No blood.
+- [ ] A zombie a player kills that dies inside the Warden's Office: the soul-kill sound at the body, then the
+      soul, the remaster's blue lightning streak, swirls up over it for 3 s, humming. Walk into it: a flash and the
+      soul-suck sound, and it flies to its skull and flashes in; the count increases (`!mg status`: x/15). No blood.
 - [ ] An orb nobody takes fades after 3 s and does not count; later kills still reach 15.
 - [ ] **Lockdown**: while the office takes souls, the remaster's lockdown outlines the office's door and walls in
       light; it goes at 15 souls or when the step ends. `!mg lockdown` shows it for 10 s at any time: the lines must

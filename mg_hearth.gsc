@@ -34,10 +34,9 @@ mg_hearth_init()
     level thread mg_hearth_state_watch();
     level.mg_lock_gen = 0;
     level thread mg_lockdown_watch();
-    level thread mg_planks_watch();
 }
 
-// The hearth fire: normal flame in every state but pickup / run (blue) and locked (nothing extra).
+// The hearth: the map's own fire burns in it; the remaster's blue fire only while the tempered gun waits.
 mg_hearth_fire()
 {
     level endon( "end_game" );
@@ -45,21 +44,10 @@ mg_hearth_fire()
 
     while ( true )
     {
-        if ( isdefined( level.mg_hearth_fx ) )
-            mg_fx_stop( level.mg_hearth_fx );
-
         if ( isdefined( level.mg_hearth_portal ) )
         {
             mg_fx_stop( level.mg_hearth_portal );
             level.mg_hearth_portal = undefined;
-        }
-
-        level.mg_hearth_fx = mg_fx_loop( "hearth_fire", pos );
-
-        if ( isdefined( level.mg_hearth_fx ) )
-        {
-            level.mg_hearth_fx playloopsound( "amb_fire_med" );
-            level thread mg_fx_keepalive( level.mg_hearth_fx );
         }
 
         // the tempered gun waits in the remaster's blue fire (its flames rise from 30 units over the effect: from the gun)
@@ -213,18 +201,17 @@ mg_hearth_zombie_died( zombie )
     level thread mg_soul_orb( zombie.origin );
 }
 
-// A soul, as BO4 drops it: out of the body (a blue burst, the soul kill), an orb 22 units over the corpse that rises
-// 36 units in 3 s, humming. Walk into it (24 units around, 96 up) to take it: it bursts and flies to the skull it
+// A soul, as BO4 drops it and the remaster draws it: its lightning streak 22 units over the corpse, swirling up 36
+// units in 3 s, humming. Walk into it (24 units around, 96 up) to take it: it bursts and flies to the skull it
 // fills. Nobody takes it and it fades, lost.
 mg_soul_orb( pos )
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
     session = level.mg_hearth_session;
-    mg_fx_once( "soul_release", pos + ( 0, 0, 22 ) );
     mg_snd_near( "mg_soul_kill", pos, 1200 );
     start = pos + ( 0, 0, 22 );
-    orb = mg_fx_loop( "soul", start );
+    orb = mg_fx_loop( "soul_trail", start );
 
     if ( !mg_state_is( "souls" ) || level.mg_hearth_session != session )
     {
@@ -240,7 +227,7 @@ mg_soul_orb( pos )
 
     mg_orb_track( orb );
     orb playloopsound( "mg_soul_loop" );
-    orb moveto( start + ( 0, 0, 36 ), 3 );
+    orb thread mg_soul_drift( start, 3 );
     taker = undefined;
 
     for ( t = 0; t < 3 && !isdefined( taker ); t += 0.05 )
@@ -545,6 +532,23 @@ mg_hearth_take( player )
     mg_run_start( player, weapon );
 }
 
+// self = a waiting soul: the remaster's lightning streak rising 36 units in its time, swirling round its path (a trail
+// only draws while it moves)
+mg_soul_drift( start, seconds )
+{
+    self endon( "death" );
+    steps = int( seconds / 0.25 );
+
+    for ( i = 1; i <= steps; i++ )
+    {
+        a = i * 70;
+        to = start + ( cos( a ) * 7, sin( a ) * 7, 36 * i / steps );
+        self.angles = vectortoangles( to - self.origin );
+        self moveto( to, 0.25 );
+        wait 0.25;
+    }
+}
+
 // a soul entity mg_orbs_clear removes
 mg_orb_track( ent )
 {
@@ -573,68 +577,6 @@ mg_lockdown_watch()
 
         on = want;
         wait 0.25;
-    }
-}
-
-// The remaster's planks (mg_wood_barrier): five broken boards across the fireplace while it is locked, burning away
-// (its burn-barrier effect and flame burst) once the plane has reached the bridge. Placed where the remaster stands
-// them, brought onto BO2's office by the same fit as the lockdown.
-mg_planks_watch()
-{
-    level endon( "end_game" );
-    level.mg_planks = [];
-
-    while ( true )
-    {
-        if ( mg_state_is( "locked" ) && !level.mg_planks.size )
-            mg_planks_spawn();
-        else if ( !mg_state_is( "locked" ) && level.mg_planks.size )
-            mg_planks_burn();
-
-        level waittill( "mg_state" );
-    }
-}
-
-mg_planks_spawn()
-{
-    planks = [];
-    planks[planks.size] = array( ( -481.5, 8798.3, 1368.5 ), ( 274.199, 316.399, 89.9983 ), "plank_l" );
-    planks[planks.size] = array( ( -481.1, 8798.0, 1357.6 ), ( 276.901, 136.393, -89.9956 ), "plank_l" );
-    planks[planks.size] = array( ( -480.8, 8797.7, 1350.4 ), ( 270.5, 136.353, -89.9553 ), "plank_l" );
-    planks[planks.size] = array( ( -467.5, 8786.5, 1356.9 ), ( 13.3998, 136.397, -90.0049 ), "plank" );
-    planks[planks.size] = array( ( -480.7, 8799.0, 1358.8 ), ( 354.698, 136.396, -90.0039 ), "plank" );
-    level.mg_planks = [];
-
-    foreach ( p in planks )
-    {
-        plank = spawn( "script_model", p[0] );
-        plank.angles = p[1];
-        plank setmodel( mg_model( p[2] ) );
-        level.mg_planks[level.mg_planks.size] = plank;
-    }
-}
-
-mg_planks_burn()
-{
-    planks = level.mg_planks;
-    level.mg_planks = [];
-    pos = mg_coord( "MG_HEARTH" ).origin;
-    mg_snd_near( "mg_flame_burst", pos, 1500 );
-
-    foreach ( plank in planks )
-        mg_fx_once( "plank_burn", plank.origin, 3, plank.angles );
-
-    level thread mg_planks_delete( planks );
-}
-
-mg_planks_delete( planks )
-{
-    wait 1.2;
-
-    foreach ( plank in planks )
-    {
-        if ( isdefined( plank ) )
-            plank delete();
     }
 }
 

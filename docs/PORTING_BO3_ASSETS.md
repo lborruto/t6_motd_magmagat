@@ -115,7 +115,8 @@ is the realistic scope for a first pass.
 BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effects, so the mod carries both halves:
 
 1. **A T6 effect format for OAT.** `tools/oat/t6-fx-json.patch` (against OpenAssetTools `f8f54426`, GPL-3.0 like OAT)
-   adds a T6 `FxEffectDef` JSON dumper to the Unlinker and a loader to the Linker, field for field (`fx/<name>.json`;
+   adds a T6 `FxEffectDef` JSON dumper to the Unlinker and a loader to the Linker (and a static-model list,
+   `gfxworld/<map>_smodels.csv`: which prop stands where), field for field (`fx/<name>.json`;
    a vanilla effect round-trips byte for byte). Build: clone OAT, `git apply` the patch, `generate.bat` (or
    `premake5 vs2022`), then MSBuild the solution targets `Tools\LinkerCli` and `Tools\UnlinkerCli` (Release, Win32)
    with the VS 2022 Build Tools (C++). `tools/build_mod.pl` uses that Linker (`MG_OAT_FX`).

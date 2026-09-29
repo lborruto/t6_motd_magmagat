@@ -94,6 +94,7 @@ mg_run_loop( weapon )
     self endon( "disconnect" );
 
     away_since = undefined;
+    in_hand = 0;    // the switch to the tempered gun takes a moment: the rule starts once it is in hand
     flicker = 0;
     level.mg_run_flame = mg_run_flame_on( self );
 
@@ -119,7 +120,10 @@ mg_run_loop( weapon )
         // weapon away (BO4 checks right after the change; a quarter second forgives a stray scroll)
         current = self getcurrentweapon();
 
-        if ( current != weapon )
+        if ( current == weapon )
+            in_hand = 1;
+
+        if ( in_hand && current != weapon )
         {
             if ( !isdefined( away_since ) )
                 away_since = gettime();

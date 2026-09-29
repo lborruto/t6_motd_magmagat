@@ -9,10 +9,7 @@ _copforthat/_zm_prison/fx_alcatraz_magmagat_power           # the forge powered
 _copforthat/_zm_prison/fx_prison_magmagat_press_fire        # the press at work
 _copforthat/_zm_prison/fx_prison_magmagat_aoe               # the lava pool
 _copforthat/_zm_prison/fx_prison_magmagat_impact_decal      # the blob's scorch
-_copforthat/_zm_prison/fx_alcatraz_magmagat_burn_barrier    # boards burning away
-_copforthat/_zm_prison/lightning_hands_muzzleflash_trail    # a soul in flight
-_copforthat/_zm_prison/fx_alcatraz_soul_charge_start        # a soul leaving its body
-_copforthat/_zm_prison/fx_alcatraz_soul_charged             # a soul waiting
+_copforthat/_zm_prison/lightning_hands_muzzleflash_trail    # a soul (waiting and in flight)
 harry/magmagat/fx_magmagat_trail_bolt                       # the lava blob in flight
 harry/magmagat/fx_magmagat_impact                           # the blob landing
 harry/magmagat/fx_magmagat_explode                          # the blob bursting

@@ -13,7 +13,6 @@
 #   perl tools/import_prop.pl [options] <greyhound xmodel dir> <prop name> [ximages dir]
 #     --skip <regex>              drop the surfaces whose BO3 material matches (e.g. a transparent overlay shell)
 #     --color <regex>=<png>       use this colour map for the matching material (e.g. one baked by tools/bake_layers.pl)
-#     --scale <s>                 scale the mesh (a BO3 map's modelscale, e.g. 1.1)
 #     --material <name>          every surface uses this existing material (e.g. mc/mg_lava, built by tools/build_weapon.pl)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
@@ -31,8 +30,7 @@ use Getopt::Long;
 my ( @skip, %color_for );
 my $offset = '0,0,0';
 my $use_material;
-my $mscale = 1;
-GetOptions( 'skip=s' => \@skip, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'scale=f' => \$mscale ) or die "import_prop.pl: bad options\n";
+GetOptions( 'skip=s' => \@skip, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material ) or die "import_prop.pl: bad options\n";
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
@@ -168,7 +166,7 @@ for my $k ( 0 .. $#lods ) {
     my %seen;
     for my $mesh ( @{ $g->{meshes} } ) {
         for my $p ( @{ $mesh->{primitives} } ) {
-            for my $attr ( [ POSITION => $mscale / 2.54 ], [ NORMAL => 1 ] ) {
+            for my $attr ( [ POSITION => 1 / 2.54 ], [ NORMAL => 1 ] ) {
                 my ( $name, $scale ) = @$attr;
                 my $ai = $p->{attributes}{$name};
                 next if !defined $ai || $seen{$ai}++;
@@ -203,8 +201,8 @@ while ( $lod0 =~ /^OFFSET (-?[\d.e+-]+), (-?[\d.e+-]+), (-?[\d.e+-]+)/mg ) {
     my @v = ( $1, $2, $3 );
     for my $i ( 0 .. 2 ) { $mn[$i] = $v[$i] if $v[$i] < $mn[$i]; $mx[$i] = $v[$i] if $v[$i] > $mx[$i] }
 }
-my @ctr = map { $mscale * ( $mn[$_] + $mx[$_] ) / 2 + $off[$_] } 0 .. 2;
-my $range = $mscale * sqrt( ( $mx[0] - $mn[0] )**2 + ( $mx[1] - $mn[1] )**2 + ( $mx[2] - $mn[2] )**2 ) / 2;
+my @ctr = map { ( $mn[$_] + $mx[$_] ) / 2 + $off[$_] } 0 .. 2;
+my $range = sqrt( ( $mx[0] - $mn[0] )**2 + ( $mx[1] - $mn[1] )**2 + ( $mx[2] - $mn[2] )**2 ) / 2;
 my $xm = { '$schema' => 'http://openassettools.dev/schema/xmodel.v1.json', _game => 't6', _type => 'xmodel', _version => 2,
     collLod => -1, flags => 0, lods => \@lodjson, type => 'rigid',
     lightingOriginOffset => { x => 0 + sprintf( '%.3f', $ctr[0] ), y => 0 + sprintf( '%.3f', $ctr[1] ), z => 0 + sprintf( '%.3f', $ctr[2] ) },

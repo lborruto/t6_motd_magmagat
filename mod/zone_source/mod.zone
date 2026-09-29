@@ -8,8 +8,6 @@ xmodel,mg_skull
 xmodel,mg_fx_magma_splat02_mesh
 xmodel,mg_fx_magma_splat03_mesh
 xmodel,mg_magma_blob
-xmodel,mg_plank
-xmodel,mg_plank_l
 // end props
 
 // weapon (tools/build_weapon.pl)
@@ -39,10 +37,7 @@ fx,mg/fx_alcatraz_blue_flame_loop
 fx,mg/fx_alcatraz_blue_flame_skull
 fx,mg/fx_alcatraz_blue_flame_vm
 fx,mg/fx_alcatraz_lockdown_wardens
-fx,mg/fx_alcatraz_magmagat_burn_barrier
 fx,mg/fx_alcatraz_magmagat_power
-fx,mg/fx_alcatraz_soul_charge_start
-fx,mg/fx_alcatraz_soul_charged
 fx,mg/fx_magmagat_explode
 fx,mg/fx_magmagat_impact
 fx,mg/fx_magmagat_trail_bolt

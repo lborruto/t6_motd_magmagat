@@ -297,7 +297,7 @@ my %glow = (    # BO4 material -> [ crust colour source, reveal (crack mask), em
 # colour -> [ crust tint (from the luminance), ember ramp (t = 0..1) ]
 my %ramp = (
     lava => [ sub { my $l = shift; ( $l * 1.25, $l * 0.62, $l * 0.45 ) }, sub { my $t = shift; ( 255 * $t**0.55, 185 * $t**1.3, 60 * $t**2.6 ) } ],    # dark red -> orange -> yellow-white
-    blue => [ sub { my $l = shift; ( $l * 0.45, $l * 0.62, $l * 1.25 ) }, sub { my $t = shift; ( 70 * $t**2.2, 170 * $t**1.1, 255 * $t**0.5 ) } ],    # deep blue -> cyan -> white
+    blue => [ sub { my $l = shift; ( $l * 0.3, $l * 0.42, $l * 1.3 ) }, sub { my $t = shift; ( 45 * $t**2.6, 110 * $t**1.5, 255 * $t**0.6 ) } ],    # deep blue -> blue -> pale blue (no green: BO4's essence)
 );
 my %lava = ( Emissiver_Amount => 16, Flicker_Min => 0.6, Flicker_Max => 1.45, Heat_Scale => 1.8, Ember_Scale => 1,
     Heat_Direction => [ 0.05, 0.08 ], Ember_Direction => [ -0.03, -0.06 ] );

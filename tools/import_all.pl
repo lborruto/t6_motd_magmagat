@@ -34,9 +34,6 @@ my @props = (
     [ 'mg_fx_magma_splat02_mesh', 'fx_magma_splat02_mesh', '--material', 'mc/mg_lava' ],
     [ 'mg_fx_magma_splat03_mesh', 'fx_magma_splat03_mesh', '--material', 'mc/mg_lava' ],
     [ 'mg_magma_blob', 'p8_fxp_magma_blob', '--material', 'mc/mg_lava' ],
-    # the planks boarding the fireplace until the plane has reached the bridge (the remaster's mg_wood_barrier, two sizes)
-    [ 'mg_plank', 'p7_plank_wood_broken_2x4x64' ],
-    [ 'mg_plank_l', 'p7_plank_wood_broken_2x4x64', '--scale', '1.1' ],
 );
 
 system( 'perl', "$FindBin::Bin/dump_game.pl" ) == 0 or die "import_all.pl: the dump failed\n";    # the material template

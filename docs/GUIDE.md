@@ -19,8 +19,7 @@ has to happen first: the quest does not care what round it is or how many player
 <details>
 <summary>The fireplace</summary>
 
-The fireplace in the Warden's Office is boarded up until someone has reached the bridge; then the boards burn away.
-Head to it holding one of those guns. Stand at the hearth and press use (no
+Head to the fireplace in the Warden's Office holding one of those guns. Stand at the hearth and press use (no
 prompt shows): the gun goes into the fire, a laugh answers, and the quest begins.
 
 </details>
@@ -29,8 +28,8 @@ prompt shows): the gun goes into the fire, a laugh answers, and the quest begins
 <summary>The souls</summary>
 
 Every zombie a player kills **that dies inside the Warden's Office** releases its soul; the killer can stand
-anywhere. The soul bursts out of the body and rises over it as a glowing orb for **3 seconds**: walk into it before
-it fades. A soul you take flies to its skull on the mantle. You need **15 souls**: the three skulls light up blue at
+anywhere. The soul, a blue streak of lightning, swirls up over the body for **3 seconds**: walk into it before it
+fades. A soul you take flies to its skull on the mantle. You need **15 souls**: the three skulls light up blue at
 **5**, **10** and **15**. While the office takes souls, its door and walls are outlined in light: it is locked down.
 
 The office belongs to the player who placed the gun. If that player spends **10 seconds** outside it, the souls

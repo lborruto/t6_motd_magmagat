@@ -726,19 +726,87 @@ index 00000000..f0ed1402
 +        void DumpAsset(AssetDumpingContext& context, const XAssetInfo<T6::AssetFx::Type>& asset) override;
 +    };
 +} // namespace fx
+diff --git a/src/ObjWriting/Game/T6/GfxWorld/GfxWorldSModelDumperT6.cpp b/src/ObjWriting/Game/T6/GfxWorld/GfxWorldSModelDumperT6.cpp
+new file mode 100644
+index 00000000..9ca08d17
+--- /dev/null
++++ b/src/ObjWriting/Game/T6/GfxWorld/GfxWorldSModelDumperT6.cpp
+@@ -0,0 +1,32 @@
++#include "GfxWorldSModelDumperT6.h"
++
++#include <format>
++
++using namespace T6;
++
++namespace gfx_world
++{
++    void SModelDumperT6::DumpAsset(AssetDumpingContext& context, const XAssetInfo<AssetGfxWorld::Type>& asset)
++    {
++        const auto* world = asset.Asset();
++        const auto file = context.OpenAssetFile(std::format("gfxworld/{}_smodels.csv", asset.m_name));
++        if (!file)
++            return;
++
++        auto& out = *file;
++        out << "index,model,x,y,z,fx,fy,fz,lx,ly,lz,ux,uy,uz,scale\n";
++        const auto& dpvs = world->dpvs;
++        for (auto i = 0u; i < dpvs.smodelCount && dpvs.smodelDrawInsts; i++)
++        {
++            const auto& inst = dpvs.smodelDrawInsts[i];
++            const auto& p = inst.placement;
++            const char* name = inst.model && inst.model->name ? inst.model->name : "";
++            if (name[0] == ',')
++                name++;
++            out << std::format("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
++                               i, name, p.origin.x, p.origin.y, p.origin.z,
++                               p.axis[0].x, p.axis[0].y, p.axis[0].z, p.axis[1].x, p.axis[1].y, p.axis[1].z,
++                               p.axis[2].x, p.axis[2].y, p.axis[2].z, p.scale);
++        }
++    }
++} // namespace gfx_world
+diff --git a/src/ObjWriting/Game/T6/GfxWorld/GfxWorldSModelDumperT6.h b/src/ObjWriting/Game/T6/GfxWorld/GfxWorldSModelDumperT6.h
+new file mode 100644
+index 00000000..1826b201
+--- /dev/null
++++ b/src/ObjWriting/Game/T6/GfxWorld/GfxWorldSModelDumperT6.h
+@@ -0,0 +1,14 @@
++#pragma once
++
++#include "Dumping/AbstractAssetDumper.h"
++#include "Game/T6/T6.h"
++
++namespace gfx_world
++{
++    // the world's static models (name, origin, axes, scale) as a csv: which prop stands where in a map
++    class SModelDumperT6 final : public AbstractAssetDumper<T6::AssetGfxWorld>
++    {
++    protected:
++        void DumpAsset(AssetDumpingContext& context, const XAssetInfo<T6::AssetGfxWorld::Type>& asset) override;
++    };
++} // namespace gfx_world
 diff --git a/src/ObjWriting/Game/T6/ObjWriterT6.cpp b/src/ObjWriting/Game/T6/ObjWriterT6.cpp
-index 05a30c1f..01882a72 100644
+index 05a30c1f..7e41b98a 100644
 --- a/src/ObjWriting/Game/T6/ObjWriterT6.cpp
 +++ b/src/ObjWriting/Game/T6/ObjWriterT6.cpp
-@@ -26,6 +26,7 @@
+@@ -26,6 +26,8 @@
  #include "Weapon/AttachmentDumperT6.h"
  #include "Weapon/AttachmentUniqueDumperT6.h"
  #include "Weapon/CamoJsonDumperT6.h"
 +#include "Fx/FxJsonDumperT6.h"
++#include "GfxWorld/GfxWorldSModelDumperT6.h"
  #include "Weapon/WeaponDumperT6.h"
  #include "ZBarrier/ZBarrierDumperT6.h"
  
-@@ -66,7 +67,7 @@ void ObjWriter::RegisterAssetDumpers(AssetDumpingContext& context)
+@@ -54,7 +56,7 @@ void ObjWriter::RegisterAssetDumpers(AssetDumpingContext& context)
+     // REGISTER_DUMPER(AssetDumperGameWorldSp, m_game_world_sp)
+     // REGISTER_DUMPER(AssetDumperGameWorldMp, m_game_world_mp)
+     RegisterAssetDumper(std::make_unique<map_ents::DumperT6>());
+-    // REGISTER_DUMPER(AssetDumperGfxWorld, m_gfx_world)
++    RegisterAssetDumper(std::make_unique<gfx_world::SModelDumperT6>());
+     RegisterAssetDumper(std::make_unique<light_def::DumperT6>());
+     RegisterAssetDumper(std::make_unique<font::JsonDumperT6>());
+     RegisterAssetDumper(font_icon::CreateDumperT6());
+@@ -66,7 +68,7 @@ void ObjWriter::RegisterAssetDumpers(AssetDumpingContext& context)
      RegisterAssetDumper(std::make_unique<attachment_unique::DumperT6>());
      RegisterAssetDumper(std::make_unique<camo::JsonDumperT6>());
      RegisterAssetDumper(std::make_unique<sound::SndDriverGlobalsDumperT6>());

@@ -17,8 +17,6 @@ mg_models_init()
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
     level.mg_models["ball"] = "mg_magma_blob"; // mod.ff (tools/import_all.pl): BO4's own lava blob, p8_fxp_magma_blob
     level.mg_models["pool"] = "mg_lava_pool"; // mod.ff: the molten splat a miss leaves, as BO4 lays one
-    level.mg_models["plank"] = "mg_plank"; // mod.ff: the remaster's fireplace boards (p7_plank_wood_broken_2x4x64)
-    level.mg_models["plank_l"] = "mg_plank_l"; // the same at the remaster's modelscale 1.1
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
     level.mg_models["clip"] = "collision_clip_32x32x32"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none)
 }

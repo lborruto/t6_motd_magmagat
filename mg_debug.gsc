@@ -221,7 +221,7 @@ mg_debug_tour()
     skull = mg_coord( "MG_SKULL_1" ).origin;
 
     // 1. the fireplace fire, the gun laid in it
-    self mg_tour_look( "1/8 The fireplace: its fire and crackle; the Blundergat laid in it", use, hearth );
+    self mg_tour_look( "1/8 The fireplace: the Blundergat laid in it", use, hearth );
     gun = spawn_weapon_model( "blundergat_zm", undefined, hearth, mg_coord( "MG_HEARTH" ).angles );
     self playsoundtoplayer( "zmb_hellbox_lock", self );
     self playsoundtoplayer( "mg_flame_burst", self );
@@ -231,14 +231,13 @@ mg_debug_tour()
     // 2. a soul: out of the body, the orb rising, taken, flying to the first skull, bursting in
     spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90 + ( 0, 0, 22 );
     self mg_tour_look( "2/8 A soul: the orb rises over the body; walk in, it flies to its skull", use + ( 0, 0, 10 ), spot );
-    mg_fx_once( "soul_release", spot );
     self playsoundtoplayer( "mg_soul_kill", self );
-    orb = mg_fx_loop( "soul", spot );
+    orb = mg_fx_loop( "soul_trail", spot );
 
     if ( isdefined( orb ) )
     {
         orb playloopsound( "mg_soul_loop" );
-        orb moveto( spot + ( 0, 0, 24 ), 2 );
+        orb thread mg_soul_drift( spot, 2 );
         wait 2;
         spot = orb.origin;
         mg_fx_stop( orb );

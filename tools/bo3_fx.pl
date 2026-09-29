@@ -3,7 +3,7 @@
 # every effect they run, from a Bo3Snapshot of the running game (tools/bo3mem, mod/work/bo3mem/fx.bin):
 #   - fx/mg/<name>.json: the effect (tools/MgFx7.pm), for the Linker's T6 effect loader (the mod's OpenAssetTools build)
 #   - materials/mg_<material>.json: each BO3 effect material as a vanilla zm_prison effect material of the same kind
-#     (blend, emissive blend, additive, distortion, cloud, decal) with the BO3 texture and flipbook grid
+#     (emissive, blend, cloud, decal; a heat distortion uses vanilla's gfx_distortion_heat) with the BO3 texture and flipbook grid
 #   - images/_mg_<image>.dds: the BO3 texture (Greyhound's PNG export), embedded ("*mg_<image>")
 # then the zone's fx list (// fx ... // end fx in mod/zone_source/mod.zone).
 #
@@ -42,7 +42,7 @@ unless ( -d "$tdump/materials" ) {
 my %tmpl = (
     # soft (depth-feathered) sprites, as BO3 draws them: BO3's emissive fire as T6 draws its own fire, additive; lit
     # blends (smoke, dust) alpha-blended
-    emissive => 'gfx_fxt_fire_flame_vert_e', blend => 'gfx_fxt_smk_gen_z40', distortion => 'gfx_distortion_heat',
+    emissive => 'gfx_fxt_fire_flame_vert_e', blend => 'gfx_fxt_smk_gen_z40',
     cloud => 'gfx_fxt_debris_fire_ember_cloud_01i',
     decal_mc => 'mc/gfx_impact_liquid_spatter01', decal_wc => 'wc/gfx_impact_liquid_spatter01',
 );
@@ -87,6 +87,12 @@ my ( %done, %by_t6, %mats, @todo, $warn );
 while ( my $n = shift @todo ) {
     next if $done{$n}++;
     my ( $fx, $need, $notes ) = $c->convert($n);
+    # a BO3 heat distortion draws with vanilla's own (a copy of its material crashed the game when drawn)
+    my %as;
+    for my $mn ( keys %{ $need->{materials} } ) {
+        my $m = $c->material( $need->{materials}{$mn} );
+        $as{$mn} = 'gfx_distortion_heat' if $m && $m->{techset} =~ /distort/;
+    }
     my $t6 = t6fx($n);
     die "bo3_fx.pl: $n and $by_t6{$t6} both become $t6\n" if $by_t6{$t6} && $by_t6{$t6} ne $n;
     $by_t6{$t6} = $n;
@@ -96,14 +102,14 @@ while ( my $n = shift @todo ) {
         if    ( $e->{elemType} == 12 ) { $_ = t6fx($_) for grep {defined} @{ $e->{visuals} } }
         elsif ( $e->{elemType} == 11 ) { $e->{visuals} = [ map { [ defined $_->[0] ? 'mc/' . t6mat( $_->[0] ) : undef, defined $_->[1] ? 'wc/' . t6mat( $_->[0] ) : undef ] } @{ $e->{visuals} } ] }
         elsif ( $e->{elemType} == 7 )  { $_ = "mg_$_" for grep {defined} @{ $e->{visuals} } }
-        elsif ( $e->{elemType} != 8 )  { $_ = t6mat($_) for grep {defined} @{ $e->{visuals} } }
+        elsif ( $e->{elemType} != 8 )  { $_ = $as{$_} // t6mat($_) for grep {defined} @{ $e->{visuals} } }
     }
     if ( my $k = $scale{$n} ) {
         for my $e ( @{ $fx->{elemDefs} } ) { $_ *= $k->[0] for @{ $e->{spawnOrigin}[0] }; $_ *= $k->[1] for @{ $e->{spawnOrigin}[1] } }
     }
     $fx->{totalSize} = MgFx7::total_size( $t6, $fx );
     spit( "$raw/fx/$t6.json", $json->encode($fx) );
-    $mats{$_} //= $need->{materials}{$_} for keys %{ $need->{materials} };
+    $mats{$_} //= $need->{materials}{$_} for grep { !$as{$_} } keys %{ $need->{materials} };
     push @todo, keys %{ $need->{effects} };
 }
 
@@ -113,7 +119,7 @@ for my $mn ( sort keys %mats ) {
     my $m = $c->material( $mats{$mn} ) or do { warn "bo3_fx.pl: material $mn not captured\n"; $warn++; next };
     next if $mn =~ m{^vd/};    # a decal's second (model) material: made with the first
     my $t = $m->{techset};
-    my $kind = $t =~ /lit_weapon_impact|decal/ ? 'decal' : $t =~ /distort/ ? 'distortion' : $t =~ /cloud/ ? 'cloud' : $t =~ /_add\b|additive|emissive/ ? 'emissive' : 'blend';
+    my $kind = $t =~ /lit_weapon_impact|decal/ ? 'decal' : $t =~ /cloud/ ? 'cloud' : $t =~ /_add\b|additive|emissive/ ? 'emissive' : 'blend';
     my $color = $m->{images}{a0ab1041};
     # a texture whose name the snapshot missed: BO3 names it after its material (gfx_<x>_em -> fxt_<x>, i_<material>, ...)
     if ( !defined $color ) {
