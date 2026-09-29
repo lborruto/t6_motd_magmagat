@@ -60,21 +60,25 @@ for my $k ( 1 .. $#{ $world->{lods} } ) {
     $_->{name} = $material_of{ $_->{name} } // $_->{name} for @{ $g->{materials} };
     spit( "$raw/model_export/mg_magmagat_world_lod$k.gltf", encode_json($g) );
 }
+# the tempered gun far away: BO2's own Blundergat LODs
+for my $k ( 1 .. $#{ $world->{lods} } ) { spit( "$raw/model_export/mg_tempered_world_lod$k.gltf", slurp("$dump/$world->{lods}[$k]{file}") ) }
 
 # 4. xmodels: the view models (one LOD, as the Blundergat's), the world models (BO4 near, recoloured BO2 far)
 my $view = decode_json( slurp("$dump/xmodel/t6_wpn_zmb_blundergat_view.json") );
-for my $ours (qw(mg_magmagat_view mg_magmus_view)) {
+for my $ours (qw(mg_magmagat_view mg_magmus_view mg_tempered_view mg_tempered_up_view)) {
     my $x = decode_json( encode_json($view) );
     $x->{lods} = [ { distance => $view->{lods}[0]{distance}, file => "model_export/${ours}_lod0.gltf" } ];
     spit( "$raw/xmodel/$ours.json", $json->encode($x) );
 }
-for my $ours (qw(mg_magmagat_world mg_magmus_world)) {
+for my $ours (qw(mg_magmagat_world mg_magmus_world mg_tempered_world mg_tempered_up_world)) {
     my $x = decode_json( encode_json($world) );
     $x->{lods}[0]{file} = "model_export/${ours}_lod0.gltf";
-    $x->{lods}[$_]{file} = "model_export/mg_magmagat_world_lod$_.gltf" for 1 .. $#{ $x->{lods} };
+    my $far = $ours =~ /tempered/ ? 'mg_tempered_world' : 'mg_magmagat_world';
+    $x->{lods}[$_]{file} = "model_export/${far}_lod$_.gltf" for 1 .. $#{ $x->{lods} };
     spit( "$raw/xmodel/$ours.json", $json->encode($x) );
 }
-my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_world mg_lava_blob mg_lava_pool);
+my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_world mg_tempered_view mg_tempered_world mg_tempered_up_view
+    mg_tempered_up_world mg_lava_blob mg_lava_pool);
 
 # 5. weapon files: [ ours, the vanilla one it copies, field overrides ]; the effects are zm_prison's own (no new fx can be
 #    built): the orange buckshot flashes, lmg_enemy = the thick red tracer. hideTags = the Acid Gat's: the plain shells
@@ -93,6 +97,12 @@ my @weapons = (
         tracerType => 'lmg_enemy', viewFlashEffect => 'weapon/muzzleflashes/fx_muz_xlg_gas_flash_1p',
         worldFlashEffect => 'weapon/muzzleflashes/fx_muz_xlg_gas_flash_3p', %blob_only, clipSize => 2, maxAmmo => 30,
         startAmmo => 25 } ],
+    # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still
+    [ 'mg_tempered_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MG_TEMPERED', gunModel => 'mg_tempered_view', worldModel => 'mg_tempered_world',
+        hideTags => $tank_tags } ],
+    [ 'mg_tempered_upgraded_zm', 'blundergat_upgraded_zm', { displayName => 'ZMWEAPON_MG_TEMPERED_UPGRADED', gunModel => 'mg_tempered_up_view',
+        worldModel => 'mg_tempered_up_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags
+tag_sights" } ],
 );
 for my $w (@weapons) {
     my ( $ours, $src, $set ) = @$w;
@@ -109,7 +119,8 @@ for my $w (@weapons) {
 }
 
 # 6. display names
-my %names = ( ZMWEAPON_MAGMAGAT => 'Magmagat', ZMWEAPON_MAGMAGAT_UPGRADED => 'Magmus Operandi' );
+my %names = ( ZMWEAPON_MAGMAGAT => 'Magmagat', ZMWEAPON_MAGMAGAT_UPGRADED => 'Magmus Operandi', ZMWEAPON_MG_TEMPERED => 'Tempered Blundergat',
+    ZMWEAPON_MG_TEMPERED_UPGRADED => 'Tempered Sweeper' );
 my $str = qq{VERSION             "1"\nCONFIG              "C:\\\\trees\\\\cod3\\\\cod3\\\\bin\\\\StringEd.cfg"\nFILENOTES           "Magmagat mod"\n};
 $str .= qq{\nREFERENCE           $_\nLANG_ENGLISH        "$names{$_}"\n} for sort keys %names;
 $str .= "\nENDMARKER\n";

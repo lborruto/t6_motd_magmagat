@@ -1,11 +1,11 @@
 #!/usr/bin/perl
-# The real BO4 Magmagat (Greyhound's export of wpn_t8_zm_magmagat_view from the BO3 remaster) on BO2's Blundergat
-# rig, so it plays the Blundergat's T6 animations. The two rigs are the same skeleton (Treyarch rebuilt the BO2 gun):
+# The real BO4 Magmagat and tempered Blundergat (Greyhound's exports of wpn_t8_zm_magmagat_view and
+# wpn_t8_zm_blundergat_tempered_view from the BO3 remaster) on BO2's Blundergat rig, so it plays the Blundergat's T6 animations. The two rigs are the same skeleton (Treyarch rebuilt the BO2 gun):
 # every BO4 bone sits where its T6 bone does, only the names differ (tag_weapon = j_gun, tag_cap_le_animate = j_cap_le,
 # ...). So the T6 skeleton is kept as OpenAssetTools dumped it (joint nodes and inverse bind matrices, byte for byte)
 # and only the mesh is replaced: BO4 vertices moved into the T6 mesh space (Greyhound: Z-up centimetres; T6: Y-up
 # inches), their joints renamed to T6 joints (a BO4-only bone, e.g. the armour's, rides j_gun).
-#   mg_magmagat_view / mg_magmus_view      skinned, the Magmus with the armour kit
+#   mg_magmagat_view / mg_magmus_view      skinned, the Magmus with the armour kit (mg_tempered_view / _up_view the same)
 #   mg_magmagat_world / mg_magmus_world    LOD0: the same mesh fitted on the T6 world gun, all on tag_weapon
 # Materials: the BO4 colour / normal maps on the Blundergat's lit material; the magma parts on the Acid Gat's
 # emberglow shader (reveal = BO4's crack mask, ember = BO4's magma glow noise coloured, heat = vanilla flicker).
@@ -26,10 +26,11 @@ use MgDds;
 my ( $raw, $dump ) = @ARGV;
 die "usage: build_magmagat_model.pl <out raw dir> <zm_prison dump dir>\n" unless $raw && $dump;
 my $gh = $ENV{MG_GREYHOUND} // 'C:/Games/t6/Greyhound-1.49.4.0';
-my $src = "$gh/exported_files/black_ops_3_sp/xmodels/wpn_t8_zm_magmagat_view";
+my $xg = "$gh/exported_files/black_ops_3_sp/xmodels";
 my $xi = "$gh/exported_files/black_ops_3/ximages";
-my ($src_gltf) = glob("$src/*_LOD0.gltf");
-die "build_magmagat_model.pl: no Greyhound export of wpn_t8_zm_magmagat_view in $src\n" unless $src_gltf;
+# [ BO4 view model, our base gun, our Pack-a-Punched gun (the armour kit) ]: the Magmagat and the tempered Blundergat
+# the fireplace hands back (BO4's own, its canisters burning blue)
+my @models = ( [ 'wpn_t8_zm_magmagat_view', 'mg_magmagat', 'mg_magmus' ], [ 'wpn_t8_zm_blundergat_tempered_view', 'mg_tempered', 'mg_tempered_up' ] );
 
 sub slurp { my $f = shift; open my $h, '<:raw', $f or die "$f: $!\n"; local $/; my $s = <$h>; close $h; $s }
 sub spit { my ( $f, $s ) = @_; ( my $d = $f ) =~ s{/[^/]+$}{}; make_path($d); open my $h, '>:raw', $f or die "$f: $!\n"; print $h $s; close $h }
@@ -69,8 +70,7 @@ sub raw_accessor_bytes {    # the tight bytes of an accessor (for the inverse bi
     return substr( $g->{_bufs}[ $bv->{buffer} ], ( $bv->{byteOffset} // 0 ) + ( $a->{byteOffset} // 0 ), $len );
 }
 
-# ---- the BO4 mesh
-my $bo4 = load_gltf( $src_gltf, $src );
+# ---- the BO4 meshes
 my %t6_of = (
     tag_weapon => 'j_gun', tag_hammer_animate => 'j_hammer', tag_swivel_animate => 'j_swivel', tag_loader_animate => 'j_loader',
     tag_brake_action_animate => 'tag_brake_action', tag_cap_le_animate => 'j_cap_le', tag_cap_ri_animate => 'j_cap_ri',
@@ -82,21 +82,29 @@ for my $side (qw(le ri)) {
     }
 }
 for my $n ( 1 .. 5 ) { $t6_of{"tag_chain_le_back_${n}_pba"} = "j_chain_le_ba_$n"; $t6_of{"tag_chain_le_front_${n}_pba"} = "j_chain_le_fr_$n" }
-my @bo4_joint = map { $bo4->{nodes}[$_]{name} } @{ $bo4->{skins}[0]{joints} };
-
-my @armor_mats = qw(mtl_wpn_t8_zm_blundergat_armor mtl_wpn_t8_zm_blundergat_armor_ember_red);
+my @armor_mats = qw(mtl_wpn_t8_zm_blundergat_armor mtl_wpn_t8_zm_blundergat_armor_ember_red mtl_wpn_t8_zm_blundergat_armor_ember_blue);
 my %is_armor = map { $_ => 1 } @armor_mats;
-my @prims;    # { mat, pos, nrm, uv, joints (bo4 names x4), weights, idx }
-for my $mesh ( @{ $bo4->{meshes} } ) {
-    for my $p ( @{ $mesh->{primitives} } ) {
-        my $at = $p->{attributes};
-        # Greyhound: Z-up centimetres -> T6 view mesh space: Y-up inches, (x, y, z) -> (x, z, -y)
-        my @pos = map { [ $_->[0] / 2.54, $_->[2] / 2.54, -$_->[1] / 2.54 ] } accessor( $bo4, $at->{POSITION} );
-        my @nrm = map { [ $_->[0], $_->[2], -$_->[1] ] } accessor( $bo4, $at->{NORMAL} );
-        push @prims, { mat => $bo4->{materials}[ $p->{material} ]{name}, pos => \@pos, nrm => \@nrm,
-            uv => [ accessor( $bo4, $at->{TEXCOORD_0} ) ], jn => [ map { [ map { $bo4_joint[$_] } @$_ ] } accessor( $bo4, $at->{JOINTS_0} ) ],
-            wt => [ accessor( $bo4, $at->{WEIGHTS_0} ) ], idx => [ map { $_->[0] } accessor( $bo4, $p->{indices} ) ] };
+sub bo4_prims {    # a Greyhound export -> ( { mat, pos, nrm, uv, joints (bo4 names x4), weights, idx } ... )
+    my $name = shift;
+    my $src = "$xg/$name";
+    my ($src_gltf) = glob("$src/*_LOD0.gltf");
+    die "build_magmagat_model.pl: no Greyhound export of $name in $src\n" unless $src_gltf;
+    my $bo4 = load_gltf( $src_gltf, $src );
+    my @bo4_joint = map { $bo4->{nodes}[$_]{name} } @{ $bo4->{skins}[0]{joints} };
+    my @prims;
+    for my $mesh ( @{ $bo4->{meshes} } ) {
+        for my $p ( @{ $mesh->{primitives} } ) {
+            next if $bo4->{materials}[ $p->{material} ]{name} eq 'nodraw';    # an invisible helper surface
+            my $at = $p->{attributes};
+            # Greyhound: Z-up centimetres -> T6 view mesh space: Y-up inches, (x, y, z) -> (x, z, -y)
+            my @pos = map { [ $_->[0] / 2.54, $_->[2] / 2.54, -$_->[1] / 2.54 ] } accessor( $bo4, $at->{POSITION} );
+            my @nrm = map { [ $_->[0], $_->[2], -$_->[1] ] } accessor( $bo4, $at->{NORMAL} );
+            push @prims, { mat => $bo4->{materials}[ $p->{material} ]{name}, pos => \@pos, nrm => \@nrm,
+                uv => [ accessor( $bo4, $at->{TEXCOORD_0} ) ], jn => [ map { [ map { $bo4_joint[$_] } @$_ ] } accessor( $bo4, $at->{JOINTS_0} ) ],
+                wt => [ accessor( $bo4, $at->{WEIGHTS_0} ) ], idx => [ map { $_->[0] } accessor( $bo4, $p->{indices} ) ] };
+        }
     }
+    return @prims;
 }
 
 # ---- output glTF on a T6 template's skeleton
@@ -203,12 +211,6 @@ sub without_bone {
     }
     return @out;
 }
-my @base = grep { !$is_armor{ $_->{mat} } } @prims;
-my @magmus = without_bone( 'tag_armor_acid', @prims );
-write_model( "$raw/model_export/mg_magmagat_view_lod0.gltf", $t6_view, \@base, $view_weights );
-write_model( "$raw/model_export/mg_magmus_view_lod0.gltf", $t6_view, \@magmus, $view_weights );
-printf "build_magmagat_model.pl: view: %d surfaces, BO4-only bones on j_gun: %s\n", scalar @prims, join( ' ', sort keys %unmapped ) || 'none';
-
 # world: the base mesh's box fitted on the T6 world gun's (uniform scale from the length, centres aligned)
 sub bounds {
     my @ps = @_;
@@ -220,14 +222,26 @@ sub bounds {
 my $tw = load_gltf( $t6_world, '.' );
 my @wpos = map { accessor( $tw, $_->{attributes}{POSITION} ) } map { @{ $_->{primitives} } } @{ $tw->{meshes} };
 my ( $wmn, $wmx ) = bounds(@wpos);
-my ( $bmn, $bmx ) = bounds( map { @{ $_->{pos} } } @base );
-my $s = ( $wmx->[0] - $wmn->[0] ) / ( $bmx->[0] - $bmn->[0] );
-my @off = map { ( $wmn->[$_] + $wmx->[$_] ) / 2 - $s * ( $bmn->[$_] + $bmx->[$_] ) / 2 } 0 .. 2;
-my $to_world = sub { map { $s * $_[$_] + $off[$_] } 0 .. 2 };
 my $root_only = sub { ( [ 0, 0, 0, 0 ], [ 1, 0, 0, 0 ] ) };
-write_model( "$raw/model_export/mg_magmagat_world_lod0.gltf", $t6_world, \@base, $root_only, $to_world );
-write_model( "$raw/model_export/mg_magmus_world_lod0.gltf", $t6_world, \@magmus, $root_only, $to_world );
-printf "build_magmagat_model.pl: world: scale %.3f, offset %.2f %.2f %.2f\n", $s, @off;
+
+my @all_prims;
+for my $m (@models) {
+    my ( $src, $base_name, $up_name ) = @$m;
+    my @prims = bo4_prims($src);
+    push @all_prims, @prims;
+    my @base = grep { !$is_armor{ $_->{mat} } } @prims;
+    my @up = without_bone( 'tag_armor_acid', @prims );
+    write_model( "$raw/model_export/${base_name}_view_lod0.gltf", $t6_view, \@base, $view_weights );
+    write_model( "$raw/model_export/${up_name}_view_lod0.gltf", $t6_view, \@up, $view_weights );
+    my ( $bmn, $bmx ) = bounds( map { @{ $_->{pos} } } @base );
+    my $s = ( $wmx->[0] - $wmn->[0] ) / ( $bmx->[0] - $bmn->[0] );
+    my @off = map { ( $wmn->[$_] + $wmx->[$_] ) / 2 - $s * ( $bmn->[$_] + $bmx->[$_] ) / 2 } 0 .. 2;
+    my $to_world = sub { map { $s * $_[$_] + $off[$_] } 0 .. 2 };
+    write_model( "$raw/model_export/${base_name}_world_lod0.gltf", $t6_world, \@base, $root_only, $to_world );
+    write_model( "$raw/model_export/${up_name}_world_lod0.gltf", $t6_world, \@up, $root_only, $to_world );
+    printf "build_magmagat_model.pl: %s: %d surfaces, world scale %.3f\n", $src, scalar @prims, $s;
+}
+printf "build_magmagat_model.pl: BO4-only bones on j_gun: %s\n", join( ' ', sort keys %unmapped ) || 'none';
 
 # ---- textures
 my %tex_done;
@@ -271,17 +285,25 @@ my %lit = (    # BO4 material -> [ colour, normal ]  (lit: the Blundergat's own 
     mtl_wpn_t8_zm_blundergat_armor => [ 'i_wpn_t8_zm_blundergat_armor_c', 'i_wpn_t8_zm_blundergat_armor_n' ],
     mtl_wpn_t8_zm_blundergat_frame => [ undef, 'i_wpn_t8_zm_blundergat_frame_n' ],
 );
-my %glow = (    # BO4 material -> [ crust colour source, reveal (crack mask), ember source ]  (emberglow: the Acid Gat's)
-    mtl_wpn_t8_zm_blundergat_magma => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_magma_glow_e' ],
-    mtl_wpn_t8_zm_blundergat_magma_barrel => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_magma_glow_e' ],
-    mtl_wpn_t8_zm_blundergat_magma_details => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_magma_glow_e' ],
-    mtl_wpn_t8_zm_blundergat_armor_ember_red => [ 'i_wpn_t8_zm_blundergat_armor_ember_c', 'i_wpn_t8_zm_blundergat_armor_ember_c', 'i_wpn_t8_zm_blundergat_armor_ember_c' ],
+my %glow = (    # BO4 material -> [ crust colour source, reveal (crack mask), ember source, colour ]  (emberglow: the Acid Gat's)
+    mtl_wpn_t8_zm_blundergat_magma => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_magma_glow_e', 'lava' ],
+    mtl_wpn_t8_zm_blundergat_magma_barrel => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_magma_glow_e', 'lava' ],
+    mtl_wpn_t8_zm_blundergat_magma_details => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_magma_glow_e', 'lava' ],
+    mtl_wpn_t8_zm_blundergat_armor_ember_red => [ 'i_wpn_t8_zm_blundergat_armor_ember_c', 'i_wpn_t8_zm_blundergat_armor_ember_c', 'i_wpn_t8_zm_blundergat_armor_ember_c', 'lava' ],
+    # the tempered gun: BO4 tints the acid canisters and the armour's embers blue (the essence)
+    mtl_wpn_t8_zm_blundergat_acid_barrel_blue => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_glow_e', 'blue' ],
+    mtl_wpn_t8_zm_blundergat_armor_ember_blue => [ 'i_wpn_t8_zm_blundergat_armor_ember_c', 'i_wpn_t8_zm_blundergat_armor_ember_c', 'i_wpn_t8_zm_blundergat_armor_ember_c', 'blue' ],
+);
+# colour -> [ crust tint (from the luminance), ember ramp (t = 0..1) ]
+my %ramp = (
+    lava => [ sub { my $l = shift; ( $l * 1.25, $l * 0.62, $l * 0.45 ) }, sub { my $t = shift; ( 255 * $t**0.55, 185 * $t**1.3, 60 * $t**2.6 ) } ],    # dark red -> orange -> yellow-white
+    blue => [ sub { my $l = shift; ( $l * 0.45, $l * 0.62, $l * 1.25 ) }, sub { my $t = shift; ( 70 * $t**2.2, 170 * $t**1.1, 255 * $t**0.5 ) } ],    # deep blue -> cyan -> white
 );
 my %lava = ( Emissiver_Amount => 16, Flicker_Min => 0.6, Flicker_Max => 1.45, Heat_Scale => 1.8, Ember_Scale => 1,
     Heat_Direction => [ 0.05, 0.08 ], Ember_Direction => [ -0.03, -0.06 ] );
 my $lit_tmpl = decode_json( slurp("$dump/materials/mc/mtl_t6_wpn_zmb_blundergat.json") );
 my $glow_tmpl = decode_json( slurp("$dump/materials/mc/mtl_t6_wpn_zmb_blundergat_acid.json") );
-my %used = map { $_->{mat} => 1 } @prims;
+my %used = map { $_->{mat} => 1 } @all_prims;
 for my $m ( sort keys %used ) {
     my $mat;
     if ( my $l = $lit{$m} ) {
@@ -297,14 +319,14 @@ for my $m ( sort keys %used ) {
         for my $t ( @{ $mat->{textures} } ) { $t->{image} = $img{ $t->{name} } // die "build_magmagat_model.pl: lit template slot $t->{name}\n" }
     }
     elsif ( my $g = $glow{$m} ) {
-        my ( $crust, $reveal, $ember ) = @$g;
+        my ( $crust, $reveal, $ember, $colour ) = @$g;
+        my ( $tint, $glow_ramp ) = @{ $ramp{$colour} };
         ( my $short = $m ) =~ s/^mtl_wpn_t8_zm_blundergat_//;
         my %img = (
-            # cooled lava crust: the crack mask darkened, a red-brown cast
-            Diffuse_Map => texture( "${short}_crust", png($crust), 'bc1', 1024, sub { my $l = $lum->(@_) * 0.3 + 10; ( $l * 1.25, $l * 0.62, $l * 0.45, 255 ) } ),
+            # the cooled crust: the crack mask darkened, cast in the colour
+            Diffuse_Map => texture( "${short}_crust", png($crust), 'bc1', 1024, sub { ( $tint->( $lum->(@_) * 0.3 + 10 ), 255 ) } ),
             EmberGlow_Reveal_Map => texture( "${short}_reveal", png($reveal), 'bc1', 1024, sub { my $l = $lum->(@_); ( $l, $l, $l, 255 ) } ),
-            # molten ramp: dark red -> orange -> yellow-white
-            Ember_Map => texture( "${short}_ember", png($ember), 'bc1', 1024, sub { my $t = $lum->(@_) / 255; ( 255 * $t**0.55, 185 * $t**1.3, 60 * $t**2.6, 255 ) } ),
+            Ember_Map => texture( "${short}_ember", png($ember), 'bc1', 1024, sub { ( $glow_ramp->( $lum->(@_) / 255 ), 255 ) } ),
             SpecularAndGloss => texture( 'magma_s', solid( 40, 30, 24, 120 ), 'bc3', 4 ),
             Normal_Map => 'global_normal_flat_16x16',
         );

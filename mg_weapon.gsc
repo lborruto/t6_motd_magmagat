@@ -31,6 +31,8 @@ mg_weapon_precache()
 {
     precacheitem( "magmagat_zm" );
     precacheitem( "magmagat_upgraded_zm" );
+    precacheitem( "mg_tempered_zm" );
+    precacheitem( "mg_tempered_upgraded_zm" );
 }
 
 // Pack-a-Punch reads level.zombie_weapons[name].upgrade_name (vanilla _zm_weapons::can_upgrade_weapon): the
@@ -56,13 +58,94 @@ mg_weapon_register()
     level.zombie_weapons["magmagat_zm"] = s;
     level.zombie_weapons_upgraded["magmagat_upgraded_zm"] = "magmagat_zm";
     level.zombie_include_weapons["magmagat_zm"] = 0;
+
+    // the tempered guns: known to vanilla's weapon code, out of the box, never Pack-a-Punched
+    foreach ( name in array( "mg_tempered_zm", "mg_tempered_upgraded_zm" ) )
+    {
+        t = spawnstruct();
+        t.weapon_name = name;
+        t.weapon_classname = "weapon_" + name;
+        t.is_in_box = 0;
+
+        if ( isdefined( base ) )
+        {
+            t.hint = base.hint;
+            t.cost = base.cost;
+            t.vox = base.vox;
+            t.vox_response = base.vox_response;
+            t.ammo_cost = base.ammo_cost;
+        }
+
+        level.zombie_weapons[name] = t;
+        level.zombie_include_weapons[name] = 0;
+    }
+}
+
+// The tempered gun the fireplace hands back for a Blundergat of this tier (BO4's model, its canisters burning blue).
+mg_tempered_of( weapon )
+{
+    if ( isdefined( weapon ) && ( weapon == "blundergat_upgraded_zm" || weapon == "blundersplat_upgraded_zm" ) )
+        return "mg_tempered_upgraded_zm";
+
+    return "mg_tempered_zm";
+}
+
+mg_is_tempered( weapon )
+{
+    return isdefined( weapon ) && ( weapon == "mg_tempered_zm" || weapon == "mg_tempered_upgraded_zm" );
+}
+
+// self = player. A tempered gun held outside its run (the temper spent while the player was down, a fabricated
+// state) turns back into the gun it was.
+mg_tempered_watch()
+{
+    self endon( "disconnect" );
+    level endon( "end_game" );
+
+    while ( true )
+    {
+        wait 1;
+
+        if ( !is_player_valid( self ) || ( mg_state_is( "run" ) && isdefined( level.mg_carrier ) && level.mg_carrier == self ) )
+            continue;
+
+        foreach ( w in array( "mg_tempered_zm", "mg_tempered_upgraded_zm" ) )
+        {
+            if ( self hasweapon( w ) )
+                self mg_tempered_give_back( w );
+        }
+    }
+}
+
+// self = player. The tempered gun back to the Blundergat it was (BO4: the original gun returns when the temper ends).
+mg_tempered_give_back( tempered )
+{
+    original = self.mg_tempered_from;
+
+    if ( !isdefined( original ) )
+        original = "blundergat_zm";
+    else if ( mg_tempered_of( original ) != tempered && tempered == "mg_tempered_upgraded_zm" )
+        original = "blundergat_upgraded_zm";
+    else if ( mg_tempered_of( original ) != tempered )
+        original = "blundergat_zm";
+
+    held = self getcurrentweapon() == tempered;
+    self takeweapon( tempered );
+
+    if ( !self hasweapon( original ) )
+        self giveweapon( original );
+
+    if ( held )
+        self switchtoweapon( original );
+
+    self.mg_tempered_from = undefined;
 }
 
 // The Magmagat a gun becomes at the forge: a Pack-a-Punched one (Sweeper, Vitriolic Withering) gives the Magmus
 // Operandi (BO4).
 mg_magma_of( weapon )
 {
-    if ( isdefined( weapon ) && ( weapon == "blundergat_upgraded_zm" || weapon == "blundersplat_upgraded_zm" ) )
+    if ( isdefined( weapon ) && ( weapon == "blundergat_upgraded_zm" || weapon == "blundersplat_upgraded_zm" || weapon == "mg_tempered_upgraded_zm" ) )
         return "magmagat_upgraded_zm";
 
     return "magmagat_zm";
@@ -117,6 +200,7 @@ mg_weapon_connect_watch()
     {
         player thread mg_weapon_shot_loop();
         player thread mg_weapon_hold_loop();
+        player thread mg_tempered_watch();
     }
 
     for ( ;; )
@@ -124,6 +208,7 @@ mg_weapon_connect_watch()
         level waittill( "connected", player );
         player thread mg_weapon_shot_loop();
         player thread mg_weapon_hold_loop();
+        player thread mg_tempered_watch();
     }
 }
 

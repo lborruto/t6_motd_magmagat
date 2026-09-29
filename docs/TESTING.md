@@ -36,7 +36,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 0b. The look, in one pass
 
 - [ ] `!mg tour`: eight labelled stops (the fireplace, a soul orb rising, taken and flying to its skull, a full skull,
-      the hell portal and the rising gun, a burning barrel, the forge, the lava blob, the molten pool). Every
+      the blue fire and the rising gun, a burning drum, the forge, the lava blob, the molten pool). Every
       effect is visible and every sound heard (the BO3 remaster's own: the flame burst when the gun goes in, the soul
       kill and its hum, the press at the forge, the warden's line at the end); note the step number of anything to change.
 
@@ -44,8 +44,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] Before anyone reaches the Golden Gate Bridge (the plane's landing): state stays `locked`, no prompt at the hearth even with a Blundergat in
       hand.
+- [ ] While `locked`, five broken boards cross the fireplace (`!mg goto locked` puts them back).
 - [ ] Reach the bridge, or `!mg bridge` (the same requirement met, without the plane), or `!mg goto ready`: state
-      becomes `ready`. `!mg bridge` in any other state says the fireplace is already open.
+      becomes `ready` and the boards burn away (the remaster's burn effect, a flame burst). `!mg bridge` in any other
+      state says the fireplace is already open.
 - [ ] Holding a Blundergat, a Sweeper, an Acid Gat or a Vitriolic Withering (`blundergat_zm`, `blundergat_upgraded_zm`,
       `blundersplat_zm`, `blundersplat_upgraded_zm`), pressing use at the hearth lays the gun in the fire (no on-screen
       prompt, as the original) and a laugh plays. Holding none of them: nothing.
@@ -77,7 +79,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 3. The deposit and the pickup
 
 - [ ] At 15 souls, press use at the hearth: the skulls go dark one by one (0.5 s apart, a soul drains from each into
-      the fire), a flare-up, and a second later the blue hell portal opens in the fire and the tempered gun rises,
+      the fire), a flare-up, and a second later the fire burns blue and the tempered gun rises (BO4's, its canisters blue),
       state `pickup`. (`!mg goto pickup` fabricates this directly.)
 - [ ] Take the gun within 30 s: state moves to `run`, you are now the carrier.
 - [ ] **Failure path**: let the 30 s expire: the gun vanishes (fail sound, laugh) and is lost. State `ready`.
@@ -86,13 +88,16 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] `!mg goto run` (or take the tempered gun honestly): state is `run`, a flame rides the gun and the five barrels
       burn (no timer on screen: the flame is the only indicator; `!mg status` prints the seconds left).
-- [ ] The tempered gun and the five drums (the remaster's dark-green drums) carry a blue flame.
+- [ ] In your hands the tempered gun is BO4's tempered Blundergat (a Sweeper gives the tempered Sweeper with its
+      armour): its canisters glow blue and flicker in first person; others see a blue flame on it.
+- [ ] The five drums (the remaster's dark-green drums) burn blue from inside, the flames rising out of the rim.
 - [ ] Walking up to a burning drum (64 units) refills the temper to 25 s: a flare, a whoosh, a rumble, and that
       drum goes out for the rest of the run. A spent drum does nothing.
 - [ ] Firing the tempered gun once ends the run (the essence is spent), state `ready`.
 - [ ] In the last 5 s the flame flickers every half second with a rumble and a tick.
 - [ ] **Failure paths**: the temper runs out; you switch away from the gun (a quarter second is forgiven); you go
-      down. Each: the flame dies, you keep the gun, state `ready` (temper again at the fireplace).
+      down. Each: the flame dies, the tempered gun turns back into the gun you placed, state `ready` (temper again at
+      the fireplace). Going down: it turns back once you are up.
 
 ## 5. The forge
 

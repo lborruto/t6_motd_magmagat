@@ -5,6 +5,7 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_run;
+#include scripts\zm\zm_prison\mg_weapon;
 
 // The fireplace, after BO4 Blood of the Dead (zm_escape_weap_quest_mg.gsc) and the BO3 remaster: the gun in the fire,
 // 15 souls from zombies that die in the Warden's Office, taken by walking into them and flying to three skulls
@@ -33,6 +34,7 @@ mg_hearth_init()
     level thread mg_hearth_state_watch();
     level.mg_lock_gen = 0;
     level thread mg_lockdown_watch();
+    level thread mg_planks_watch();
 }
 
 // The hearth fire: normal flame in every state but pickup / run (blue) and locked (nothing extra).
@@ -48,7 +50,6 @@ mg_hearth_fire()
 
         if ( isdefined( level.mg_hearth_portal ) )
         {
-            mg_fx_once( "hearth_close", level.mg_hearth_portal.origin );
             mg_fx_stop( level.mg_hearth_portal );
             level.mg_hearth_portal = undefined;
         }
@@ -61,11 +62,10 @@ mg_hearth_fire()
             level thread mg_fx_keepalive( level.mg_hearth_fx );
         }
 
-        // the tempered gun waits in the hell portal of the wolf heads, facing the room
+        // the tempered gun waits in the remaster's blue fire (its flames rise from 30 units over the effect: from the gun)
         if ( mg_state_is( "pickup" ) )
         {
-            out = vectortoangles( mg_coord( "MG_HEARTH_USE" ).origin - pos );
-            level.mg_hearth_portal = mg_fx_loop( "hearth_blue", pos, ( 0, out[1], 0 ) );
+            level.mg_hearth_portal = mg_fx_loop( "hearth_blue", pos - ( 0, 0, 30 ) );
             mg_snd_near( "evt_wolfhead_spawn", pos, 1200 );
 
             if ( isdefined( level.mg_hearth_portal ) )
@@ -349,7 +349,7 @@ mg_skull_light( idx )
         mg_fx_stop( level.mg_skull_fx[idx] );
 
     skull setmodel( mg_model( "skull_lit" ) );
-    ent = mg_fx_loop( "soul_full", skull.origin + ( 0, 0, 2 ) );
+    ent = mg_fx_loop( "soul_full", skull.origin - ( 0, 0, 3.5 ) ); // at the skull's foot, as the remaster's skull fire
     level.mg_skull_fx[idx] = ent;
 
     if ( isdefined( ent ) )
@@ -481,8 +481,14 @@ mg_hearth_deposit( player )
 
     mg_state_set( "pickup" );
 
+    // the gun in the blue fire is the tempered one now
     if ( isdefined( level.mg_hearth_gun ) )
+    {
+        c = level.mg_hearth_gun;
+        level.mg_hearth_gun = spawn_weapon_model( mg_tempered_of( level.mg_hearth_weapon ), undefined, c.origin, c.angles );
+        c delete();
         level.mg_hearth_gun moveto( level.mg_hearth_gun.origin + ( 0, 0, 14 ), 3 );
+    }
 
     level thread mg_hearth_pickup_window();
 }
@@ -516,18 +522,18 @@ mg_hearth_take( player )
     if ( !isdefined( weapon ) )
         weapon = "blundergat_zm";
 
+    // the fire hands back the tempered gun (the remaster's t8 tempered Blundergat); the temper spent, the gun returns
+    tempered = mg_tempered_of( weapon );
     current = player getcurrentweapon();
     primaries = player getweaponslistprimaries();
 
-    if ( !player hasweapon( weapon ) )
-    {
-        if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( player ) )
-            player takeweapon( current );
+    if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( player ) )
+        player takeweapon( current );
 
-        player giveweapon( weapon );
-    }
-
-    player switchtoweapon( weapon );
+    player giveweapon( tempered );
+    player switchtoweapon( tempered );
+    player.mg_tempered_from = weapon;
+    weapon = tempered;
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun delete();
@@ -567,6 +573,68 @@ mg_lockdown_watch()
 
         on = want;
         wait 0.25;
+    }
+}
+
+// The remaster's planks (mg_wood_barrier): five broken boards across the fireplace while it is locked, burning away
+// (its burn-barrier effect and flame burst) once the plane has reached the bridge. Placed where the remaster stands
+// them, brought onto BO2's office by the same fit as the lockdown.
+mg_planks_watch()
+{
+    level endon( "end_game" );
+    level.mg_planks = [];
+
+    while ( true )
+    {
+        if ( mg_state_is( "locked" ) && !level.mg_planks.size )
+            mg_planks_spawn();
+        else if ( !mg_state_is( "locked" ) && level.mg_planks.size )
+            mg_planks_burn();
+
+        level waittill( "mg_state" );
+    }
+}
+
+mg_planks_spawn()
+{
+    planks = [];
+    planks[planks.size] = array( ( -481.5, 8798.3, 1368.5 ), ( 274.199, 316.399, 89.9983 ), "plank_l" );
+    planks[planks.size] = array( ( -481.1, 8798.0, 1357.6 ), ( 276.901, 136.393, -89.9956 ), "plank_l" );
+    planks[planks.size] = array( ( -480.8, 8797.7, 1350.4 ), ( 270.5, 136.353, -89.9553 ), "plank_l" );
+    planks[planks.size] = array( ( -467.5, 8786.5, 1356.9 ), ( 13.3998, 136.397, -90.0049 ), "plank" );
+    planks[planks.size] = array( ( -480.7, 8799.0, 1358.8 ), ( 354.698, 136.396, -90.0039 ), "plank" );
+    level.mg_planks = [];
+
+    foreach ( p in planks )
+    {
+        plank = spawn( "script_model", p[0] );
+        plank.angles = p[1];
+        plank setmodel( mg_model( p[2] ) );
+        level.mg_planks[level.mg_planks.size] = plank;
+    }
+}
+
+mg_planks_burn()
+{
+    planks = level.mg_planks;
+    level.mg_planks = [];
+    pos = mg_coord( "MG_HEARTH" ).origin;
+    mg_snd_near( "mg_flame_burst", pos, 1500 );
+
+    foreach ( plank in planks )
+        mg_fx_once( "plank_burn", plank.origin, 3, plank.angles );
+
+    level thread mg_planks_delete( planks );
+}
+
+mg_planks_delete( planks )
+{
+    wait 1.2;
+
+    foreach ( plank in planks )
+    {
+        if ( isdefined( plank ) )
+            plank delete();
     }
 }
 

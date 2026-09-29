@@ -269,7 +269,7 @@ mg_debug_tour()
     lit = spawn( "script_model", skull );
     lit setmodel( mg_model( "skull_lit" ) );
     lit.angles = mg_coord( "MG_SKULL_1" ).angles;
-    glow = mg_fx_loop( "soul_full", skull + ( 0, 0, 2 ) );
+    glow = mg_fx_loop( "soul_full", skull - ( 0, 0, 3.5 ) );
 
     if ( isdefined( glow ) )
         glow playloopsound( "evt_runeglow_loop" );
@@ -279,9 +279,9 @@ mg_debug_tour()
     mg_fx_stop( glow );
     lit delete();
 
-    // 4. 15 souls given: the hell portal opens in the fire, the tempered gun rises
-    self mg_tour_look( "4/8 15 souls given: the hell portal opens, the tempered gun rises", use, hearth );
-    portal = mg_fx_loop( "hearth_blue", hearth, ( 0, vectortoangles( use - hearth )[1], 0 ) );
+    // 4. 15 souls given: the fire burns blue, the tempered gun rises
+    self mg_tour_look( "4/8 15 souls given: the fire burns blue, the tempered gun rises", use, hearth );
+    portal = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 30 ) );
     self playsoundtoplayer( "evt_wolfhead_spawn", self );
 
     if ( isdefined( portal ) )
@@ -291,7 +291,6 @@ mg_debug_tour()
         gun moveto( gun.origin + ( 0, 0, 14 ), 3 );
 
     wait 4;
-    mg_fx_once( "hearth_close", hearth );
     mg_fx_stop( portal );
 
     if ( isdefined( gun ) )
@@ -300,7 +299,7 @@ mg_debug_tour()
     // 5. the run: a lit barrel, the temper on the gun
     b = mg_coord( "MG_BARREL_1" ).origin;
     self mg_tour_look( "5/8 The run: a barrel burning (refills the temper)", b + ( 90, 90, 40 ), b + ( 0, 0, 20 ) );
-    fire = mg_fx_loop( "barrel_fire", b + ( 0, 0, 14 ) );
+    fire = mg_fx_loop( "barrel_fire", b - ( 0, 0, 22.37 ) );
 
     if ( isdefined( fire ) )
         fire playloopsound( "amb_fire_sml" );

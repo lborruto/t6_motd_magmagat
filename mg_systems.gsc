@@ -44,7 +44,7 @@ mg_fx_table()
     // the hearth: a real fire; the hell portal of the wolf heads opens in it for the tempered gun
     t["hearth_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
     t["hearth_blue"] = "mg/fx_alcatraz_blue_flame_loop"; // the remaster's blue fire, the tempered gun in it
-    t["hearth_close"] = "maps/zombie_alcatraz/fx_alcatraz_portal_hell_close";
+    t["plank_burn"] = "mg/fx_alcatraz_magmagat_burn_barrier"; // the remaster's: the fireplace's planks burning away
     t["lockdown"] = "mg/fx_alcatraz_lockdown_wardens"; // the remaster's lockdown: the office's door and walls outlined
     t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the deposit's flare-up
     t["gun_vanish"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a gun not taken in time vanishes

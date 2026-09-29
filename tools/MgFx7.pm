@@ -29,7 +29,7 @@ sub elem_flags {
     my ( $f7, $e ) = @_;
     my $f = $f7 & 0xff;
     $f |= ( ( $f7 >> 9 ) & 0xf ) << 8;
-    $f |= $f7 & ( ( 1 << 23 ) | ( 1 << 28 ) | ( 1 << 29 ) | ( 1 << 31 ) );
+    $f |= $f7 & ( ( 1 << 23 ) | ( 1 << 28 ) | ( 1 << 31 ) );    # T7 bit 29 is BO3's own (never on a T6 light)
     my $nz = sub { scalar grep { abs($_) > 1e-9 } @_ };
     $f |= 1 << 24 if $nz->( map { ( @{ $_->{local}{velocity}{base} }, @{ $_->{local}{velocity}{amplitude} } ) } @{ $e->{velSamples} } );
     $f |= 1 << 25 if $nz->( map { ( @{ $_->{world}{velocity}{base} }, @{ $_->{world}{velocity}{amplitude} } ) } @{ $e->{velSamples} } );
@@ -140,7 +140,7 @@ sub convert {
             rotationAxis => unpack( 'V', substr( $b, 168, 4 ) ),
             gravity => f2( $b, 172 ), reflectionFactor => f2( $b, 180 ),
             atlas => {
-                behavior => $abeh & 0x7f, index => $aidx, fps => $afps, loopCount => $aloop ? $aloop - 1 : 0,
+                behavior => $abeh & 0x0f, index => $aidx, fps => $afps, loopCount => $aloop > 1 ? $aloop - 1 : 1,    # BO3 adds behavior bits above T6's 0-15; T6 counts loops from 1
                 colIndexBits => $acol, rowIndexBits => $arow,
                 entryCountAndIndexRange => ( ( ( $arange // 1 ) * 2 ) << 8 ) | ( 1 << ( $acol + $arow ) ),
             },
@@ -161,7 +161,13 @@ sub convert {
         $e->{flags} = elem_flags( unpack( 'V', substr( $b, 0, 4 ) ), $e );
         # a view-model effect (effect flag 1): T6 draws its effect-relative, gravity-free elements with the view model (bit 12)
         $e->{flags} |= 1 << 12 if ( $flags & 1 ) && ( $e->{flags} & 0xc0 ) == 0x80 && !( $e->{flags} & ( 1 << 26 ) );
-        if ( $type == 6 ) { $e->{cloudDensityRange} = [ 0, 0 ] }
+        # the union after the wind fields: a cloud's particle density (ints at 508 / 512); sprites keep T6's trim of 1
+        # models, lights and runners draw no flipbook and take no lighting fraction (vanilla leaves them zero)
+        if ( $type == 7 || $type == 8 || $type == 9 || $type == 12 ) {
+            $e->{atlas} = { map { $_ => 0 } qw(behavior index fps loopCount colIndexBits rowIndexBits entryCountAndIndexRange) };
+            $e->{lightingFrac} = 0;
+        }
+        if ( $type == 6 ) { $e->{cloudDensityRange} = i2( $b, 508 ) }
         else              { $e->{billboardTrim} = [ 1, 1 ] }
         if ( $type == 5 ) { $e->{trail} = $self->trail( ptr( $b, 488 ), "$name element $i" ) }
         if ( $type == 9 ) { $e->{spotLight} = { fovInnerFraction => 0.5, startRadius => 1, endRadius => 1 }; push @notes, "element $i: spot light cone guessed" }

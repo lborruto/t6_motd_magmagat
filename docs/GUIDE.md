@@ -19,7 +19,8 @@ has to happen first: the quest does not care what round it is or how many player
 <details>
 <summary>The fireplace</summary>
 
-Head to the fireplace in the Warden's Office holding one of those guns. Stand at the hearth and press use (no
+The fireplace in the Warden's Office is boarded up until someone has reached the bridge; then the boards burn away.
+Head to it holding one of those guns. Stand at the hearth and press use (no
 prompt shows): the gun goes into the fire, a laugh answers, and the quest begins.
 
 </details>
@@ -36,7 +37,7 @@ The office belongs to the player who placed the gun. If that player spends **10 
 taken so far are lost (the skulls go dark). **30 seconds** outside, or dying, and the fire lets go: the gun is lost.
 
 At 15, press use at the hearth again. The skulls drain into the fire one after the other, the fire flares, and a
-second later it opens into a blue hell portal with the tempered gun rising in it.
+second later it burns blue with the tempered gun rising in it: your Blundergat, its canisters now burning blue.
 
 </details>
 
@@ -50,8 +51,8 @@ The tempered gun carries a blue flame, its essence, and it is a **25-second** te
 stairs, the Citadel, the tunnels, the docks): walking up to one refills the temper to full, but each works **once per
 run** and goes out after. In the last 5 seconds the flame flickers and the gun shakes.
 
-Fire it, switch weapons, go down, or let the temper run out, and the flame dies: you keep your gun, and it is back to
-the fireplace for a new temper.
+Fire it, switch weapons, go down, or let the temper run out, and the flame dies: the tempered gun turns back into your
+Blundergat, and it is back to the fireplace for a new temper.
 
 </details>
 

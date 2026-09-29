@@ -5,6 +5,7 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_forge;
+#include scripts\zm\zm_prison\mg_weapon;
 
 // The temper run, after BO4 and the BO3 remaster: 25 s of flame, a shot spends it all, each of the five barrels refills it to full ONCE per run
 // (it burns while a tempered gun is out and goes out once spent), the flame flickers in the last 5 s, switching
@@ -40,7 +41,7 @@ mg_barrels_set( lit )
         if ( !lit )
             continue;
 
-        ent = mg_fx_loop( "barrel_fire", barrel.origin + ( 0, 0, 14 ) );
+        ent = mg_fx_loop( "barrel_fire", mg_barrel_base( barrel ) );
 
         if ( isdefined( ent ) )
         {
@@ -57,8 +58,15 @@ mg_barrel_spend( barrel )
     barrel.mg_spent = 1;
     mg_fx_stop( barrel.mg_fx );
     barrel.mg_fx = undefined;
-    mg_fx_once( "barrel_flare", barrel.origin + ( 0, 0, 14 ) );
+    mg_fx_once( "barrel_flare", mg_barrel_base( barrel ) );
     mg_snd_near( "zmb_plane_fire_whoosh", barrel.origin, 900 );
+}
+
+// The remaster plays its drum flame at the drum's foot (str_barrel_fire, where the drum stands; the flames rise inside
+// the rim): our drum's pivot is at mid height, 22.37 units up.
+mg_barrel_base( barrel )
+{
+    return barrel.origin - ( 0, 0, 22.37 );
 }
 
 // pickup -> run
@@ -220,6 +228,9 @@ mg_run_fail_do( reason )
     if ( isdefined( level.mg_carrier ) && is_player_valid( level.mg_carrier ) )
     {
         level.mg_carrier mg_snd_player( "wpn_blundersplat_explode_layer" );
+
+        if ( isdefined( level.mg_run_weapon ) && level.mg_carrier hasweapon( level.mg_run_weapon ) )
+            level.mg_carrier mg_tempered_give_back( level.mg_run_weapon );
     }
 
     mg_run_cleanup();
@@ -263,7 +274,16 @@ mg_run_fabricate( state )
         if ( !isdefined( weapon ) )
             weapon = "blundergat_zm";
 
-        level thread mg_run_start_delayed( self, weapon );
+        // the run carries the tempered gun
+        tempered = mg_tempered_of( weapon );
+
+        if ( self hasweapon( weapon ) )
+            self takeweapon( weapon );
+
+        self giveweapon( tempered );
+        self switchtoweapon( tempered );
+        self.mg_tempered_from = weapon;
+        level thread mg_run_start_delayed( self, tempered );
     }
 }
 

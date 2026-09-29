@@ -17,7 +17,6 @@ use File::Path qw(make_path remove_tree);
 use JSON::PP;
 use MgSnap;
 use MgFx7;
-use MgPng;
 
 my $repo = "$FindBin::Bin/..";
 my $work = "$repo/mod/work";
@@ -41,7 +40,10 @@ unless ( -d "$tdump/materials" ) {
         or die "bo3_fx.pl: the effect dump failed (set MG_OAT_FX)\n";
 }
 my %tmpl = (
-    blend => 'gfx_fxt_fire_flame_vert_e_blnd', distortion => 'gfx_distortion_heat', cloud => 'gfx_fxt_debris_fire_ember_cloud_01i',
+    # soft (depth-feathered) sprites, as BO3 draws them: BO3's emissive fire as T6 draws its own fire, additive; lit
+    # blends (smoke, dust) alpha-blended
+    emissive => 'gfx_fxt_fire_flame_vert_e', blend => 'gfx_fxt_smk_gen_z40', distortion => 'gfx_distortion_heat',
+    cloud => 'gfx_fxt_debris_fire_ember_cloud_01i',
     decal_mc => 'mc/gfx_impact_liquid_spatter01', decal_wc => 'wc/gfx_impact_liquid_spatter01',
 );
 my %tj = map { $_ => decode_json( slurp("$tdump/materials/$tmpl{$_}.json") ) } keys %tmpl;
@@ -111,7 +113,7 @@ for my $mn ( sort keys %mats ) {
     my $m = $c->material( $mats{$mn} ) or do { warn "bo3_fx.pl: material $mn not captured\n"; $warn++; next };
     next if $mn =~ m{^vd/};    # a decal's second (model) material: made with the first
     my $t = $m->{techset};
-    my $kind = $t =~ /lit_weapon_impact|decal/ ? 'decal' : $t =~ /distort/ ? 'distortion' : $t =~ /cloud/ ? 'cloud' : $t =~ /_add\b|additive/ ? 'add' : $t =~ /emissive/ ? 'emissive' : 'blend';
+    my $kind = $t =~ /lit_weapon_impact|decal/ ? 'decal' : $t =~ /distort/ ? 'distortion' : $t =~ /cloud/ ? 'cloud' : $t =~ /_add\b|additive|emissive/ ? 'emissive' : 'blend';
     my $color = $m->{images}{a0ab1041};
     # a texture whose name the snapshot missed: BO3 names it after its material (gfx_<x>_em -> fxt_<x>, i_<material>, ...)
     if ( !defined $color ) {
@@ -129,8 +131,8 @@ for my $mn ( sort keys %mats ) {
         next;
     }
     my $img = "mg_" . lc $color;
-    $images{$img} = [ $png{ lc $color }, $kind eq 'emissive' ];
-    my @out = $kind eq 'decal' ? ( [ "mc/" . t6mat($mn), $tj{decal_mc} ], [ "wc/" . t6mat($mn), $tj{decal_wc} ] ) : ( [ t6mat($mn), $tj{ $kind eq 'distortion' || $kind eq 'cloud' ? $kind : 'blend' } ] );
+    $images{$img} = [ $png{ lc $color } ];
+    my @out = $kind eq 'decal' ? ( [ "mc/" . t6mat($mn), $tj{decal_mc} ], [ "wc/" . t6mat($mn), $tj{decal_wc} ] ) : ( [ t6mat($mn), $tj{$kind} ] );
     for my $o (@out) {
         my ( $name, $tpl ) = @$o;
         my $j = decode_json( encode_json($tpl) );
@@ -139,32 +141,19 @@ for my $mn ( sort keys %mats ) {
             if ( $tex->{name} eq 'colorMap' ) { $tex->{image} = "*$img" }
             elsif ( $tex->{name} eq 'normalMap' ) {
                 my $n = $m->{images}{'59d30d0f'};
-                if ( defined $n && $png{ lc $n } ) { $tex->{image} = '*mg_' . lc $n; $images{ 'mg_' . lc $n } = [ $png{ lc $n }, 0, 'normal' ] }
+                if ( defined $n && $png{ lc $n } ) { $tex->{image} = '*mg_' . lc $n; $images{ 'mg_' . lc $n } = [ $png{ lc $n }, 'normal' ] }
                 else { $tex->{image} = 'global_normal_flat_16x16' }
             }
             elsif ( $tex->{name} eq 'specularMap' ) { $tex->{image} = '$black' }
         }
-        # the blend: emissive blend is premultiplied (the texture is multiplied by its alpha below), additive adds
-        my $sb = $j->{stateBits}[0];
-        if    ( $kind eq 'emissive' ) { @$sb{qw(srcBlendRgb dstBlendRgb)} = qw(one invsrcalpha) }
-        elsif ( $kind eq 'add' )      { @$sb{qw(srcBlendRgb dstBlendRgb)} = qw(srcalpha one) }
         spit( "$raw/materials/$name.json", $json->encode($j) );
     }
 }
 
-# images: premultiplied for emissive blend, BC3 (the alpha matters), BC5 normals
+# images: BC3 (the alpha matters), BC5 normals
 for my $img ( sort keys %images ) {
-    my ( $src, $premul, $normal ) = @{ $images{$img} };
-    my $in = $src;
-    if ($premul) {
-        my $p = MgPng::read($src);
-        my $px = $p->{px};
-        for ( my $i = 0; $i < @$px; $i += 4 ) { my $a = $px->[ $i + 3 ] / 255; $px->[ $i + $_ ] = int( $px->[ $i + $_ ] * $a + 0.5 ) for 0 .. 2 }
-        $in = "$work/fxpng/$img.png";
-        make_path("$work/fxpng");
-        MgPng::write( $in, $p );
-    }
-    system( 'perl', "$FindBin::Bin/png2dds.pl", $in, "$raw/images/_$img.dds", $normal ? 'bc5' : 'bc3' ) == 0 or die "bo3_fx.pl: png2dds failed on $in\n";
+    my ( $src, $normal ) = @{ $images{$img} };
+    system( 'perl', "$FindBin::Bin/png2dds.pl", $src, "$raw/images/_$img.dds", $normal ? 'bc5' : 'bc3' ) == 0 or die "bo3_fx.pl: png2dds failed on $src\n";
 }
 
 # the zone: our fx block replaces the previous one
