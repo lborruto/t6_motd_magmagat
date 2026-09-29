@@ -72,11 +72,11 @@ converts straight away, no fresh temper run needed.
 <details>
 <summary>The weapon</summary>
 
-The Magmagat is a weapon of its own: the Blundergat's frame, charred, with two lava tanks glowing and
-flickering on its sides, a small flame riding it while you hold it, and its own name. It reloads like a
-Blundergat, but it fires with a burst of flame and red-hot streaks, and every shot also throws a ball of lava. A
+The Magmagat is the Black Ops 4 gun: its own model and name, the molten canisters and barrels glowing and
+flickering, a small flame riding it while you hold it. It handles and reloads like a Blundergat, but it fires with a
+burst of flame and red-hot streaks, and every shot also throws a tumbling blob of lava. A
 ball that lands on a zombie sticks and explodes it and everything around it a moment later; a shot that
-misses leaves a burning patch on the ground instead, which keeps damaging zombies that walk through it for a
+misses leaves a molten pool on the ground instead, which keeps damaging zombies that walk through it for a
 few seconds.
 
 Brutus is different: a lava ball or a patch burns him steadily, but neither one can kill him outright — he

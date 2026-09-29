@@ -1,0 +1,66 @@
+name: Release the player zip
+
+# The player downloads ONE zip: the zm_magmagat folder for %LOCALAPPDATA%\Plutonium\storage\t6\mods\.
+# Its mod.ff is built from the games' own files, which never leave the maintainer's PC: tools/publish.pl builds it
+# and publishes the GitHub Release v<version> with mod.ff attached. This workflow then does the rest from the tagged
+# sources: lints, packs the quest scripts, assembles the folder (mod.ff, mod.json with the version,
+# scripts/zm/zm_prison/zm_prison_magmagat*.gsc), zips it, attaches zm_magmagat-<version>.zip and removes the bare
+# mod.ff so the release offers the zip alone.
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to (re)build the zip for, e.g. v0.2.0 (its mod.ff must be attached)'
+        required: true
+
+permissions:
+  contents: write             # upload / delete release assets
+
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.event.release.tag_name || github.event.inputs.tag }}
+    steps:
+      - name: Check out the tagged sources
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: The tag matches the version in mg_main.gsc
+        id: ver
+        run: |
+          VERSION=$(grep -m1 -o 'level\.mg_version = "[^"]*"' mg_main.gsc | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$TAG" != "v$VERSION" ]; then echo "Tag $TAG does not match level.mg_version $VERSION"; exit 1; fi
+
+      - name: Lint the sources
+        run: perl tools/lint_includes.pl && perl tools/lint_sounds.pl && perl tools/lint_calls.pl && perl tools/check_links.pl .
+
+      - name: Get the release's mod.ff
+        run: |
+          mkdir -p dl
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern 'mod.ff' --dir dl
+          ls -la dl
+
+      - name: Assemble the mod folder
+        run: |
+          D=release/zm_magmagat
+          mkdir -p "$D/scripts/zm/zm_prison"
+          cp dl/mod.ff "$D/mod.ff"
+          perl -pe 's/("version"\s*:\s*")[^"]*"/${1}${{ steps.ver.outputs.version }}"/' mod/mod.json > "$D/mod.json"
+          # one packed file if it fits, else two, else three (as tools/release.pl)
+          perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 1 \
+            || perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 2 \
+            || perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 3
+          find "$D" -type f | xargs ls -la
+
+      - name: Zip and attach it
+        run: |
+          ZIP="zm_magmagat-${{ steps.ver.outputs.version }}.zip"
+          (cd release && zip -r -9 "../$ZIP" zm_magmagat)
+          gh release upload "$TAG" "$ZIP" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release delete-asset "$TAG" mod.ff --repo "$GITHUB_REPOSITORY" --yes

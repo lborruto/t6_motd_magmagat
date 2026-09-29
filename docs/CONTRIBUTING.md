@@ -51,9 +51,9 @@ change.
 | `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, shot watcher, lava ball, magma patch |
 | `mg_debug.gsc` | shock pistol, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg spots` |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
-| `tools/import_all.pl`, `tools/import_prop.pl`, `tools/bake_layers.pl`, `tools/build_weapon.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain and the release (see "The mod.ff") |
+| `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/bake_layers.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_fx.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain and the release (see "The mod.ff") |
 | `mod/zone_source/mod.zone`, `mod/mod.json`, `mod/templates/` | the fastfile's asset list (its blocks are written by the tools), the mod's name card, the material template for BO3 props |
-| `.github/workflows/check.yml` | lints and a pack test on every push (the release is built locally: it needs the game's files) |
+| `.github/workflows/check.yml`, `.github/workflows/release.yml`, `tools/publish.pl` | lints and a pack test on every push; the player zip when a release is published (see "The GitHub Actions") |
 | `README.md`, `LICENSE`, `docs/GUIDE.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md` | end-user and contributor docs |
 
 Anchor keys (all in `mg_coords.gsc`): `MG_HEARTH` (gun rest in the fire), `MG_HEARTH_USE` (where the player
@@ -104,7 +104,8 @@ perl tools/import_all.pl       # the BO3 props from the Greyhound export -> mod/
 perl tools/build_weapon.pl     # the Magmagat weapons from BO2's Blundergat -> mod/weapon (--redump to dump again)
 perl tools/build_mod.pl        # OpenAssetTools Linker -> mod/out/mod.ff + mod.json, installed into the mod folder
 perl tools/deploy.pl           # the scripts, beside it
-perl tools/release.pl          # release/zm_magmagat/ (the folder players drop into mods\) + its zip
+perl tools/release.pl          # release/zm_magmagat/ (the folder players drop into mods\) + its zip, to try it locally
+perl tools/publish.pl          # the GitHub Release: mod.ff up, the release workflow attaches the player zip
 ```
 
 Needs OpenAssetTools (`C:/Games/t6/openassettools`, env `MG_OAT`), the BO2 install (env `MG_BO2`) and, for the
@@ -118,26 +119,44 @@ games' files and are never committed.
   lit template, and its textures embedded in the fastfile as `*mg_<name>` images. A texture given a plain name makes
   the Linker write a STREAMED image, which T6 only looks for in its own `.ipak` files: it never shows. A BO3 layered
   material (a paint and a rust layer through a mask) is baked into one colour map by `tools/bake_layers.pl`;
-  `--skip` drops surfaces T6 cannot draw (the barrel's transparent shell, its alpha decal).
+  `--skip` drops surfaces T6 cannot draw (the barrel's transparent shell, its alpha decal). Textures are block
+  compressed by `tools/MgDds.pm` (BC1 colour, BC5 normal): the fastfile stays small.
 - **The Magmagat** (`tools/build_weapon.pl`): the Unlinker dumps zm_prison's weapons, models, materials and images
   (the map's images sit in DLC `.ipak` files it only opens under a name it loads itself, so they are hard-linked as
-  unused language bases for the dump). `magmagat_zm` copies `blundergat_zm` and shows the Acid Gat's tanks;
-  `magmagat_upgraded_zm` copies `blundergat_upgraded_zm` (armour kit attached). Same bones, animations, sounds and
-  effects; the view / world / armour models get our materials, whose colour and ember maps are the Blundergat's
-  recoloured by `tools/recolor.pl` (the emberglow shader of the Acid Gat animates the lava: `%lava` in the tool turns
-  its glow, flicker and heat scroll up). The display names come from `english/localizedstrings/mg_weapons.str`.
+  unused language bases for the dump, `tools/dump_game.pl`). The gun is the real BO4 Magmagat
+  (`tools/build_magmagat_model.pl`, from Greyhound's `wpn_t8_zm_magmagat_view`): Treyarch built it on the BO2
+  Blundergat's rig, so every BO4 bone sits where its T6 bone does and only the names differ. The T6 skeleton is kept
+  exactly as dumped (joint nodes, inverse bind matrices) and only the mesh is replaced: BO4 vertices moved into the
+  T6 mesh space, their joints renamed (`tag_weapon` = `j_gun`, `tag_cap_le_animate` = `j_cap_le`, ...; the BO4-only
+  armour and right-chain bones ride `j_gun`). So `magmagat_zm` plays every Blundergat animation. Its lava parts are on
+  the Acid Gat's bones, so the weapon takes the Acid Gat's `hideTags`. `magmagat_upgraded_zm` (Magmus Operandi) is the
+  same model with the BO4 armour kit (the `tag_armor_acid` kit dropped, as BO2 hides it). The world model's LOD0 is
+  the same mesh fitted on BO2's world gun; its far LODs are BO2's world gun recoloured (`tools/recolor.pl`).
+  Materials: BO4's colour / normal maps on the Blundergat's lit material (a gloss map derived from the colour); the
+  molten parts on the Acid Gat's emberglow shader (reveal = BO4's crack mask, ember = BO4's magma glow noise on a
+  molten ramp, heat = BO2's flicker; `%lava` turns up glow, flicker and scroll). The display names come from
+  `english/localizedstrings/mg_weapons.str`.
+- **The effects are meshes, as in BO4** (`tools/gen_lava_fx.pl`): BO4's Magmagat flies a lava blob model and lays
+  splat meshes. The two are generated (a noise-displaced sphere, an irregular domed splat) and skinned with the BO3
+  remaster's lava (`i_pbr_lava_magma_emissive_1_mtl`) on the emberglow shader; the script flies the blob (tumbling,
+  with a fire trail) and lays the pool under every miss.
 - **What the fastfile cannot carry** (OpenAssetTools v0.33): new particle effects (FxEffectDef is not loaded), new
   tracers (the T6 tracer loader is not registered) and BO3 animations (no tool turns T7 xanims into T6 ones; the
-  Magmagat keeps the Blundergat's, as in Blood of the Dead). So the weapon file points at zm_prison's own effects
-  (orange buckshot muzzle flashes, `lmg_enemy` red tracers) and the script adds the rest with loaded effects: the
-  flame riding a held Magmagat (`mg_weapon_hold_loop`), the fire whoosh of each shot, the forge reveal.
+  rig is shared, so the Blundergat's animations fit the BO4 gun). So the particles are zm_prison's own: orange
+  buckshot muzzle flashes, `lmg_enemy` red tracers, fire over the pool, the flame riding a held Magmagat
+  (`mg_weapon_hold_loop`), the fire whoosh of each shot, the forge reveal.
 
-### The GitHub Action (`.github/workflows/check.yml`)
+### The GitHub Actions
 
-On every push and pull request: run `lint_includes`, `lint_calls`, `lint_sounds` and `check_links`, then pack
-(one file, else two, else three) to prove the scripts still load. It publishes nothing: the release needs the
-mod.ff, which is built from the games' files, so `tools/release.pl` builds it locally and the zip is attached to a
-GitHub Release by hand (`gh release create v<version> release/zm_magmagat-<version>.zip`).
+- `.github/workflows/check.yml`, every push and pull request: `lint_includes`, `lint_calls`, `lint_sounds`,
+  `check_links`, then a pack test (one file, else two, else three) to prove the scripts still load.
+- `.github/workflows/release.yml`, when a GitHub Release is published: the player zip. The mod.ff is built from the
+  games' files, which never leave the maintainer's PC, so `perl tools/publish.pl` builds it and publishes the release
+  `v<version>` (`level.mg_version`) with `mod.ff` attached, on the pushed commit (needs `gh auth login`). The workflow
+  checks the tag against the version, lints, packs the scripts from the tagged sources, assembles `zm_magmagat/`
+  (mod.ff, mod.json with the version, the packed scripts), attaches `zm_magmagat-<version>.zip` and removes the bare
+  `mod.ff`. `workflow_dispatch` rebuilds the zip of an existing release. `tools/release.pl` builds the same folder and
+  zip locally, to try a release before publishing it.
 
 ## The lints (run all four before every push)
 

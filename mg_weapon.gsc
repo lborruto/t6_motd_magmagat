@@ -9,7 +9,8 @@
 // and animations, a lava skin); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. Each shot also
 // launches a lava ball; a zombie that catches it burns 0.6 s and explodes (150 units); a miss leaves an 8 s patch.
 // The look lives in the weapon file (tools/build_weapon.pl: lava tanks, fire muzzle flash, red tracers); the script
-// adds the flame riding the held gun and the fire whoosh of every shot.
+// adds the flame riding the held gun, the fire whoosh of every shot, and flies BO4's kind of effects: a tumbling
+// lava blob (mg_lava_blob) and a molten pool mesh under every miss (mg_lava_pool).
 // The Acid Gat kit refuses it by itself: vanilla only takes a blundergat_zm / blundergat_upgraded_zm.
 
 mg_weapon_init()
@@ -230,6 +231,7 @@ mg_lava_ball( weapon )
         time = 0.05;
 
     ball moveto( target, time );
+    ball rotatevelocity( ( 420, 260, 0 ), time + 1 );
     caught = undefined;
     aimed = undefined;
     hit_ent = trace["entity"];
@@ -346,7 +348,7 @@ mg_patch( pos, weapon )
     if ( self.mg_patches.size >= 6 )
     {
         oldest = self.mg_patches[0];
-        mg_fx_stop( oldest );
+        mg_patch_stop( oldest );
         rest = [];
 
         for ( i = 1; i < self.mg_patches.size; i++ )
@@ -355,10 +357,18 @@ mg_patch( pos, weapon )
         self.mg_patches = rest;
     }
 
+    // the patch lies on the floor under the impact (a ball that hit a wall pools below it)
+    trace = bullettrace( pos + ( 0, 0, 24 ), pos - ( 0, 0, 160 ), 0, undefined );
+    pos = trace["position"];
     fire = mg_fx_loop( "patch_fire", pos );
 
     if ( !isdefined( fire ) )
         return;
+
+    pool = spawn( "script_model", pos + ( 0, 0, 0.3 ) );
+    pool setmodel( mg_model( "pool" ) );
+    pool.angles = ( 0, randomint( 360 ), 0 );
+    fire.mg_pool = pool;
 
     self.mg_patches[self.mg_patches.size] = fire;
     embers = mg_fx_loop( "embers", pos );
@@ -395,7 +405,7 @@ mg_patch( pos, weapon )
 
     if ( isdefined( fire ) )
     {
-        mg_fx_stop( fire );
+        mg_patch_stop( fire );
         kept = [];
 
         foreach ( p in self.mg_patches )
@@ -406,6 +416,18 @@ mg_patch( pos, weapon )
 
         self.mg_patches = kept;
     }
+}
+
+// A patch goes: its fire and its pool mesh.
+mg_patch_stop( fire )
+{
+    if ( !isdefined( fire ) )
+        return;
+
+    if ( isdefined( fire.mg_pool ) )
+        fire.mg_pool delete();
+
+    mg_fx_stop( fire );
 }
 
 // self = zombie

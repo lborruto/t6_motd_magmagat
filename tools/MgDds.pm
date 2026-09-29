@@ -100,8 +100,9 @@ sub read {
     return { w => $w, h => $ht, px => \@px };
 }
 
-sub write {
-    my ( $out, $img ) = @_;
+# the mip chain, 2x2 box filtered, down to 1x1
+sub _mips {
+    my $img = shift;
     my @levels = ( [ $img->{w}, $img->{h}, $img->{px} ] );
     while ( $levels[-1][0] > 1 || $levels[-1][1] > 1 ) {
         my ( $pw, $ph, $src ) = @{ $levels[-1] };
@@ -125,15 +126,96 @@ sub write {
         }
         push @levels, [ $nw, $nh, \@dst ];
     }
-    # DDSD_CAPS|HEIGHT|WIDTH|PITCH|PIXELFORMAT|MIPMAPCOUNT, 32-bit RGBA (bytes R G B A: the uncompressed layout the
-    # Linker maps to a T6 image format)
+    return @levels;
+}
+
+sub _to565 { my ( $r, $g, $b ) = @_; ( int( $r * 31 / 255 + 0.5 ) << 11 ) | ( int( $g * 63 / 255 + 0.5 ) << 5 ) | int( $b * 31 / 255 + 0.5 ) }
+
+# 16 [r, g, b] -> 8 bytes: bounding-box endpoints (inset by 1/16), 4-colour mode, nearest palette entry
+sub _bc1_encode {
+    my @p = @_;
+    my ( @mn, @mx );
+    @mn = ( 255, 255, 255 );
+    @mx = ( 0, 0, 0 );
+    for my $c (@p) { for my $k ( 0 .. 2 ) { $mn[$k] = $c->[$k] if $c->[$k] < $mn[$k]; $mx[$k] = $c->[$k] if $c->[$k] > $mx[$k] } }
+    for my $k ( 0 .. 2 ) { my $i = ( $mx[$k] - $mn[$k] ) / 16; $mn[$k] += $i; $mx[$k] -= $i }
+    my ( $c0, $c1 ) = ( _to565(@mx), _to565(@mn) );
+    ( $c0, $c1 ) = ( $c1, $c0 ) if $c0 < $c1;
+    return pack( 'v v V', $c0, $c0, 0 ) if $c0 == $c1;
+    my @a = _rgb565($c0);
+    my @b = _rgb565($c1);
+    my @pal = ( \@a, \@b, [ map { ( 2 * $a[$_] + $b[$_] ) / 3 } 0 .. 2 ], [ map { ( $a[$_] + 2 * $b[$_] ) / 3 } 0 .. 2 ] );
+    my $bits = 0;
+    for my $i ( 0 .. 15 ) {
+        my ( $best, $bd ) = ( 0, 1e18 );
+        for my $k ( 0 .. 3 ) {
+            my $d = ( $p[$i][0] - $pal[$k][0] )**2 + ( $p[$i][1] - $pal[$k][1] )**2 + ( $p[$i][2] - $pal[$k][2] )**2;
+            ( $best, $bd ) = ( $k, $d ) if $d < $bd;
+        }
+        $bits |= $best << ( 2 * $i );
+    }
+    return pack( 'v v V', $c0, $c1, $bits );
+}
+
+# 16 values -> 8 bytes: max / min endpoints, 8-level mode
+sub _bc4_encode {
+    my @v = @_;
+    my ( $a0, $a1 ) = ( 0, 255 );
+    for (@v) { $a0 = $_ if $_ > $a0; $a1 = $_ if $_ < $a1 }
+    return pack( 'C C', $a0, $a0 ) . ( "\0" x 6 ) if $a0 == $a1;
+    my $bits = 0;
+    for my $i ( 0 .. 15 ) {
+        my $k = int( ( $a0 - $v[$i] ) / ( $a0 - $a1 ) * 7 + 0.5 );
+        my $idx = $k == 0 ? 0 : $k == 7 ? 1 : $k + 1;
+        $bits |= $idx << ( 3 * $i );
+    }
+    my $idx = '';
+    $idx .= chr( ( $bits >> ( 8 * $_ ) ) & 255 ) for 0 .. 5;
+    return pack( 'C C', $a0, $a1 ) . $idx;
+}
+
+# MgDds::write($path, $img [, $format]): 'rgba' (uncompressed, default), 'bc1' (colour), 'bc3' (colour + alpha) or
+# 'bc5' (a normal map: red = X, green = Y), with a full box-filtered mip chain. The Linker embeds any of them for a
+# '*' image; the block formats keep the fastfile small.
+sub write {
+    my ( $out, $img, $format ) = @_;
+    $format //= 'rgba';
+    my @levels = _mips($img);
     my ( $w, $h ) = ( $img->{w}, $img->{h} );
-    my $hdr = pack( 'a4 V7 V11', 'DDS ', 124, 0x1 | 0x2 | 0x4 | 0x8 | 0x1000 | 0x20000, $h, $w, $w * 4, 0, scalar @levels, (0) x 11 );
-    $hdr .= pack( 'V8', 32, 0x41, 0, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 );
+    my ( $pf, $body );
+    if ( $format eq 'rgba' ) {
+        $pf = pack( 'V8', 32, 0x41, 0, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 );
+        $body = join '', map { pack( 'C*', @{ $_->[2] } ) } @levels;
+    }
+    else {
+        my %cc = ( bc1 => 'DXT1', bc3 => 'DXT5', bc5 => 'ATI2' );
+        die "MgDds: unknown format $format\n" unless $cc{$format};
+        $pf = pack( 'V2 a4 V5', 32, 0x4, $cc{$format}, 0, 0, 0, 0, 0 );
+        for my $l (@levels) {
+            my ( $lw, $lh, $px ) = @$l;
+            for my $by ( 0 .. int( ( $lh + 3 ) / 4 ) - 1 ) {
+                for my $bx ( 0 .. int( ( $lw + 3 ) / 4 ) - 1 ) {
+                    my @blk;
+                    for my $i ( 0 .. 15 ) {
+                        my ( $x, $y ) = ( $bx * 4 + $i % 4, $by * 4 + int( $i / 4 ) );
+                        $x = $lw - 1 if $x >= $lw;
+                        $y = $lh - 1 if $y >= $lh;
+                        my $o = ( $y * $lw + $x ) * 4;
+                        push @blk, [ @$px[ $o .. $o + 3 ] ];
+                    }
+                    if ( $format eq 'bc1' ) { $body .= _bc1_encode(@blk) }
+                    elsif ( $format eq 'bc3' ) { $body .= _bc4_encode( map { $_->[3] } @blk ) . _bc1_encode(@blk) }
+                    else { $body .= _bc4_encode( map { $_->[0] } @blk ) . _bc4_encode( map { $_->[1] } @blk ) }
+                }
+            }
+        }
+    }
+    my $flags = 0x1 | 0x2 | 0x4 | 0x1000 | 0x20000 | ( $format eq 'rgba' ? 0x8 : 0x80000 );
+    my $pitch = $format eq 'rgba' ? $w * 4 : length( $body ) > 0 ? int( ( $w + 3 ) / 4 ) * int( ( $h + 3 ) / 4 ) * ( $format eq 'bc1' ? 8 : 16 ) : 0;
+    my $hdr = pack( 'a4 V7 V11', 'DDS ', 124, $flags, $h, $w, $pitch, 0, scalar @levels, (0) x 11 ) . $pf;
     $hdr .= pack( 'V5', 0x1000 | 0x400000 | 0x8, 0, 0, 0, 0 );
     open my $o, '>:raw', $out or die "$out: $!\n";
-    print $o $hdr;
-    print $o pack( 'C*', @{ $_->[2] } ) for @levels;
+    print $o $hdr, $body;
     close $o;
     return scalar @levels;
 }

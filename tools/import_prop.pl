@@ -85,7 +85,7 @@ sub image_for {
     }
     my $dds = "$raw/images/_mg_$name.dds";
     if ( !-f $dds ) {
-        system( 'perl', "$FindBin::Bin/png2dds.pl", $png, $dds ) == 0 or die "png2dds failed on $png\n";
+        system( 'perl', "$FindBin::Bin/png2dds.pl", $png, $dds, $kind eq 'normal' ? 'bc5' : 'bc1' ) == 0 or die "png2dds failed on $png\n";
     }
     return $ours;
 }

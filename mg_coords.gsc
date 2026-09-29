@@ -14,7 +14,8 @@ mg_models_init()
     level.mg_models["skull"] = "mg_skull"; // mod.ff (tools/import_all.pl): the BO3 remaster's skull
     level.mg_models["barrel"] = "mg_barrel_blue"; // mod.ff: the BO3 remaster's blue metal barrel
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
-    level.mg_models["ball"] = "tag_origin"; // owner 2026-09-20: the dart model read as the Acid Gat; the fire fx alone is the ball
+    level.mg_models["ball"] = "mg_lava_blob"; // mod.ff (tools/gen_lava_fx.pl): a lava blob, as BO4 flies (the Acid Gat dart read wrong)
+    level.mg_models["pool"] = "mg_lava_pool"; // mod.ff: the molten splat a miss leaves, as BO4 lays one
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
     level.mg_models["clip"] = "collision_clip_32x32x32"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none)
 }

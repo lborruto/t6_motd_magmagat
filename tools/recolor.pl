@@ -2,6 +2,7 @@
 # Recolours a texture (DDS or PNG in, uncompressed DDS out) for the Magmagat's reskin of the Blundergat.
 #   --hue FROM:TO   pixels whose hue is within 70 degrees of FROM turn to TO (e.g. the Acid Gat's green 120 -> lava 22)
 #   --sat S         saturation factor, --gain G value factor, --tint R,G,B channel factors (applied last)
+#   --format F      rgba (default), bc1, bc3 or bc5 (tools/MgDds.pm)
 #
 #   perl tools/recolor.pl in.dds out.dds [--hue 120:22] [--sat 0.5] [--gain 0.7] [--tint 1.2,0.8,0.6]
 use strict;
@@ -12,10 +13,10 @@ use MgPng;
 use MgDds;
 use Getopt::Long;
 
-my ( $hue, $sat, $gain, $tint ) = ( '', 1, 1, '1,1,1' );
-GetOptions( 'hue=s' => \$hue, 'sat=f' => \$sat, 'gain=f' => \$gain, 'tint=s' => \$tint ) or die "recolor.pl: bad options\n";
+my ( $hue, $sat, $gain, $tint, $format ) = ( '', 1, 1, '1,1,1', 'rgba' );
+GetOptions( 'hue=s' => \$hue, 'sat=f' => \$sat, 'gain=f' => \$gain, 'tint=s' => \$tint, 'format=s' => \$format ) or die "recolor.pl: bad options\n";
 my ( $in, $out ) = @ARGV;
-die "usage: recolor.pl in.dds|in.png out.dds [--hue FROM:TO] [--sat S] [--gain G] [--tint R,G,B]\n" unless $in && $out;
+die "usage: recolor.pl in.dds|in.png out.dds [--hue FROM:TO] [--sat S] [--gain G] [--tint R,G,B] [--format F]\n" unless $in && $out;
 my ( $h_from, $h_to ) = $hue =~ /^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/;
 die "recolor.pl: --hue takes FROM:TO in degrees\n" if $hue ne '' && !defined $h_to;
 my @tint = split /,/, $tint;
@@ -55,5 +56,5 @@ for ( my $i = 0; $i < @$px; $i += 4 ) {
         $px->[ $i + $k ] = $o > 255 ? 255 : $o < 0 ? 0 : int( $o + 0.5 );
     }
 }
-my $mips = MgDds::write( $out, $img );
+my $mips = MgDds::write( $out, $img, $format );
 printf "recolor.pl: %s -> %s (%dx%d, %d mips)\n", $in, $out, $img->{w}, $img->{h}, $mips;

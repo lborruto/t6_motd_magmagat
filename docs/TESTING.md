@@ -90,26 +90,29 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 6. The weapon (Magmagat / Magmus Operandi)
 
-- [ ] Fire the Magmagat at a zombie: a lava ball travels to the target.
+- [ ] Fire the Magmagat at a zombie: a lava blob (a lumpy molten ball with a fire trail) tumbles to the target.
 - [ ] A ball that catches a zombie sticks and explodes it and nearby zombies a moment later (kill credit and
       points go to you, the shooter).
 - [ ] **Crawlers catch the ball too**: down a zombie into a crawl, then land a ball on it - it should catch
       and link at the `J_SpineUpper` tag like a standing zombie, then explode normally.
-- [ ] A miss (no zombie catches the ball) leaves a burning magma patch on the ground; zombies that walk
+- [ ] A miss (no zombie catches the ball) leaves a molten pool on the floor under the impact (a glowing splat mesh
+      with fire over it; a hit on a wall pools below it), gone with its fire after 8 s; zombies that walk
       through it keep taking damage for a few seconds.
 - [ ] **Brutus vs the ball**: land a ball on Brutus directly. He burns steadily but does not die from the
       lava alone, however many balls land on him.
 - [ ] **Brutus vs a patch**: walk Brutus through a magma patch. He burns and takes damage over time, but
       again never dies from the patch alone.
-- [ ] **Look**: in first person the Magmagat is the Blundergat's frame, charred, with two lava tanks that glow and
-      flicker; dropped or on the generator it has the same colours.
+- [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and
+      barrels that glow and flicker) and every Blundergat animation plays on it without parts drifting (raise, reload,
+      the hammer, the swivel, the loader, the left chains, sprint); on the generator and in other players' hands it
+      is the same model.
 - [ ] **Held flame**: a small flame rides the gun while it is in hand (bigger on the Magmus Operandi). It goes out
       when you switch weapon, go down or lose the gun, and comes back when you raise it again. Co-op: the other
       player sees it on your gun.
 - [ ] **Shot**: an orange buckshot flash (bigger on the Magmus Operandi), red streaks for the pellets and a fire
       whoosh with every shot, on top of the Blundergat's own sound.
 - [ ] **Pack-a-Punch ("Magmagat in, Magmus Operandi out")**: Pack-a-Punch a Magmagat. It comes back as
-      `magmagat_upgraded_zm`, named Magmus Operandi, with the armour kit in lava colours, the lava ball on every shot
+      `magmagat_upgraded_zm`, named Magmus Operandi, the BO4 model with its armour kit, the lava ball on every shot
       and one more shell per shot (the Sweeper's stats).
 - [ ] **Acid Gat kit refuses a Magmagat**: holding only a Magmagat, use the Acid Gat upgrade station. The
       game's own "missing Blundergat" hint shows and the Magmagat stays as it is.
