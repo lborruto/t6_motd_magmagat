@@ -8,6 +8,7 @@
 //
 //   build: C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /platform:x64 /out:Bo3Snapshot.exe Bo3Snapshot.cs
 //   run:   Bo3Snapshot.exe <out.bin> [pool index, default 38 = fx] [depth, default 5]
+//          Bo3Snapshot.exe --scripts <out dir> [name filter]   (the loaded compiled scripts)
 //
 // out.bin: "BO3SNAP1", u32 asset count, per asset (u64 header address, u32 header size, u16 name length, name), then
 // the memory: records of (u64 address, u32 length, bytes) until the end.
@@ -189,6 +190,35 @@ static class Bo3Snapshot
             Capture(p, len, depth);
     }
 
+    // --scripts: the compiled scripts (the scriptparsetree pool: name, size, data; HydraX's layout) whose name holds the
+    // filter, written as they sit in memory (BO3's compiled GSC / CSC)
+    static int DumpScripts(ulong poolPtr, int assetSize, int poolSize, string outDir, string filter)
+    {
+        int n = 0;
+        ulong poolEnd = poolPtr + (ulong)poolSize * (ulong)assetSize;
+        for (int i = 0; i < poolSize; i++)
+        {
+            var h = Read(poolPtr + (ulong)i * (ulong)assetSize, 24);
+            if (h == null) continue;
+            ulong namePtr = BitConverter.ToUInt64(h, 0);
+            if (namePtr == 0 || (namePtr >= poolPtr && namePtr < poolEnd)) continue;
+            string name = CString(namePtr);
+            if (name == null || name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0) continue;
+            long size = BitConverter.ToInt64(h, 8);
+            ulong data = BitConverter.ToUInt64(h, 16);
+            if (size <= 0 || size > (64 << 20)) continue;
+            var b = Read(data, (int)size);
+            if (b == null) continue;
+            string path = Path.Combine(outDir, name.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllBytes(path, b);
+            Console.WriteLine("Bo3Snapshot: {0} ({1} bytes)", name, size);
+            n++;
+        }
+        Console.WriteLine("Bo3Snapshot: {0} scripts -> {1}", n, outDir);
+        return n > 0 ? 0 : 1;
+    }
+
     static long FindPattern(byte[] image, int?[] pat)
     {
         for (int i = 0; i + pat.Length <= image.Length; i++)
@@ -204,11 +234,12 @@ static class Bo3Snapshot
     {
         if (args.Length < 1)
         {
-            Console.Error.WriteLine("usage: Bo3Snapshot.exe <out.bin> [pool index] [depth]");
+            Console.Error.WriteLine("usage: Bo3Snapshot.exe <out.bin> [pool index] [depth] | --scripts <out dir> [name filter]");
             return 2;
         }
-        int poolIndex = args.Length > 1 ? int.Parse(args[1]) : 38;
-        int depth = args.Length > 2 ? int.Parse(args[2]) : 5;
+        bool scripts = args[0] == "--scripts";
+        int poolIndex = scripts ? 54 : args.Length > 1 ? int.Parse(args[1]) : 38;
+        int depth = !scripts && args.Length > 2 ? int.Parse(args[2]) : 5;
 
         var ps = Process.GetProcessesByName("BlackOps3");
         if (ps.Length == 0)
@@ -247,6 +278,8 @@ static class Bo3Snapshot
         int assetSize = BitConverter.ToInt32(info, 8);
         int poolSize = BitConverter.ToInt32(info, 12);
         Console.WriteLine("Bo3Snapshot: pools at 0x{0:X}, pool {1}: {2} slots of {3} bytes at 0x{4:X}", pools, poolIndex, poolSize, assetSize, poolPtr);
+        if (scripts)
+            return DumpScripts(poolPtr, assetSize, poolSize, args.Length > 1 ? args[1] : "scripts", args.Length > 2 ? args[2] : "");
 
         var assets = new List<Tuple<ulong, string>>();
         ulong poolEnd = poolPtr + (ulong)poolSize * (ulong)assetSize;
