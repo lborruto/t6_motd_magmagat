@@ -165,6 +165,9 @@ static class Bo3Snapshot
         var b = Read(m, 656);
         if (b == null) return;
         Capture(m, 656, 1);
+        // its name too: a material already captured shallow (inside another block, the game image's static ones) is
+        // not followed by the capture above
+        Capture(BitConverter.ToUInt64(b, 0), 256, 0);
         Capture(BitConverter.ToUInt64(b, 632), 64, 1);
         CaptureSettings(b);
         int count = b[624];

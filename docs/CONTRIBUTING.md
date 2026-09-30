@@ -143,9 +143,9 @@ games' files and are never committed (so is `mod/sound`).
 - **The blob and the pool** (`tools/gen_lava_mat.pl`, run by `tools/build_weapon.pl`): the script does not fly a mesh. The
   Magmagat fires a real sticky projectile, as the Acid Gat does: `mg_magma_bolt_zm` (the flight, with the BO3 trail
   `mg/fx_magmagat_trail_bolt`) leaves `mg_magma_blob_zm` where it lands, and that grenade bursts with
-  `mg/fx_magmagat_explode`. Both wear the Acid Gat dart's model (`$blob` in `tools/build_weapon.pl`, `mg_model( "ball" )`)
-  until BO4's blob `p8_fxp_magma_blob` is re-exported with its mesh (Greyhound exported it empty; `tools/import_all.pl`
-  leaves an empty export out); then `mg_magma_blob` in both places. The pool a miss lays is the remaster's aoe effect
+  `mg/fx_magmagat_explode`. Both wear BO4's blob `mg_magma_blob` (`$blob` in `tools/build_weapon.pl`, `mg_model( "ball" )`),
+  exported from Greyhound after the Magmagat fired in BO3 (before, BO3 has not streamed its mesh in and the export is
+  empty, which `tools/import_all.pl` leaves out). The pool a miss lays is the remaster's aoe effect
   (`mg/fx_prison_magmagat_aoe`) under the blob. The generator now only builds the lava material `mc/mg_lava`: the
   BO3 remaster's lava (`i_pbr_lava_magma_emissive_1_mtl`) on the emberglow shader, which the blob wears.
 - **The sounds** (`tools/import_sounds.pl`, the list in `tools/assets/bo3_sounds.tsv`): BO3 banks are the same `2UX#`

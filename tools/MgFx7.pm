@@ -128,10 +128,10 @@ sub convert {
         # element left with none
         @visuals = $type == 11 ? grep { defined $_->[0] } @visuals : grep {defined} @visuals;
         if ( !@visuals && $type != 8 ) {
-            push @notes, "element $i: no visual captured, dropped";
+            push @notes, "element $i: no visual (null or not captured), dropped";
             next;
         }
-        push @notes, "element $i: " . ( @vptrs - @visuals ) . " visual(s) not captured, dropped" if $type != 8 && @visuals < @vptrs;
+        push @notes, "element $i: " . ( @vptrs - @visuals ) . " visual(s) null or not captured, dropped" if $type != 8 && @visuals < @vptrs;
         $kept[ $i < $nl ? 0 : $i < $nl + $no ? 1 : 2 ]++;
 
         my $ref = sub { my $p = ptr( $b, shift ); return undef unless $p; my $n = $self->{fxaddr}{$p} // $s->name_at($p); $need{effects}{$n} = 1 if defined $n; $n };

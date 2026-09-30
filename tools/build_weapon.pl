@@ -95,10 +95,10 @@ my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_u
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
     viewFlashEffect => 'weapon/blundersplat/fx_blundersplat_muzzleflash_ug',
     worldFlashEffect => 'weapon/blundersplat/fx_blundersplat_muzzleflash_ug_3p' );
-# the blob in flight and stuck: the Acid Gat dart's model until BO4's lava blob (p8_fxp_magma_blob) is re-exported from
-# Greyhound with its mesh streamed in (its export is empty, tools/import_all.pl leaves it out); then mg_magma_blob, here
-# and as mg_model( "ball" ) in mg_coords.gsc
-my $blob = 't6_wpn_zmb_projectile_blundergat';
+# the blob in flight and stuck: BO4's lava blob (p8_fxp_magma_blob, tools/import_all.pl), as mg_model( "ball" ) in
+# mg_coords.gsc. Export it from Greyhound after the Magmagat fired in BO3: before, BO3 has not streamed its mesh in and
+# the export is empty
+my $blob = 'mg_magma_blob';
 my @weapons = (
     [ 'magmagat_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MAGMAGAT', gunModel => 'mg_magmagat_view',
         worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, fireSound => 'wpn_blundersplat_fire_exp_npc',
