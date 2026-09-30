@@ -132,7 +132,9 @@ BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effe
 
 The effects in the mod are listed in `tools/assets/bo3_fx.tsv`; they become `mg/<name>`. Not carried over: BO3's
 sound elements and spawn sounds (BO3 aliases; the mod plays its sounds from script), BO3-only element types, and the
-view-model attachment of `_vm` effects (T6 script cannot play an effect on the view model).
+view-model attachment of `_vm` effects (T6 script cannot play an effect on the view model). The Magmagat weapon files name three of them
+(the blob's trail, impact and burst, `mg/fx_magmagat_trail_bolt`, `_impact`, `_explode`), and the lava pool a miss lays is
+`mg/fx_prison_magmagat_aoe`.
 
 ## Limits found
 - No T6 material authoring pipeline in OAT — you edit an existing compiled material's image

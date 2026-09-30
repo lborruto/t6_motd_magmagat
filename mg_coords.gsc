@@ -12,15 +12,14 @@ mg_models_init()
 {
     level.mg_models = [];
     level.mg_models["skull"] = "mg_skull"; // mod.ff (tools/import_all.pl): the BO3 remaster's skull
-    level.mg_models["skull_lit"] = "p6_zm_al_skull_afterlife"; // zm_prison: a lit skull turns into the afterlife skull, as in BO4
     level.mg_models["barrel"] = "mg_barrel_green"; // mod.ff: the remaster's drum at its five barrel spots (dark green; the flame is blue)
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
     level.mg_models["ball"] = "mg_magma_blob"; // mod.ff (tools/import_all.pl): BO4's own lava blob, p8_fxp_magma_blob
     level.mg_models["press_body"] = "mg_press_body"; // mod.ff: the remaster's press (p8_zm_esc_machinery_01) without its ram
     level.mg_models["press_ram"] = "mg_press_ram"; // its ram, which script brings down
-    level.mg_models["pool"] = "mg_lava_pool"; // mod.ff: the molten splat a miss leaves, as BO4 lays one
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
     level.mg_models["clip"] = "collision_clip_32x32x32"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none)
+    level.mg_models["player_clip"] = "collision_player_32x32x128"; // patch_zm, always loaded: blocks players only (the office door in the lockdown), centred
 }
 
 mg_model( kind )

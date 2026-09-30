@@ -10,8 +10,10 @@ set mg_debug 1
 
 Install first, from the repo (Git Bash): `perl tools/build_mod.pl` (mod.ff + mod.json) and `perl tools/deploy.pl`
 (the scripts), both into `mods/zm_magmagat`; then Mods -> zm_magmagat in game. Check it loaded: console
-`set mg_debug 1`, then in chat `!mg status` (it answers with the version, state, orbs, carrier, timer and every anchor
-resolved). Every `!mg` answer is also printed to the console as `[MG] ...`.
+`set mg_debug 1`, then in chat `!mg status` (it answers with the version, state, souls, carrier, timer, the gate flag
+and every anchor resolved). Every `!mg` answer is also printed to the console as `[MG] ...`.
+
+The `!mg ...` commands below are typed in chat. From the console, put `say` in front: `say !mg goto run`.
 
 Tick each box in game; where a `!mg goto <state>` shortcut exists it is given next to the honest-play check,
 but do the honest-play pass too at least once per state - `goto` only fabricates the state, it does not
@@ -22,11 +24,12 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] No red error popup on map load.
 - [ ] The five route barrels are the remaster's dark-green drums and the three mantle skulls its skulls
       (`!mg show` previews them; `!mg model mg_barrel_green` / `!mg model mg_skull` spawn one in front of you).
-- [ ] `!mg status` prints the version, the state (`locked` at boot), orbs 0, no carrier, no timer, and a
-      resolved line for every anchor.
+- [ ] `!mg status` prints the version, the state (`locked` at boot), souls 0/15, no carrier, the gate flag and the
+      forge (closed), and a resolved line for every anchor.
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
       `MG_FORGE_GUN`; none say "undefined".
-- [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `give`, `magma`, `shock` (all at once) / `shock gun`, `fx`, `snd`.
+- [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `tour`, `bridge`, `give`, `magma`, `shock` (all at once) /
+      `shock gun`, `fx`, `snd`.
 
 ## 0a. The sound bank
 
@@ -35,109 +38,120 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 0b. The look, in one pass
 
-- [ ] `!mg tour`: eight labelled stops (the fireplace, a soul orb rising, taken and flying to its skull, a full skull,
-      the blue fire and the rising gun, a burning drum, the forge, the lava blob, the molten pool). Every
-      effect is visible and every sound heard (the BO3 remaster's own: the flame burst when the gun goes in, the soul
-      kill and its hum, the press at the forge, the warden's line at the end); note the step number of anything to change.
+- [ ] `!mg tour`: seven labelled stops. Every effect is visible and every sound heard (the BO3 remaster's own); note
+      the step number of anything to change.
+      1. The first press at the fireplace: the flame burst, the boards burn.
+      2. A placed gun: the laugh, the office outlined in light, the door clip up.
+      3. A soul rising over a body.
+      4. A lit skull (its blue flame).
+      5. A drum burning, then its flare.
+      6. The forge: the Machine powered, a gun pressed, with the real ram.
+      7. A real Magmagat bolt fired at the floor: it lays its pool, then the burst.
 
 ## 1. Locked / ready
 
-- [ ] Before anyone reaches the Golden Gate Bridge (the plane's landing): state stays `locked`, no prompt at the hearth even with a Blundergat in
-      hand.
-- [ ] Reach the bridge, or `!mg bridge` (the same requirement met, without the plane), or `!mg goto ready`: state
-      becomes `ready`. `!mg bridge` in any other state says the fireplace is already open.
-- [ ] Holding a Blundergat, a Sweeper, an Acid Gat or a Vitriolic Withering (`blundergat_zm`, `blundergat_upgraded_zm`,
-      `blundersplat_zm`, `blundersplat_upgraded_zm`), pressing use at the hearth lays the gun in the fire (no on-screen
-      prompt, as the original) and a laugh plays. Holding none of them: nothing.
+- [ ] Before anyone has sat in the bridge chair after the first plane trip: state stays `locked`, no prompt at the
+      hearth even with a Blundergat in hand, presses do nothing.
+- [ ] Ride the plane and sit in a bridge chair, or `!mg bridge` (the same requirement met, without the plane), or
+      `!mg goto ready`: state becomes `ready`. `!mg bridge` in any other state says the fireplace is already open.
+- [ ] The first press at the hearth (gun or not, no prompt yet): the flame-burst sound and a fire over the boards for
+      about 4 s; a second later "Hold [use] to place Blundergat" shows for every player near the hearth. This happens
+      once per game (`!mg goto locked` resets it).
+- [ ] Press without a Blundergat, Sweeper, Acid Gat or Vitriolic Withering: "Missing Blundergat" for 2 s, then the
+      place hint again.
 
-## 2. The souls
+## 2. The souls and the lockdown
 
-- [ ] `!mg goto souls` (or press use at the hearth with a gun in `ready`): the gun leaves your hands into the fire,
-      the three skulls are dark, state is `souls`.
-- [ ] A zombie a player kills that dies inside the Warden's Office: the soul-kill sound at the body, then the
-      soul, the remaster's blue lightning streak, swirls up over it for 3 s, humming. Walk into it: a flash and the
-      soul-suck sound, and it flies to its skull and flashes in; the count increases (`!mg status`: x/15). No blood.
-- [ ] An orb nobody takes fades after 3 s and does not count; later kills still reach 15.
-- [ ] **Lockdown**: while the office takes souls, the remaster's lockdown outlines the office's door and walls in
-      light; it goes at 15 souls or when the step ends. `!mg lockdown` shows it for 10 s at any time: the lines must
-      sit on the door frame and along the walls (report any floating in the room or outside it).
+- [ ] Hold use with any of `blundergat_zm`, `blundergat_upgraded_zm`, `blundersplat_zm`, `blundersplat_upgraded_zm`
+      (in hand or not): the gun leaves you and lies in the fire, with no sound on it; a laugh for all players; the
+      laundry defend music; the office outlined in light. State is `souls`, the three skulls are dark.
+      (`!mg goto souls` starts the same lockdown with you as the placer.)
+- [ ] **Door clip**: players cannot walk through the office door, from inside or outside; zombies still come in by the
+      door and the windows. No gap above or below, nobody stuck. `!mg lockdown` puts the outline and clip up for 10 s at
+      any time: the lines must sit on the door frame and along the walls (report any floating in the room or outside).
+- [ ] Kill regular zombies in the office (the killer inside or outside, any weapon): the soul-kill sound at the body, and
+      the soul (the remaster's blue lightning streak) rises 60 units in 2 s, humming. `!mg status` shows the count go up
+      0.5 s after each kill, with nothing to pick up. No blood.
+- [ ] Brutus dying in the office, and a zombie dying outside it, give no soul.
+- [ ] Skulls light at 5, 10 and 15: the blue flame only, the model unchanged, no sound. No soul counts past 15.
+- [ ] 1 s after the 15th soul the laugh plays again; 2 s later the outline and the door clip go.
+- [ ] **Fail**: the placer goes down (last stand or Afterlife) during the lockdown: the skulls go out at once, no
+      sound; 2 s later the outline and clip go, the gun is lost, the place hint is back, state `ready`. Another player
+      going down, or the placer leaving the office for any time, changes nothing.
 - [ ] **The BO3 effects** (`!mg tour`): the blue flames (fireplace, drums, skulls, tempered gun), the souls, the
-      press fire, Harry's lava blob trail / impact / burst, the lava pool and its scorch are the remaster's own. Report
-      any drawn as a black or white square, a wrong colour, or invisible.
-- [ ] The killer may stand outside (a shot through the window at a zombie inside counts); a zombie that dies
-      outside the office never gives a soul.
-- [ ] Skulls light at 5, 10 and 15 (the skull becomes the afterlife skull, a blue glow and a hum; the third has its
-      own sound). No soul is released past 15.
-- [ ] **Placer away 10 s**: with souls taken, the player who placed the gun leaves the office for 10 s: the souls
-      are lost (skulls dark, count 0), a fail sound; the quest goes on.
-- [ ] **Placer away 30 s**: 30 s out of the office: the gun is lost, a fail sound and the laugh, state `ready`.
-- [ ] **Placer dies** (or leaves the game): the gun is lost the same way.
-- [ ] Co-op: any player's kills in the office and pickups count; the souls state is shared.
+      press fire, the lava blob's trail / impact / burst and the lava pool are the remaster's own. Report any drawn as a
+      black or white square, a wrong colour, or invisible.
+- [ ] Co-op: any player's kills in the office count; the souls state is shared.
 
-## 3. The deposit and the pickup
+## 3. The pickup
 
-- [ ] At 15 souls, press use at the hearth: the skulls go dark one by one (0.5 s apart, a soul drains from each into
-      the fire), a flare-up, and a second later the fire burns blue and the tempered gun rises (BO4's, its canisters blue),
-      state `pickup`. (`!mg goto pickup` fabricates this directly.)
-- [ ] Take the gun within 30 s: state moves to `run`, you are now the carrier.
-- [ ] **Failure path**: let the 30 s expire: the gun vanishes (fail sound, laugh) and is lost. State `ready`.
+- [ ] At 15 souls, only the placer sees "Hold [use] to take the Tempered Blundergat" at the hearth; another player's
+      press does nothing. There is no time limit. (`!mg goto pickup` fabricates this with you as the placer.)
+- [ ] The take is refused while drinking a perk or holding a grenade, claymore or revive tool. With two primaries the
+      weapon in hand is replaced.
+- [ ] Take it: state moves to `run`, you are the carrier, the skulls stay lit.
+- [ ] The placer disconnecting before the take: the gun is lost, state back to `ready`.
 
 ## 4. The run
 
 - [ ] `!mg goto run` (or take the tempered gun honestly): state is `run`, a flame rides the gun and the five barrels
       burn (no timer on screen: the flame is the only indicator; `!mg status` prints the seconds left).
 - [ ] In your hands the tempered gun is BO4's tempered Blundergat (a Sweeper gives the tempered Sweeper with its
-      armour): its canisters glow blue and flicker in first person; others see a blue flame on it.
+      armour): its canisters glow blue; others see a blue flame on it.
 - [ ] The five drums (the remaster's dark-green drums) burn blue from inside, the flames rising out of the rim.
-- [ ] Walking up to a burning drum (64 units) refills the temper to 25 s: a flare, a whoosh, a rumble, and that
-      drum goes out for the rest of the run. A spent drum does nothing.
-- [ ] Firing the tempered gun once ends the run (the essence is spent), state `ready`.
-- [ ] In the last 5 s the flame flickers every half second with a rumble and a tick.
-- [ ] **Failure paths**: the temper runs out; you switch away from the gun (a quarter second is forgiven); you go
-      down. Each: the flame dies, the tempered gun turns back into the gun you placed, state `ready` (temper again at
-      the fireplace). Going down: it turns back once you are up.
+- [ ] Stand at a lit drum's foot (within 64 units, feet 0-64 above its base): the temper is back to 15 s, with a 5 s
+      flare and the flame-burst sound. No whoosh, no rumble; the drum keeps burning. A second visit to the same drum
+      gives nothing. Standing on top of a drum does not count.
+- [ ] After a refill the run fails 15-16 s later.
+- [ ] Firing the tempered gun does NOT end the run.
+- [ ] Switching to another weapon (a perk drink, a box weapon) ends the run within about 0.1 s. Switching to a
+      Blundergat, Sweeper, Acid Gat or Vitriolic Withering does not. The run does not fail at the pickup while the
+      tempered gun is being raised (try with one and with two primaries).
+- [ ] **Failure paths**: the timer runs out (do nothing for 15 s), you switch weapon, you go down. Each: silent, the flame
+      and the barrels go out, you get your Blundergat back, the skulls go dark; 5 s later the state is `ready` and the
+      fireplace takes a gun again.
 
 ## 5. The forge
 
-- [ ] `!mg goto forge` (or carry the tempered gun to the powered generator honestly): state is `forge`.
-- [ ] At the generator: press once to power it (the generator's sparks and the power-panel sound), then place the
-      tempered gun: the remaster's press (it stands by the generator from the start) brings its ram down on the gun
-      with a slam, 5 s of the press sound over fire and smoke with two flame bursts, then the ram lifts.
-- [ ] After the ghosts: a burst, then the Magmagat rises out of a flame, turning once, and glows.
-- [ ] Take it within 30 s: state `done`, the weapon is `magmagat_zm` ("Magmagat" on the HUD). A Pack-a-Punched gun
-      (Sweeper, Vitriolic Withering) gives `magmagat_upgraded_zm` (Magmus Operandi).
-- [ ] The first forge: a laugh, and a Brutus spawns.
-- [ ] **Failure path**: do not take the Magmagat for 30 s: it vanishes (fail sound, laugh), state `ready`.
-- [ ] **Forge stays open once done**: place any of the four guns on the generator: it converts at once. The
-      fireplace takes no gun any more.
+- [ ] With the tempered gun at the forge, "Hold [use] to power the Machine" shows for the carrier. Using it plays the
+      power-panel sound and sparks on the Machine, gives your Blundergat back and ends the run in success (state
+      `done`). A second later the Warden's line plays to that player only, and everyone near sees "Hold [use] to
+      place the Blundergat". (`!mg goto done` opens the forge; `!mg goto forge` opens it with a Magmagat waiting for you.)
+- [ ] The skulls stay lit for the rest of the game; the fireplace shows no prompt any more.
+- [ ] Use the open forge without a Blundergat: "Missing Blundergat" for 2 s.
+- [ ] Place a gun: the gun lies on the bed, the ram comes down at about 0.8-1.1 s, the press sound starts at 0.55 s, the
+      press fire plays once at about 1.35 s and the gun disappears. At about 4.35 s the Magmagat lies still on the bed
+      and the ram lifts. No smoke, no Brutus, no extra sounds or effects at the press.
+- [ ] At about 5.65 s "Hold [use] to take the Magmagat" shows, for the placer only.
+- [ ] Take it: the weapon is `magmagat_zm` ("Magmagat" on the HUD). A Pack-a-Punched gun (Sweeper, Vitriolic
+      Withering) gives `magmagat_upgraded_zm` (Magmus Operandi).
+- [ ] **Failure path**: leave it 15 s: it disappears with no effect and no sound, and the forge offers placement again.
+- [ ] Only the placer can take it; another player sees no prompt and his press does nothing.
+- [ ] Place a second gun while you already own a Magmagat: taking it only refills the ammo of the one you own.
+- [ ] `!mg goto ready` in the middle of a press: the ram returns to rest and the entities are cleaned up.
 
 ## 6. The weapon (Magmagat / Magmus Operandi)
 
-- [ ] Fire at a zombie: a lava blob (a lumpy molten ball with a fire trail) tumbles to it, sticks half a second,
-      then the zombie dies (kill credit and points to you); zombies within 128 units take 400 and catch fire.
-- [ ] **No buckshot**: the shot itself does no damage (fire at a zombie behind a wall or at a Brutus helmet: nothing
-      but the blob hurts). Ammo is BO4's: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
-- [ ] **The burn**: a zombie set alight burns until it dies, a share of its health each second that shrinks with
-      the round (most of it before round 9, a fifth or less from round 29). At most 12 burn with flames showing.
-- [ ] A strong zombie (high rounds, more than 1000 health) takes 1000, burns 4 s, then dies.
-- [ ] **Crawlers catch the blob too** (it links at `J_SpineUpper`), and a crawler that enters a pool dies at once.
-- [ ] A miss leaves a molten pool under the impact (a glowing splat with fire; a wall hit pools below it) for 5 s;
-      a fourth pool removes the oldest. Zombies nearby walk to it (the lure), catch fire stepping in (10 % of their
-      health, then the burn).
-- [ ] Standing in your own pool hurts you a little.
-- [ ] **Brutus**: a blob on Brutus burns him for 5 s (10-20 % of his health a second, half from round 15): enough
-      to kill him. He walks through pools unharmed (as in BO4).
+- [ ] Fire it: one orange blob flies with a trail, the Acid Gat's muzzle flash, no tracer streak, no bullet impact. The
+      clip holds one (the Magmus two).
+- [ ] **Hit a zombie**: the blob sticks, the zombie plays the Acid Gat stun and burns (torso fire and loop sound), and dies
+      after about 1 s at any round; the blob bursts about 0.05 s later (explosion effect and sound). Zombies within
+      about 300 units take heavy damage; players nearby take none. Other zombies gather on the blob during that second.
+- [ ] **Hit Brutus**: one hit of about 250-375; the blob stays on him and bursts 3 s later; zombies are lured to it.
+- [ ] **Hit the floor or a wall**: the blob stays where it landed, with the fire under it, for 6 s, then vanishes (no
+      explosion). Zombies stepping in burn and die in about 0.75 s. Brutus walks through unharmed. Any player standing
+      in it (you too) loses 20 health every 0.5 s with a sizzle loop. The Magmus pool is visibly wider (64).
+- [ ] A zombie leaving a pool: the sound stops, the flames stay about 4 s, then go.
+- [ ] Spam 10 or more pools: never more than 8 at once, no entity overflow.
+- [ ] **Points**: hits and pool ticks give no +10; kills give the normal kill points.
+- [ ] **Spoon**: stuck-blob kills in the showers count.
+- [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
 - [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and
       barrels that glow and flicker) and every Blundergat animation plays on it without parts drifting (raise, reload,
-      the hammer, the swivel, the loader, the left chains, sprint); on the generator and in other players' hands it
-      is the same model.
-- [ ] **Held flame**: a small flame rides the gun while it is in hand (bigger on the Magmus Operandi). It goes out
-      when you switch weapon, go down or lose the gun, and comes back when you raise it again. Co-op: the other
-      player sees it on your gun.
-- [ ] **Shot**: an orange flash (bigger on the Magmus Operandi), one red streak and a fire whoosh with every shot, on
-      top of the Blundergat's own sound; every shot throws a blob.
+      the hammer, the swivel, the loader, the left chains, sprint); on the forge and in other players' hands it is the
+      same model. No flame rides the held gun.
 - [ ] **Pack-a-Punch**: a Magmagat comes back as `magmagat_upgraded_zm`, Magmus Operandi: the BO4 model with its
-      armour kit, a 2-blob clip, the bigger pool lure.
+      armour kit, a 2-blob clip, the bigger pool and lure.
 - [ ] **Acid Gat kit takes a Magmagat**: holding only a Magmagat, use the Acid Gat station: it goes in as a
       Blundergat and the Acid Gat comes out (a Magmus Operandi gives the Vitriolic Withering).
 - [ ] A plain Blundergat still upgrades at the Acid Gat station normally.
@@ -146,6 +160,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Losing the Magmagat (box swap, wall buy replacing it, death without Tombstone) loses it like any weapon;
       the open forge converts a fresh gun again.
 - [ ] The Mystery Box never offers a Magmagat.
+- [ ] Watch the console for "missing fx key" and script errors, especially from the Acid Gat stun animation and
+      `resetmissiledetonationtime`.
 
 ## 7. Debug tools
 
@@ -161,13 +177,16 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       at an Afterlife shock box - it should zap as if hit by the real Afterlife interaction.
 - [ ] **Shock pistol on a power panel**: same toggle, aim at an Afterlife power panel instead - it should
       zap that too. Toggle `!mg shock gun` off afterward and confirm shots no longer zap anything.
+- [ ] `!mg goto locked|ready|souls|pickup|run|forge|done` puts the stations in the matching state (`souls` starts a real
+      lockdown with you as the placer; `pickup`, `run`, `forge` light the skulls).
 
 ## 8. Co-op
 
 - [ ] Start a co-op test with the test client `motd_solo.gsc` spawns (or a real second player). Confirm the
-      quest state is shared: both players see the same hearth prompt, the same souls count, the same lit
+      quest state is shared: both players see the same hearth hint, the same souls count and the same lit
       barrels during `run`, and only one player at a time can be the temper carrier.
-- [ ] Either player may collect orbs and press the hearth.
+- [ ] Either player's kills in the office count. Only the placer can take the tempered gun, and only the placer can
+      take the Magmagat from the forge.
 - [ ] In `done`, either player can convert his own Blundergat at the open forge independently.
 
 ## 9. Lints and syntax (before every deploy)

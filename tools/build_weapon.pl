@@ -3,11 +3,15 @@
 #   magmagat_zm           the real BO4 Magmagat model (tools/build_magmagat_model.pl) on BO2's Blundergat rig, so it
 #                         plays the Blundergat's animations; its lava tanks are the Acid Gat's bones, shown
 #   magmagat_upgraded_zm  the Magmus Operandi: the same model with the BO4 armour kit
+#   mg_magma_bolt_zm      the lava blob in flight: the Acid Gat's dart (blundersplat_bullet_zm) with our blob model
+#                         and Harry's trail and impact; where it sticks it leaves
+#   mg_magma_blob_zm      the blob there: the Acid Gat's sticky grenade (blundersplat_explosive_dart_zm), which the
+#                         script bursts (Harry's explosion) or leaves as a lava pool (mg_weapon.gsc)
 # Steps: dump zm_prison once (tools/dump_game.pl, into mod/work/dump); the BO4 view models and the near world models
-# with their materials (tools/build_magmagat_model.pl); the lava ball and pool meshes (tools/gen_lava_fx.pl); the far
-# world LODs (1, 2) are BO2's Blundergat recoloured (tools/recolor.pl); the weapon files copy the Blundergat's
-# (animations, sounds) with our models, fire muzzle flashes and BO2's red LMG tracer on every pellet (OpenAssetTools
-# loads no new fx or tracer); the display names (english/localizedstrings/mg_weapons.str) and the zone lines.
+# with their materials (tools/build_magmagat_model.pl); the lava material (tools/gen_lava_mat.pl); the far
+# world LODs (1, 2) are BO2's Blundergat recoloured (tools/recolor.pl); the weapon files copy vanilla ones (animations,
+# sounds, physics) with our models and the remaster's effects (mod.ff's mg/fx_magmagat_*, tools/bo3_fx.pl, named by
+# asset); the display names (english/localizedstrings/mg_weapons.str) and the zone lines.
 #
 #   perl tools/build_weapon.pl [--redump]
 # Env: MG_OAT, MG_BO2 (see tools/dump_game.pl), MG_GREYHOUND (see tools/build_magmagat_model.pl).
@@ -30,9 +34,9 @@ my $json = JSON::PP->new->pretty->canonical;
 system( 'perl', "$FindBin::Bin/dump_game.pl", $redump ? '--redump' : () ) == 0 or die "build_weapon.pl: the dump failed\n";
 remove_tree($raw);
 
-# 2. the BO4 models, their materials and textures; the lava ball and pool meshes (BO4's effects are meshes too)
+# 2. the BO4 models, their materials and textures; the lava material
 system( 'perl', "$FindBin::Bin/build_magmagat_model.pl", $raw, $dump ) == 0 or die "build_weapon.pl: the BO4 model failed\n";
-system( 'perl', "$FindBin::Bin/gen_lava_fx.pl", $raw, $dump ) == 0 or die "build_weapon.pl: the lava meshes failed\n";
+system( 'perl', "$FindBin::Bin/gen_lava_mat.pl", $raw, $dump ) == 0 or die "build_weapon.pl: the lava material failed\n";
 
 # 3. the far world LODs: BO2's Blundergat world model, recoloured. [ source image, our image, recolor.pl options ]
 my @recolors = (
@@ -78,25 +82,31 @@ for my $ours (qw(mg_magmagat_world mg_magmus_world mg_tempered_world mg_tempered
     spit( "$raw/xmodel/$ours.json", $json->encode($x) );
 }
 my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_world mg_tempered_view mg_tempered_world mg_tempered_up_view
-    mg_tempered_up_world mg_lava_blob mg_lava_pool);
+    mg_tempered_up_world);
 
-# 5. weapon files: [ ours, the vanilla one it copies, field overrides ]; the effects are zm_prison's own (no new fx can be
-#    built): the orange buckshot flashes, lmg_enemy = the thick red tracer. hideTags = the Acid Gat's: the plain shells
-#    and muzzle go, the lava set (the acid bones) shows. BO4's Magmagat fires the blob alone, no buckshot: one harmless
-#    shot (its streak) and the script's blob does all the damage; the ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25)
+# 5. weapon files: [ ours, the vanilla one it copies, field overrides ]. hideTags = the Acid Gat's: the plain shells and
+#    muzzle go, the lava set (the acid bones) shows. The remaster's Magmagat is the Acid Gat with fire, and ours fires as
+#    T6's Acid Gat does: a harmless hitscan shot with no tracer nor impact, the script fires the blob (magicbullet
+#    mg_magma_bolt_zm, as _zm_weap_blundersplat.gsc fires its dart). The muzzle flashes are the remaster's (T6's
+#    Vitriolic Withering ones), the fire sound the Acid Gat's (the Magmus keeps the Sweeper's Pack-a-Punched one), the
+#    ammo BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob grenade deals no damage of its own (T6 would hurt its
+#    owner 75): the script deals the burst's, and its 10 s fuse outlasts the 6 s pool.
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
-my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0 );
+my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
+    viewFlashEffect => 'weapon/blundersplat/fx_blundersplat_muzzleflash_ug',
+    worldFlashEffect => 'weapon/blundersplat/fx_blundersplat_muzzleflash_ug_3p' );
 my @weapons = (
     [ 'magmagat_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MAGMAGAT', gunModel => 'mg_magmagat_view',
-        worldModel => 'mg_magmagat_world', hideTags => $tank_tags, tracerType => 'lmg_enemy',
-        viewFlashEffect => 'weapon/muzzleflashes/fx_muz_lg_gas_flash_buck_1p',
-        worldFlashEffect => 'weapon/muzzleflashes/fx_muz_lg_gas_flash_buck_3p', %blob_only, clipSize => 1, maxAmmo => 36,
-        startAmmo => 30 } ],
+        worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, fireSound => 'wpn_blundersplat_fire_exp_npc',
+        fireSoundPlayer => 'wpn_blundersplat_fire_exp_plr', clipSize => 1, maxAmmo => 36, startAmmo => 30 } ],
     [ 'magmagat_upgraded_zm', 'blundergat_upgraded_zm', { displayName => 'ZMWEAPON_MAGMAGAT_UPGRADED', gunModel => 'mg_magmus_view',
         worldModel => 'mg_magmus_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights",
-        tracerType => 'lmg_enemy', viewFlashEffect => 'weapon/muzzleflashes/fx_muz_xlg_gas_flash_1p',
-        worldFlashEffect => 'weapon/muzzleflashes/fx_muz_xlg_gas_flash_3p', %blob_only, clipSize => 2, maxAmmo => 30,
-        startAmmo => 25 } ],
+        %blob_only, clipSize => 2, maxAmmo => 30, startAmmo => 25 } ],
+    [ 'mg_magma_bolt_zm', 'blundersplat_bullet_zm', { projectileModel => 'mg_magma_blob', projTrailEffect => 'mg/fx_magmagat_trail_bolt',
+        projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm' } ],
+    [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => 'mg_magma_blob',
+        projExplosionEffect => 'mg/fx_magmagat_explode', explosionInnerDamage => 0, explosionOuterDamage => 0, fuseTime => 10,
+        aifuseTime => 10, explosionTag => '' } ],
     # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still
     [ 'mg_tempered_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MG_TEMPERED', gunModel => 'mg_tempered_view', worldModel => 'mg_tempered_world',
         hideTags => $tank_tags } ],

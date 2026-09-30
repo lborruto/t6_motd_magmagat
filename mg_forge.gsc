@@ -7,13 +7,14 @@
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_weapon;
 
-// The forge: the dock Generator Room's large generator. Power it (one press, as the BO3 remaster), place the tempered
-// gun, 5 s of the press at work (the remaster's press sound and fire), take the Magmagat within 30 s or it is lost (BO4). The first forge
-// summons a Brutus (BO4). Once forged, any Blundergat or Acid Gat placed converts (level.mg_forge_open).
+// The forge: the remaster's Machine (mg_upgrade_machine) in the dock Generator Room, as _zm_weap_magmagat.gsc runs it.
+// During the temper run the carrier powers it: that ends the run in success and opens the forge to every player for
+// good. Then any Blundergat or Acid Gat placed on its bed is pressed (5.65 s: the ram down, the press fire, the
+// Magmagat on the bed as the ram lifts), and only the player who placed it may take the Magmagat, within 15 s or it
+// is lost.
 
 mg_forge_init()
 {
-    level.mg_forge_powered = 0;
     level.mg_forge_open = 0;
     level.mg_forge_busy = 0;
     mg_press_spawn();
@@ -43,25 +44,29 @@ mg_press_spawn()
 }
 
 // The press's own animations, played on its ram: fxanim_zom_magmagat_press_start_anim brings it down 74.5 cm onto the
-// bed from frame 9 to 19 (30 fps, eased), _end_anim lifts it back the same way.
+// bed from frame 9 to 19 (30 fps, eased), _end_anim lifts it back the same way. Each lasts 0.8 s.
 mg_press_down()
 {
+    level endon( "mg_goto" );
     wait 0.3;
     level.mg_press["press_ram"] moveto( level.mg_press_rest - ( 0, 0, 29.33 ), 0.333, 0.15, 0.15 );
-    wait 0.333;
-    mg_snd_near( "zmb_hellbox_slam_shake", level.mg_press_rest, 1200 );
 }
 
 mg_press_up()
 {
+    level endon( "mg_goto" );
     wait 0.3;
     level.mg_press["press_ram"] moveto( level.mg_press_rest, 0.333, 0.15, 0.15 );
-    wait 0.333;
 }
 
 mg_forge_near( player )
 {
     return isdefined( player ) && distancesquared( player.origin, mg_coord( "MG_FORGE" ).origin ) < 96 * 96;
+}
+
+mg_forge_carrying( player )
+{
+    return mg_state_is( "run" ) && isdefined( level.mg_carrier ) && level.mg_carrier == player;
 }
 
 mg_forge_prompt_loop()
@@ -74,29 +79,24 @@ mg_forge_prompt_loop()
 
         foreach ( player in getplayers() )
         {
-            if ( !is_player_valid( player ) || !mg_forge_near( player ) )
-            {
-                if ( is_true( player.mg_forge_prompted ) )
-                {
-                    player.mg_forge_prompted = 0;
-                }
+            text = undefined;
 
-                continue;
-            }
-
-            text = mg_forge_prompt_text( player );
+            if ( is_player_valid( player ) && mg_forge_near( player ) )
+                text = mg_forge_prompt_text( player );
 
             if ( !isdefined( text ) )
             {
                 if ( is_true( player.mg_forge_prompted ) )
                 {
                     player.mg_forge_prompted = 0;
+                    player mg_prompt( 0, undefined );
                 }
 
                 continue;
             }
 
             player.mg_forge_prompted = 1;
+            player mg_prompt( 1, text );
 
             if ( player mg_press_use() )
                 level thread mg_forge_press( player );
@@ -104,28 +104,33 @@ mg_forge_prompt_loop()
     }
 }
 
-// What the forge offers this player right now, or undefined.
+// What the forge offers this player right now, or undefined: the remaster's tr_forge hints (the Acid Gat station's
+// ZM_PRISON_CONVERT_START / ZM_PRISON_MISSING_BLUNDERGAT and its own ZM_PRISON_MG_CONVERT_PICKUP) in plain text, as
+// the other polled prompts.
 mg_forge_prompt_text( player )
 {
     if ( is_true( level.mg_forge_busy ) )
         return undefined;
 
+    // the pressed gun waits for its placer only (the remaster shows the trigger to him alone)
     if ( isdefined( level.mg_forge_ready_gun ) )
-        return "Press [{+activate}] to take the Magmagat";
+    {
+        if ( isdefined( level.mg_forge_placer ) && level.mg_forge_placer == player )
+            return "Hold [{+activate}] to take the Magmagat";
 
-    carrying = mg_state_is( "run" ) && isdefined( level.mg_carrier ) && level.mg_carrier == player;
-    open_owner = is_true( level.mg_forge_open ) && isdefined( mg_has_blundergat( player ) ) && !isdefined( mg_has_magma( player ) );
+        return undefined;
+    }
 
-    if ( !carrying && !open_owner )
+    if ( mg_forge_carrying( player ) )
+        return "Hold [{+activate}] to power the Machine";
+
+    if ( !is_true( level.mg_forge_open ) )
         return undefined;
 
-    if ( !is_true( level.mg_forge_powered ) )
-        return "Press [{+activate}] to power the forge";
+    if ( isdefined( player.mg_forge_missing_until ) && gettime() < player.mg_forge_missing_until )
+        return "Missing Blundergat";
 
-    if ( carrying )
-        return "Press [{+activate}] to place the tempered Blundergat";
-
-    return "Press [{+activate}] to place the Blundergat";
+    return "Hold [{+activate}] to place the Blundergat";
 }
 
 mg_forge_press( player )
@@ -141,34 +146,50 @@ mg_forge_press( player )
         return;
     }
 
-    if ( !is_true( level.mg_forge_powered ) )
+    if ( mg_forge_carrying( player ) )
     {
-        level.mg_forge_busy = 1;
-        level.mg_forge_powered = 1;
-        pos = mg_coord( "MG_FORGE_GUN" ).origin;
-        mg_fx_once( "sparks", pos );
-        mg_snd_near( "zmb_powerpanel_activate", pos, 800 );
-        wait 2;
-        level.mg_forge_busy = 0;
+        mg_forge_power( player );
         return;
     }
 
-    carrying = mg_state_is( "run" ) && isdefined( level.mg_carrier ) && level.mg_carrier == player;
-
-    if ( carrying )
-    {
-        mg_forge_place( player, level.mg_run_weapon, 1 );
+    if ( !is_true( level.mg_forge_open ) )
         return;
-    }
 
     weapon = mg_has_blundergat( player );
 
-    if ( is_true( level.mg_forge_open ) && isdefined( weapon ) && !isdefined( mg_has_magma( player ) ) )
-        mg_forge_place( player, weapon, 0 );
+    // no gun to press: the remaster says so for 2 s
+    if ( !isdefined( weapon ) )
+    {
+        player.mg_forge_missing_until = gettime() + 2000;
+        return;
+    }
+
+    mg_forge_place( player, weapon );
 }
 
-// The gun goes on the generator, 5 s of ghosts, then it waits to be taken.
-mg_forge_place( player, weapon, tempered )
+// The carrier powers the Machine (the remaster's function_b09dee70): the power panel sound and the power effect on
+// the machine, the run ends in success and the carrier gets his Blundergat back; 1 s later the Warden's line to him,
+// and the forge is open to every player for good.
+mg_forge_power( player )
+{
+    level endon( "mg_goto" );
+    level.mg_forge_busy = 1;
+    mg_snd_near( "zmb_powerpanel_activate", level.mg_press_rest, 800 );
+    mg_run_end_ok();
+    mg_state_set( "done" );
+    mg_fx_once( "sparks", level.mg_press_rest, undefined, level.mg_press["press_body"].angles );
+    wait 1;
+
+    if ( isdefined( player ) )
+        player playsoundtoplayer( "mg_brutus_mgu", player );
+
+    level.mg_forge_open = 1;
+    level.mg_forge_busy = 0;
+    mg_debug_print( "MG: the Machine is powered; the forge stays open for any Blundergat" );
+}
+
+// The gun goes on the bed and the press works it, on the remaster's timeline (function_fb635f94; t from the use).
+mg_forge_place( player, weapon )
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
@@ -183,130 +204,96 @@ mg_forge_place( player, weapon, tempered )
     if ( primaries.size > 0 )
         player switchtoweapon( primaries[0] );
 
-    if ( tempered )
-    {
-        mg_run_end_ok();
-        mg_state_set( "forge" );
-    }
-
     c = mg_coord( "MG_FORGE_GUN" );
     gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
     level.mg_forge_gun_weapon = weapon;
     level.mg_forge_placer = player;
     level.mg_forge_place_ents = [];
-    level.mg_forge_place_ents[level.mg_forge_place_ents.size] = gun;
-    mg_snd_near( "zmb_afterlife_shockbox_on", c.origin, 800 );
-    mg_snd_near( "mg_press", c.origin, 2000 ); // the remaster's magmagat press at work
+    level.mg_forge_place_ents[0] = gun;
 
-    // the press comes down and works the gun for 5 s (the remaster: its press sound over the press fire), in the
-    // generator's own smoke, with flame bursts, then lifts
+    // t 0.5: the start anim (the ram comes down 0.3 s in); t 0.55: the press sound at the machine
+    wait 0.5;
     level thread mg_press_down();
-    fire = mg_fx_loop( "forge_rise", c.origin - ( 0, 0, 6 ) );
+    wait 0.05;
+    mg_snd_near( "mg_press", level.mg_press_rest, 2000 );
 
-    if ( isdefined( fire ) )
-        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = fire;
-
-    smoke = mg_fx_loop( "smoke", c.origin );
-
-    if ( isdefined( smoke ) )
-        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = smoke;
-
-    for ( i = 0; i < 5; i++ )
-    {
-        wait 1;
-
-        if ( i == 1 || i == 3 )
-        {
-            mg_fx_once( "ball_hit", c.origin );
-            mg_snd_near( "mg_flame_burst", c.origin, 1500 );
-        }
-    }
-
-    mg_press_up();
-    mg_fx_stop( fire );
-    mg_fx_stop( smoke );
-    mg_fx_once( "explo", c.origin );
-    mg_snd_near( "zmb_hellbox_open", c.origin, 800 );
-    mg_snd_near( "mg_flame_burst", c.origin, 1500 );
+    // t 1.35, the start anim over: the press fire once at the machine, the gun under the ram gone
+    wait 0.8;
+    mg_fx_once( "forge_rise", level.mg_press_rest, 6, level.mg_press["press_body"].angles );
     gun delete();
-    gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin - ( 0, 0, 10 ), c.angles );
-    level.mg_forge_place_ents[level.mg_forge_place_ents.size] = gun;
-    rise = mg_fx_loop( "forge_rise", c.origin - ( 0, 0, 6 ) );
 
-    if ( isdefined( rise ) )
-        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = rise;
-
-    mg_snd_near( "zmb_hellbox_slam_shake", c.origin, 800 );
-    gun moveto( c.origin, 1.5, 0.3, 0.6 );
-    gun rotateyaw( 360, 1.5, 0.3, 0.6 );
-    wait 1.5;
-    mg_fx_stop( rise );
-    mg_fx_once( "ball_hit", c.origin );
+    // t 4.35: the Magmagat lies on the bed as the end anim lifts the ram; ready 0.8 + 0.5 s later
+    wait 3;
+    gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin, c.angles );
+    level.mg_forge_place_ents[0] = gun;
+    level thread mg_press_up();
+    wait 1.3;
     level.mg_forge_ready_gun = gun;
-    level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
-    level.mg_forge_busy = 0;
     level.mg_forge_place_ents = [];
+    level.mg_forge_busy = 0;
     level thread mg_forge_pickup_window( gun );
 }
 
-// 30 s to take the Magmagat, or it vanishes (BO4). Before the first forge the quest goes back to the fireplace.
+// 15 s to take the Magmagat, or it is lost without a sign (the remaster's function_369019ca). The forge stays open.
 mg_forge_pickup_window( gun )
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
-    wait 30;
+    wait 15;
 
     if ( !isdefined( level.mg_forge_ready_gun ) || level.mg_forge_ready_gun != gun )
         return;
 
-    pos = gun.origin;
-    mg_debug_print( "MG: the Magmagat was not taken in 30 s: it is lost" );
-    mg_fx_once( "gun_vanish", pos );
-    mg_snd_near( "zmb_quest_nixie_fail", pos, 1500 );
-    mg_snd_near( "mg_brutus_laugh", pos, 2500 );
-    gun delete();
-    level.mg_forge_ready_gun = undefined;
-    mg_fx_stop( level.mg_forge_ready_glow );
-    level.mg_forge_ready_glow = undefined;
-    level.mg_forge_gun_weapon = undefined;
-    level.mg_forge_placer = undefined;
-
-    if ( mg_state_is( "forge" ) )
-        mg_state_set( "ready" );
+    mg_debug_print( "MG: the Magmagat was not taken in 15 s: it is lost" );
+    mg_forge_ready_clear();
+    mg_forge_rest();
 }
 
-// Take the Magmagat (the Magmus Operandi when a Sweeper was forged).
+// The placer takes the Magmagat (the Magmus Operandi when a Pack-a-Punched gun was pressed). One who already owns a
+// Magmagat only gets its ammo refilled, as the remaster.
 mg_forge_take( player )
 {
     if ( !isdefined( level.mg_forge_ready_gun ) || !is_player_valid( player ) )
         return;
 
+    if ( !isdefined( level.mg_forge_placer ) || level.mg_forge_placer != player )
+        return;
+
     weapon = level.mg_forge_gun_weapon;
-    level.mg_forge_ready_gun delete();
-    level.mg_forge_ready_gun = undefined;
-    mg_fx_stop( level.mg_forge_ready_glow );
-    level.mg_forge_ready_glow = undefined;
-    level.mg_forge_gun_weapon = undefined;
-    level.mg_forge_placer = undefined;
-    player mg_weapon_grant( weapon );
+    mg_forge_ready_clear();
+    owned = mg_has_magma( player );
 
-    if ( !mg_state_is( "done" ) )
-    {
-        level.mg_forge_open = 1;
-        mg_state_set( "done" );
-        mg_debug_print( "MG: Magmagat forged by " + player.name + "; the forge stays open for any Blundergat" );
-        // the first forge wakes the warden (BO4 spawns a Brutus in New Industries; the remaster gives him a line)
-        foreach ( p in getplayers() )
-            p playsoundtoplayer( "mg_brutus_mgu", p );
+    if ( isdefined( owned ) )
+        player givemaxammo( owned );
+    else
+        player mg_weapon_grant( weapon );
 
-        maps\mp\zombies\_zm_ai_brutus::attempt_brutus_spawn( 1 );
-    }
+    mg_forge_rest();
 }
 
-// self = player typing !mg goto
+mg_forge_ready_clear()
+{
+    if ( isdefined( level.mg_forge_ready_gun ) )
+        level.mg_forge_ready_gun delete();
+
+    level.mg_forge_ready_gun = undefined;
+    level.mg_forge_gun_weapon = undefined;
+    level.mg_forge_placer = undefined;
+}
+
+// The remaster shows the forge again 0.5 s after the Magmagat is taken or lost.
+mg_forge_rest()
+{
+    level endon( "mg_goto" );
+    level.mg_forge_busy = 1;
+    wait 0.5;
+    level.mg_forge_busy = 0;
+}
+
+// self = player typing !mg goto. "forge" fabricates a Magmagat on the bed waiting for him.
 mg_forge_fabricate( state )
 {
-    // a place() killed mid-ghosts by the goto notify leaves its entities to us
+    // a place() killed mid-press by the goto notify leaves its entities to us
     if ( isdefined( level.mg_forge_place_ents ) )
     {
         foreach ( ent in level.mg_forge_place_ents )
@@ -317,22 +304,17 @@ mg_forge_fabricate( state )
     }
 
     level.mg_forge_place_ents = [];
-
-    if ( isdefined( level.mg_forge_ready_gun ) )
-        level.mg_forge_ready_gun delete();
-
-    level.mg_forge_ready_gun = undefined;
-    mg_fx_stop( level.mg_forge_ready_glow );
-    level.mg_forge_ready_glow = undefined;
+    mg_forge_ready_clear();
+    level.mg_press["press_ram"] moveto( level.mg_press_rest, 0.1 );
     level.mg_forge_busy = 0;
-    level.mg_forge_powered = ( state == "forge" || state == "done" );
-    level.mg_forge_open = ( state == "done" );
+    level.mg_forge_open = ( state == "forge" || state == "done" );
 
-    if ( state == "forge" )
+    if ( state == "forge" && isdefined( self ) && isplayer( self ) )
     {
         c = mg_coord( "MG_FORGE_GUN" );
         level.mg_forge_gun_weapon = "blundergat_zm";
+        level.mg_forge_placer = self;
         level.mg_forge_ready_gun = spawn_weapon_model( "magmagat_zm", undefined, c.origin, c.angles );
-        level.mg_forge_ready_glow = mg_fx_loop( "glow", c.origin );
+        level thread mg_forge_pickup_window( level.mg_forge_ready_gun );
     }
 }

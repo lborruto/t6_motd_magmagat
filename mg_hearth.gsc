@@ -7,18 +7,23 @@
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_weapon;
 
-// The fireplace, after BO4 Blood of the Dead (zm_escape_weap_quest_mg.gsc) and the BO3 remaster: the gun in the fire,
-// 15 souls from zombies that die in the Warden's Office, taken by walking into them and flying to three skulls
-// (5 / 10 / 15), the placer's 10 s / 30 s away rule, the deposit (the skulls drain, a flare, the blue fire), 30 s to
-// take the tempered gun.
+// The fireplace, as the BO3 remaster plays it (_zm_weap_magmagat.gsc, the soul hook in zm_prison_cerberus_quest.gsc):
+// once the bridge's chair has been taken, a first press burns the boards; then a Blundergat laid in the fire locks the
+// Warden's Office down until 15 zombies have died in it (their souls light three skulls at 5 / 10 / 15). The placer
+// going down fails it and the gun is lost; a success leaves the gun for the placer to take, tempered, with no time limit.
 
 mg_hearth_init()
 {
-    level.mg_orbs = 0;
-    level.mg_souls_sent = 0;
-    level.mg_souls_taken = 0;
+    level.mg_souls = 0;
+    level.mg_souls_on = 0;
     level.mg_skulls = [];
+    level.mg_skull_fx = [];
+    level.mg_skull_gen = 0;
     level.mg_hearth_session = 0;
+    level.mg_hearth_burnt = 0;
+    level.mg_lock_gen = 0;
+    level.mg_lock_fx = [];
+    level.mg_lock_clips = [];
 
     for ( i = 1; i <= 3; i++ )
     {
@@ -29,43 +34,12 @@ mg_hearth_init()
         level.mg_skulls[i - 1] = skull;
     }
 
-    level thread mg_hearth_fire();
     level thread mg_hearth_prompt_loop();
-    level thread mg_hearth_state_watch();
-    level.mg_lock_gen = 0;
-    level thread mg_lockdown_watch();
 }
 
-// The hearth: the map's own fire burns in it; the remaster's blue fire only while the tempered gun waits.
-mg_hearth_fire()
-{
-    level endon( "end_game" );
-    pos = mg_coord( "MG_HEARTH" ).origin;
-
-    while ( true )
-    {
-        if ( isdefined( level.mg_hearth_portal ) )
-        {
-            mg_fx_stop( level.mg_hearth_portal );
-            level.mg_hearth_portal = undefined;
-        }
-
-        // the tempered gun waits in the remaster's blue fire (its flames rise from 30 units over the effect: from the gun)
-        if ( mg_state_is( "pickup" ) )
-        {
-            level.mg_hearth_portal = mg_fx_loop( "hearth_blue", pos - ( 0, 0, 30 ) );
-            mg_snd_near( "evt_wolfhead_spawn", pos, 1200 );
-
-            if ( isdefined( level.mg_hearth_portal ) )
-                level.mg_hearth_portal playloopsound( "evt_wolfhead_fire_loop" );
-        }
-
-        level waittill( "mg_state" );
-    }
-}
-
-// Prompt + use press at the hearth, polled: "Temper the Blundergat" (ready, holding one), "Take the souls to the
-// fire" (souls, 15 orbs), "Take the tempered Blundergat" (pickup).
+// The remaster's use trigger tr_magmagat_upgrade, as our polled prompt (mg_prompt, as the forge): within 96 units of
+// MG_HEARTH_USE. Ready: no hint before the boards have burnt (the remaster's first press), then the place hint for
+// everyone; pickup: the take hint for the placer alone.
 mg_hearth_prompt_loop()
 {
     level endon( "end_game" );
@@ -77,114 +51,244 @@ mg_hearth_prompt_loop()
 
         foreach ( player in getplayers() )
         {
-            if ( !is_player_valid( player ) || distancesquared( player.origin, use ) > 96 * 96 )
-            {
-                if ( is_true( player.mg_hearth_prompted ) )
-                {
-                    player.mg_hearth_prompted = 0;
-                }
-
-                continue;
-            }
-
             text = undefined;
 
-            if ( mg_state_is( "ready" ) && isdefined( mg_has_blundergat( player ) ) )
-                text = "Press [{+activate}] to temper the Blundergat";
-            else if ( mg_state_is( "souls" ) && level.mg_orbs >= 15 )
-                text = "Press [{+activate}] to give the souls to the fire";
-            else if ( mg_state_is( "pickup" ) )
-                text = "Press [{+activate}] to take the tempered Blundergat";
+            if ( is_player_valid( player ) && distancesquared( player.origin, use ) < 96 * 96 )
+                text = mg_hearth_prompt_text( player );
 
             if ( !isdefined( text ) )
             {
                 if ( is_true( player.mg_hearth_prompted ) )
                 {
                     player.mg_hearth_prompted = 0;
+                    player mg_prompt( 0, undefined );
                 }
 
                 continue;
             }
 
-            player.mg_hearth_prompted = 1;
+            // the boards' press has no hint: nothing on screen, the press still counts
+            if ( text == "" )
+            {
+                player.mg_hearth_prompted = 0;
+                player mg_prompt( 0, undefined );
+            }
+            else
+            {
+                player.mg_hearth_prompted = 1;
+                player mg_prompt( 1, text );
+            }
 
-            if ( !player mg_press_use() )
-                continue;
-
-            if ( mg_state_is( "ready" ) )
-                level thread mg_hearth_start( player );
-            else if ( mg_state_is( "souls" ) )
-                level thread mg_hearth_deposit( player );
-            else if ( mg_state_is( "pickup" ) )
-                level thread mg_hearth_take( player );
+            if ( player mg_press_use() )
+                level thread mg_hearth_press( player );
         }
     }
 }
 
-// ready -> souls: the gun leaves the hand and lies in the fire.
-mg_hearth_start( player )
+// the hint for this player at the fireplace, "" for a press without one, undefined for none
+mg_hearth_prompt_text( player )
+{
+    if ( mg_state_is( "ready" ) )
+    {
+        if ( !is_true( level.mg_hearth_burnt ) )
+            return "";
+
+        // the remaster's ZM_PRISON_MISSING_BLUNDERGAT, 2 s after a press without a gun
+        if ( isdefined( player.mg_hearth_missing_until ) && gettime() < player.mg_hearth_missing_until )
+            return "Missing Blundergat";
+
+        return "Hold ^3[{+activate}]^7 to place Blundergat";
+    }
+
+    if ( mg_state_is( "pickup" ) && isdefined( level.mg_hearth_owner ) && player == level.mg_hearth_owner )
+        return "Hold ^3[{+activate}]^7 to take the Tempered Blundergat";
+
+    return undefined;
+}
+
+// One press at a time, as the remaster's place loop: a press while another runs is ignored.
+mg_hearth_press( player )
+{
+    if ( is_true( level.mg_hearth_busy ) )
+        return;
+
+    level.mg_hearth_busy = 1;
+
+    if ( mg_state_is( "ready" ) && !is_true( level.mg_hearth_burnt ) )
+        mg_hearth_burn();
+    else if ( mg_state_is( "ready" ) )
+        mg_hearth_place( player );
+    else if ( mg_state_is( "pickup" ) )
+        mg_hearth_take( player );
+
+    level.mg_hearth_busy = 0;
+}
+
+// The first press after the gate (MG.gsc:110-114): a flame burst at the trigger and the boards burn; 1 s later the
+// fireplace takes a gun. T6's boards are static map geometry and stay: the fire bursts over them for the 4 s the
+// remaster's boards take to dissolve.
+mg_hearth_burn()
+{
+    playsoundatposition( "mg_flame_burst", mg_coord( "MG_HEARTH_USE" ).origin );
+    level thread mg_hearth_boards_burn();
+    wait 1;
+    level.mg_hearth_burnt = 1;
+}
+
+mg_hearth_boards_burn()
+{
+    // the middle of the map's boards across the fireplace (where the remaster's mg_wood_barrier planks stood)
+    pos = ( -479, 8796, 1359 );
+    wait 0.05;
+    mg_fx_once( "hearth_flare", pos );
+    mg_fx_once( "fire_sm", pos, 4 );
+}
+
+// ready -> souls (MG.gsc:128-153): the gun leaves the player (any of the four, held or not) and lies in the fire, and
+// the lockdown starts. No gun: the "missing Blundergat" hint for 2 s.
+mg_hearth_place( player )
 {
     weapon = mg_has_blundergat( player );
 
-    if ( !isdefined( weapon ) || !mg_state_is( "ready" ) )
+    if ( !isdefined( weapon ) )
+    {
+        player.mg_hearth_missing_until = gettime() + 2000;
         return;
+    }
 
     player takeweapon( weapon );
     primaries = player getweaponslistprimaries();
 
+    // T6 does not always switch by itself when the weapon in hand is taken
     if ( primaries.size > 0 )
         player switchtoweapon( primaries[0] );
 
     level.mg_hearth_weapon = weapon;
     level.mg_hearth_owner = player;
-    level.mg_orbs = 0;
-    level.mg_souls_sent = 0;
-    level.mg_souls_taken = 0;
     c = mg_coord( "MG_HEARTH" );
     level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
-    player mg_snd_player( "zmb_hellbox_lock" );
-    mg_snd_near( "mg_flame_burst", c.origin, 1500 ); // the fire takes the gun (the remaster's flame burst)
-    // the lockdown's laugh (the BO3 remaster)
-    mg_snd_near( "zmb_easteregg_laugh", c.origin, 2000 );
-    level.mg_hearth_session++;
-    mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
     mg_state_set( "souls" );
-    level thread mg_hearth_office_watch();
-    level thread mg_hearth_round_watch();
+    level thread mg_lockdown( player );
 }
 
-// souls: a round that ends with no soul collected at all sends the gun back (spec section 3). The watcher belongs
-// to ONE souls session (token): a stale instance parked on the waittill must not reset a later session.
-mg_hearth_round_watch()
+// The lockdown (MG.gsc:431-454): the office shut for players, its fire outline, the laugh, the laundry's defend music;
+// the souls counted until 15 or until the placer goes down. It ends 2 s after either; then the gun waits for its
+// placer, or is lost.
+mg_lockdown( placer )
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
-    my = level.mg_hearth_session;
+    level.mg_hearth_session++;
+    mg_lockdown_on();
+    mg_laugh_all();
 
-    while ( mg_state_is( "souls" ) && level.mg_hearth_session == my )
+    // as the vanilla dryer (zm_alcatraz_sq.gsc dryer_trigger_thread), the remaster's change_zombie_music on T6
+    if ( !is_true( level.music_override ) )
     {
-        level waittill( "end_of_round" );
+        level notify( "sndStopBrutusLoop" );
+        level thread maps\mp\zombies\_zm_audio::sndmusicstingerevent( "laundry_defend" );
+    }
 
-        if ( level.mg_hearth_session != my )
-            return;
+    level.mg_souls = 0;
+    level.mg_souls_on = 1;
+    mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
+    level thread mg_lockdown_fail_watch( placer );
+    level waittill( "mg_lockdown_end", won );
+    level.mg_souls_on = 0;
+    mg_death_listen_remove( "mg_hearth" );
 
-        if ( mg_state_is( "souls" ) && level.mg_orbs == 0 )
-        {
-            mg_debug_print( "MG: the round ended with no soul collected: the Blundergat is lost" );
-            mg_hearth_reset( 0 );
-            return;
-        }
+    // a failed lockdown puts the skulls out at once (MG.gsc:507-511)
+    if ( !won )
+        mg_skulls_dark();
+
+    wait 2;
+    mg_lockdown_off();
+
+    if ( won )
+    {
+        mg_state_set( "pickup" );
+        level thread mg_hearth_owner_watch( placer, level.mg_hearth_session );
+    }
+    else
+        mg_hearth_reset();
+}
+
+// pickup: the placer alone can take the gun, so his leaving the game loses it (the remaster would wait forever)
+mg_hearth_owner_watch( placer, session )
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+
+    if ( !isdefined( placer ) )
+        return;
+
+    placer waittill( "disconnect" );
+
+    if ( mg_state_is( "pickup" ) && level.mg_hearth_session == session )
+    {
+        mg_debug_print( "MG: the placer left the game: the tempered Blundergat is lost" );
+        mg_hearth_reset();
     }
 }
 
-// souls: a zombie killed by a player that dies inside the office drops its soul (the killer may stand anywhere). The
-// count is reserved at once, so the orbs out never pass 15; an orb nobody takes gives its place back.
+// The only fail (MG.gsc:517-533): the placer in last stand or in afterlife, checked every 0.1 s. Another player going
+// down does not matter. The placer leaving the game fails it too (the remaster would hang with no one to take the gun).
+mg_lockdown_fail_watch( placer )
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    level endon( "mg_lockdown_end" );
+
+    while ( true )
+    {
+        if ( !isdefined( placer ) )
+        {
+            mg_debug_print( "MG: the placer left the game: the lockdown fails, the Blundergat is lost" );
+            break;
+        }
+
+        if ( placer maps\mp\zombies\_zm_laststand::player_is_in_laststand() || is_true( placer.afterlife ) || placer.sessionstate == "spectator" )
+        {
+            mg_debug_print( "MG: the placer went down: the lockdown fails, the Blundergat is lost" );
+            break;
+        }
+
+        wait 0.1;
+    }
+
+    level notify( "mg_lockdown_end", 0 );
+}
+
+// The 15th soul (MG.gsc:492-500): 1 s later the laugh and the success.
+mg_lockdown_won()
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    level endon( "mg_lockdown_end" );
+    wait 1;
+    mg_laugh_all();
+    mg_debug_print( "MG: 15 souls: the lockdown is over, the tempered Blundergat waits for its placer" );
+    level notify( "mg_lockdown_end", 1 );
+}
+
+// The remaster laughs at world (0, 0, 0) for everyone; T6's alias carries 5000 units, so it goes to each player.
+mg_laugh_all()
+{
+    foreach ( p in getplayers() )
+        p playsoundtoplayer( "zmb_easteregg_laugh", p );
+}
+
+// A zombie killed by any player, with anything, whose body lies in the office, gives a soul (CQ.gsc:223-278). Brutus
+// (animname brutus_zombie) and other archetypes never count. The killer may stand anywhere.
 mg_hearth_zombie_died( zombie )
 {
-    if ( !mg_state_is( "souls" ) || level.mg_souls_sent >= 15 )
+    if ( !is_true( level.mg_souls_on ) || level.mg_souls >= 15 )
         return;
 
-    if ( !isdefined( zombie ) || !isdefined( zombie.attacker ) || !isplayer( zombie.attacker ) )
+    if ( !isdefined( zombie ) || !isdefined( zombie.animname ) || zombie.animname != "zombie" )
+        return;
+
+    if ( !isdefined( zombie.attacker ) || !isplayer( zombie.attacker ) )
     {
         mg_debug_print( "MG: kill not counted: no player attacker" );
         return;
@@ -192,136 +296,58 @@ mg_hearth_zombie_died( zombie )
 
     if ( !mg_ent_in_office( zombie ) )
     {
-        mg_debug_print( "MG: kill not counted: the zombie died outside zone_warden_office" );
+        mg_debug_print( "MG: kill not counted: the zombie died outside the office" );
         return;
     }
 
-    level.mg_souls_sent++;
-    mg_debug_print( "MG: soul dropped at " + mg_vec_str( zombie.origin ) + " (" + level.mg_souls_sent + " out or taken)" );
-    level thread mg_soul_orb( zombie.origin );
+    level thread mg_soul( zombie.origin, level.mg_hearth_session );
 }
 
-// A soul, as BO4 drops it and the remaster draws it: its lightning streak 22 units over the corpse, swirling up 36
-// units in 3 s, humming. Walk into it (24 units around, 96 up) to take it: it bursts and flies to the skull it
-// fills. Nobody takes it and it fades, lost.
-mg_soul_orb( pos )
+// A soul counts by itself 0.5 s after the kill (CQ.gsc:271-275); nothing to pick up. Its skull lights at 5, 10, 15.
+mg_soul( pos, session )
 {
     level endon( "end_game" );
-    level endon( "mg_goto" );
-    session = level.mg_hearth_session;
-    mg_snd_near( "mg_soul_kill", pos, 1200 );
-    start = pos + ( 0, 0, 22 );
-    orb = mg_fx_loop( "soul_trail", start );
+    playsoundatposition( "mg_soul_kill", pos );
+    level thread mg_soul_rise( pos );
+    wait 0.5;
 
-    if ( !mg_state_is( "souls" ) || level.mg_hearth_session != session )
-    {
-        mg_fx_stop( orb );
-        return;
-    }
-
-    if ( !isdefined( orb ) )
-    {
-        level.mg_souls_sent--;
-        return;
-    }
-
-    mg_orb_track( orb );
-    orb playloopsound( "mg_soul_loop" );
-    orb thread mg_soul_drift( start, 3 );
-    taker = undefined;
-
-    for ( t = 0; t < 3 && !isdefined( taker ); t += 0.05 )
-    {
-        wait 0.05;
-
-        if ( !isdefined( orb ) || !mg_state_is( "souls" ) || level.mg_hearth_session != session )
-            return;
-
-        foreach ( p in getplayers() )
-        {
-            up = orb.origin[2] - p.origin[2];
-
-            if ( is_player_valid( p ) && distance2d( p.origin, orb.origin ) < 24 + 16 && up > -16 && up < 96 )
-            {
-                taker = p;
-                break;
-            }
-        }
-    }
-
-    from = orb.origin;
-    mg_fx_stop( orb );
-
-    if ( !isdefined( taker ) )
-    {
-        level.mg_souls_sent--;
-        mg_debug_print( "MG: a soul faded, nobody took it" );
-        return;
-    }
-
-    level.mg_souls_taken++;
-    mg_fx_once( "soul_hit", from );
-    taker playsoundtoplayer( "evt_soulsuck_body", taker );
-    level thread mg_soul_fly( from, level.mg_souls_taken );
-}
-
-// A soul taken, as the BO3 remaster flies it: up, then to the skull it fills as the lightning-hands streak humming
-// (the soul loop), and in with a flash. Its skull lights when its fifth soul arrives.
-mg_soul_fly( pos, n )
-{
-    level endon( "end_game" );
-    level endon( "mg_goto" );
-    session = level.mg_hearth_session;
-    idx = int( ( n - 1 ) / 5 );
-    target = mg_coord( "MG_HEARTH" ).origin + ( 0, 0, 20 );
-
-    if ( isdefined( level.mg_skulls[idx] ) )
-        target = level.mg_skulls[idx].origin + ( 0, 0, 4 );
-
-    up = pos + ( 0, 0, 20 );
-    soul = mg_fx_loop( "soul_trail", pos, vectortoangles( up - pos ) );
-
-    if ( !isdefined( soul ) )
+    if ( !is_true( level.mg_souls_on ) || level.mg_hearth_session != session || level.mg_souls >= 15 )
         return;
 
-    mg_orb_track( soul );
-    soul playloopsound( "mg_soul_loop" );
-    soul moveto( up, 0.4, 0, 0.2 );
-    wait 0.4;
-
-    if ( !isdefined( soul ) )
-        return;
-
-    soul.angles = vectortoangles( target - up );
-    time = distance( up, target ) / 450;
-
-    if ( time < 0.6 )
-        time = 0.6;
-
-    if ( time > 3 )
-        time = 3;
-
-    soul moveto( target, time, time * 0.3, 0 );
-    wait( time );
-
-    if ( !isdefined( soul ) )
-        return;
-
-    mg_fx_stop( soul );
-
-    if ( !mg_state_is( "souls" ) || level.mg_hearth_session != session )
-        return;
-
-    mg_fx_once( "soul_arrive", target );
-    mg_snd_near( "evt_soulsuck_body", target, 900 );
-    level.mg_orbs++;
-    mg_debug_print( "MG: soul " + level.mg_orbs + "/15 in its skull" );
+    level.mg_souls++;
+    n = level.mg_souls;
+    mg_debug_print( "MG: soul " + n + "/15" );
 
     if ( n % 5 == 0 )
-        mg_skull_light( idx );
+        level thread mg_skull_light( int( n / 5 ) - 1 );
+
+    if ( n >= 15 )
+        level thread mg_lockdown_won();
 }
 
-// skull index 0..2 lights (BO4: the skull turns into the afterlife skull, blue fire on it) until the hearth resets
+// The soul as the remaster draws it (MG.gsc:539-550): its lightning streak 40 units over the body, humming, rising
+// straight up 60 units in 2 s, then gone.
+mg_soul_rise( pos )
+{
+    level endon( "end_game" );
+    soul = mg_fx_loop( "soul_trail", pos + ( 0, 0, 40 ) );
+
+    if ( !isdefined( soul ) )
+        return;
+
+    soul playloopsound( "mg_soul_loop" );
+    soul movez( 60, 2 );
+    wait 2;
+
+    if ( !isdefined( soul ) )
+        return;
+
+    soul stoploopsound();
+    mg_fx_stop( soul );
+}
+
+// Skull index 0..2 lights: the remaster's blue flame skull on it (MG.gsc:473-494, MG.csc:86-99); the skull model does
+// not change and nothing sounds. It stays lit until a failed lockdown or a failed run.
 mg_skull_light( idx )
 {
     skull = level.mg_skulls[idx];
@@ -329,40 +355,28 @@ mg_skull_light( idx )
     if ( !isdefined( skull ) )
         return;
 
-    if ( !isdefined( level.mg_skull_fx ) )
-        level.mg_skull_fx = [];
-
-    if ( isdefined( level.mg_skull_fx[idx] ) )
-        mg_fx_stop( level.mg_skull_fx[idx] );
-
-    skull setmodel( mg_model( "skull_lit" ) );
+    mg_fx_stop( level.mg_skull_fx[idx] );
+    gen = level.mg_skull_gen;
     ent = mg_fx_loop( "soul_full", skull.origin - ( 0, 0, 3.5 ) ); // at the skull's foot, as the remaster's skull fire
+
+    // the skulls were put out while the flame spawned
+    if ( gen != level.mg_skull_gen )
+    {
+        mg_fx_stop( ent );
+        return;
+    }
+
     level.mg_skull_fx[idx] = ent;
 
     if ( isdefined( ent ) )
-    {
-        // a full dream catcher's glow and hum
-        ent playloopsound( "evt_runeglow_loop" );
         level thread mg_fx_keepalive( ent );
-    }
-
-    // the third skull has its own sound (BO4)
-    if ( idx == 2 )
-        mg_snd_near( "zmb_hellbox_unlock", skull.origin, 1200 );
-    else
-        mg_snd_near( "zmb_afterlife_zombie_warp_in", skull.origin, 900 );
 }
 
+// All three skulls out: on a failed lockdown here, and on a failed run from mg_run (MG.gsc:507-511, lockdown_failed /
+// tempered_step_failed). After a forged gun they stay lit for the rest of the game.
 mg_skulls_dark()
 {
-    foreach ( skull in level.mg_skulls )
-    {
-        if ( isdefined( skull ) )
-            skull setmodel( mg_model( "skull" ) );
-    }
-
-    if ( !isdefined( level.mg_skull_fx ) )
-        return;
+    level.mg_skull_gen++;
 
     foreach ( ent in level.mg_skull_fx )
         mg_fx_stop( ent );
@@ -370,138 +384,15 @@ mg_skulls_dark()
     level.mg_skull_fx = [];
 }
 
-// souls: the player who placed the gun is watched once a second (BO4). 10 s out of the office with souls taken:
-// the souls are lost (skulls dark, count 0). 30 s out: the fire lets go and the gun is lost. Dying or leaving the
-// game loses it too.
-mg_hearth_office_watch()
-{
-    level endon( "end_game" );
-    level endon( "mg_goto" );
-    my = level.mg_hearth_session;
-    away = 0;
-
-    while ( mg_state_is( "souls" ) && level.mg_hearth_session == my )
-    {
-        wait 1;
-        placer = level.mg_hearth_owner;
-
-        if ( !isdefined( placer ) || !isalive( placer ) || is_true( placer.sessionstate == "spectator" ) )
-        {
-            mg_debug_print( "MG: the placer is gone: the Blundergat is lost" );
-            mg_hearth_fail();
-            return;
-        }
-
-        if ( mg_player_in_office( placer ) )
-        {
-            away = 0;
-            continue;
-        }
-
-        away++;
-
-        if ( away == 10 && level.mg_orbs > 0 )
-        {
-            mg_debug_print( "MG: the placer is 10 s out of the office: the souls are lost" );
-            mg_orbs_clear();
-            mg_skulls_dark();
-            level.mg_orbs = 0;
-            mg_snd_near( "zmb_quest_nixie_fail", mg_coord( "MG_HEARTH" ).origin, 1500 );
-        }
-
-        if ( away >= 30 )
-        {
-            mg_debug_print( "MG: the placer is 30 s out of the office: the Blundergat is lost" );
-            mg_hearth_fail();
-            return;
-        }
-    }
-}
-
-// The fire lets go: the gun is lost, the laugh, back to ready.
-mg_hearth_fail()
-{
-    pos = mg_coord( "MG_HEARTH" ).origin;
-    mg_snd_near( "zmb_quest_nixie_fail", pos, 1500 );
-    mg_snd_near( "mg_brutus_laugh", pos, 2500 ); // the warden laughs at the lost gun
-    mg_hearth_reset( 0 );
-}
-
-// souls -> pickup (BO4): the skulls drain one by one into the fire, 0.5 s apart; a flare-up; 1 s later the fire
-// turns blue (the hell portal) and the tempered gun rises; 30 s to take it.
-mg_hearth_deposit( player )
-{
-    if ( !mg_state_is( "souls" ) || level.mg_orbs < 15 || is_true( level.mg_hearth_depositing ) )
-        return;
-
-    level.mg_hearth_depositing = 1;
-    mg_death_listen_remove( "mg_hearth" );
-    pos = mg_coord( "MG_HEARTH" ).origin;
-    player mg_snd_player( "zmb_hellbox_unlock" );
-
-    for ( i = 0; i < level.mg_skulls.size; i++ )
-    {
-        skull = level.mg_skulls[i];
-
-        if ( isdefined( level.mg_skull_fx ) && isdefined( level.mg_skull_fx[i] ) )
-            mg_fx_stop( level.mg_skull_fx[i] );
-
-        if ( isdefined( skull ) )
-        {
-            skull setmodel( mg_model( "skull" ) );
-            level thread mg_trail( "soul_trail", skull.origin + ( 0, 0, 4 ), pos + ( 0, 0, 12 ), 500 );
-            mg_snd_near( "evt_soulsuck_body", skull.origin, 900 );
-        }
-
-        wait 0.5;
-    }
-
-    level.mg_skull_fx = [];
-    mg_fx_once( "hearth_flare", pos );
-    mg_snd_near( "mg_flame_burst", pos, 1500 );
-    mg_snd_near( "zmb_hellbox_slam_shake", pos, 1500 );
-    wait 1;
-    level.mg_hearth_depositing = 0;
-
-    if ( !mg_state_is( "souls" ) )
-        return;
-
-    mg_state_set( "pickup" );
-
-    // the gun in the blue fire is the tempered one now
-    if ( isdefined( level.mg_hearth_gun ) )
-    {
-        c = level.mg_hearth_gun;
-        level.mg_hearth_gun = spawn_weapon_model( mg_tempered_of( level.mg_hearth_weapon ), undefined, c.origin, c.angles );
-        c delete();
-        level.mg_hearth_gun moveto( level.mg_hearth_gun.origin + ( 0, 0, 14 ), 3 );
-    }
-
-    level thread mg_hearth_pickup_window();
-}
-
-// 30 s to take the tempered gun, or it is lost (BO4: it vanishes with a fail sound).
-mg_hearth_pickup_window()
-{
-    level endon( "end_game" );
-    level endon( "mg_goto" );
-    wait 30;
-
-    if ( !mg_state_is( "pickup" ) )
-        return;
-
-    mg_debug_print( "MG: the tempered Blundergat was not taken in 30 s: it is lost" );
-
-    if ( isdefined( level.mg_hearth_gun ) )
-        mg_fx_once( "gun_vanish", level.mg_hearth_gun.origin );
-
-    mg_hearth_fail();
-}
-
-// pickup -> run: the taker gets the tempered gun (two-primaries rule as vanilla take_old_weapon_and_give_reward)
+// pickup -> run (MG.gsc:735-766): only the placer, and not while drinking or holding a mine, equipment, the revive
+// tool or nothing (the press is ignored). He gets our tempered gun (T6 cannot draw the remaster's view-model flame);
+// the run gives the placed variant back when it ends.
 mg_hearth_take( player )
 {
-    if ( !mg_state_is( "pickup" ) || !is_player_valid( player ) )
+    if ( !mg_state_is( "pickup" ) || !isdefined( level.mg_hearth_owner ) || player != level.mg_hearth_owner )
+        return;
+
+    if ( !is_player_valid( player ) || is_true( player.is_drinking ) || !mg_can_replace_current( player ) )
         return;
 
     weapon = level.mg_hearth_weapon;
@@ -509,86 +400,35 @@ mg_hearth_take( player )
     if ( !isdefined( weapon ) )
         weapon = "blundergat_zm";
 
-    // the fire hands back the tempered gun (the remaster's t8 tempered Blundergat); the temper spent, the gun returns
     tempered = mg_tempered_of( weapon );
-    current = player getcurrentweapon();
     primaries = player getweaponslistprimaries();
 
-    if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( player ) )
-        player takeweapon( current );
+    // the vanilla rule (wait_for_player_to_take): with two primaries the weapon in hand makes room
+    if ( isdefined( primaries ) && primaries.size >= 2 )
+        player takeweapon( player getcurrentweapon() );
 
     player giveweapon( tempered );
     player switchtoweapon( tempered );
     player.mg_tempered_from = weapon;
-    weapon = tempered;
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun delete();
 
     level.mg_hearth_gun = undefined;
-    mg_skulls_dark();
-    level.mg_orbs = 0;
-    player mg_snd_player( "zmb_afterlife_trigger_activate" );
-    mg_run_start( player, weapon );
-}
-
-// self = a waiting soul: the remaster's lightning streak rising 36 units in its time, swirling round its path (a trail
-// only draws while it moves)
-mg_soul_drift( start, seconds )
-{
-    self endon( "death" );
-    steps = int( seconds / 0.25 );
-
-    for ( i = 1; i <= steps; i++ )
-    {
-        a = i * 70;
-        to = start + ( cos( a ) * 7, sin( a ) * 7, 36 * i / steps );
-        self.angles = vectortoangles( to - self.origin );
-        self moveto( to, 0.25 );
-        wait 0.25;
-    }
-}
-
-// a soul entity mg_orbs_clear removes
-mg_orb_track( ent )
-{
-    if ( !isdefined( level.mg_orb_ents ) )
-        level.mg_orb_ents = [];
-
-    level.mg_orb_ents[level.mg_orb_ents.size] = ent;
-}
-
-// The lockdown (the BO3 remaster's fx_mg_quest_lockdown, BO4's window and door barriers): while the office takes
-// souls a fire wall stands in its door and its three windows, gone at 15 souls or when the step ends. It is a look,
-// not a clip: the rule is the placer's 10 s / 30 s away, as in BO4.
-mg_lockdown_watch()
-{
-    level endon( "end_game" );
-    on = 0;
-
-    while ( true )
-    {
-        want = mg_state_is( "souls" ) && level.mg_orbs < 15;
-
-        if ( want && !on )
-            mg_lockdown_on();
-        else if ( !want && on )
-            mg_lockdown_off();
-
-        on = want;
-        wait 0.25;
-    }
+    level.mg_hearth_weapon = undefined;
+    level.mg_hearth_owner = undefined;
+    mg_run_start( player, tempered );
 }
 
 // The remaster's lockdown: one effect outlining the office's door and walls, where its exploder fx_mg_quest_lockdown
 // stands (BO3 -4432 3971 2720, no rotation), brought onto BO2's office by the fit of the two maps' office windows
 // (BO2 = BO3 x 1.015 / 1.019 + 3605 / 4976, the remaster's office being a little smaller; tools/assets/bo3_fx.tsv
-// stretches the effect the same way).
+// stretches the effect the same way); and its wardens_playerclip across the office door.
 mg_lockdown_on()
 {
     mg_lockdown_off();
-    level.mg_lock_fx = [];
     level thread mg_lockdown_wall( ( -951.4, 9027.4, 1368 ), ( 0, 0, 0 ) );
+    mg_lockdown_clip_on();
 }
 
 // a wall still spawning when the lockdown ends goes at once
@@ -603,127 +443,110 @@ mg_lockdown_wall( origin, angles )
         level.mg_lock_fx[level.mg_lock_fx.size] = wall;
 }
 
+// T6's office has no wardens_playerclip: four player-only collision pillars (32 x 32 x 128, centred) stand in the
+// office door (the zombie_door activate_warden_office, its cell door at x -448 from y 9270 to 9360). Players can
+// neither leave nor come in; zombies walk through, and the windows are the map's own barriers.
+mg_lockdown_clip_on()
+{
+    foreach ( dy in array( -48, -16, 16, 48 ) )
+    {
+        clip = spawn( "script_model", ( -447, 9310 + dy, 1400 ) );
+        clip setmodel( mg_model( "player_clip" ) );
+        clip ghost();
+        level.mg_lock_clips[level.mg_lock_clips.size] = clip;
+    }
+}
+
 mg_lockdown_off()
 {
-    if ( isdefined( level.mg_lock_fx ) )
+    foreach ( wall in level.mg_lock_fx )
+        mg_fx_stop( wall );
+
+    foreach ( clip in level.mg_lock_clips )
     {
-        foreach ( wall in level.mg_lock_fx )
-            mg_fx_stop( wall );
+        if ( isdefined( clip ) )
+            clip delete();
     }
 
     level.mg_lock_fx = [];
+    level.mg_lock_clips = [];
     level.mg_lock_gen++;
 }
 
-mg_orbs_clear()
+// A failed lockdown (or a placer gone before the pickup): the gun is lost (it was taken from the placer), the skulls
+// are out, the fireplace takes a gun again.
+mg_hearth_reset()
 {
-    level.mg_souls_sent = 0;
-    level.mg_souls_taken = 0;
-
-    if ( isdefined( level.mg_orb_ents ) )
-    {
-        foreach ( orb in level.mg_orb_ents )
-        {
-            if ( isdefined( orb ) )
-                orb delete();
-        }
-    }
-
-    level.mg_orb_ents = [];
-}
-
-// Back to ready. give_back 1 hands the laid gun back to its owner (used by fabrications), 0 loses it.
-mg_hearth_reset( give_back )
-{
-    mg_orbs_clear();
     mg_death_listen_remove( "mg_hearth" );
+    level.mg_souls_on = 0;
+    level.mg_souls = 0;
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun delete();
 
     level.mg_hearth_gun = undefined;
     mg_skulls_dark();
-    level.mg_orbs = 0;
-
-    if ( give_back && isdefined( level.mg_hearth_owner ) && is_player_valid( level.mg_hearth_owner ) && isdefined( level.mg_hearth_weapon ) )
-    {
-        level.mg_hearth_owner giveweapon( level.mg_hearth_weapon );
-        level.mg_hearth_owner switchtoweapon( level.mg_hearth_weapon );
-    }
-
     level.mg_hearth_weapon = undefined;
     level.mg_hearth_owner = undefined;
 
-    if ( !mg_state_is( "done" ) )
+    if ( mg_state_is( "souls" ) || mg_state_is( "pickup" ) )
         mg_state_set( "ready" );
 }
 
-// A failed run (Task 6) or the forge (Task 7) tell the hearth what to do through the state notify.
-mg_hearth_state_watch()
-{
-    level endon( "end_game" );
-
-    while ( true )
-    {
-        level waittill( "mg_state", s );
-
-        if ( s == "ready" && level.mg_orbs > 0 )
-        {
-            mg_skulls_dark();
-            level.mg_orbs = 0;
-            level.mg_souls_sent = 0;
-            level.mg_souls_taken = 0;
-        }
-    }
-}
-
-// !mg goto support: builds what the asked state expects from the hearth.
+// !mg goto support (self = the player typing): builds what the asked state expects from the hearth. The typing player
+// is the placer; from souls on the boards have burnt, from pickup on the three skulls are lit.
 mg_hearth_fabricate( state )
 {
-    mg_orbs_clear();
+    placer = self;
+
+    if ( !isdefined( placer ) || !isplayer( placer ) )
+        placer = getplayers()[0];
+
+    level.mg_hearth_session++;
     mg_death_listen_remove( "mg_hearth" );
+    mg_lockdown_off();
+    level.mg_souls_on = 0;
+    level.mg_souls = 0;
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun delete();
 
     level.mg_hearth_gun = undefined;
+    level.mg_hearth_weapon = undefined;
+    level.mg_hearth_owner = undefined;
     mg_skulls_dark();
-    level.mg_orbs = 0;
+    level.mg_hearth_burnt = 1;
 
+    if ( state == "locked" )
+        level.mg_hearth_burnt = 0;
 
     if ( state == "souls" || state == "pickup" )
     {
         c = mg_coord( "MG_HEARTH" );
         level.mg_hearth_weapon = "blundergat_zm";
+        level.mg_hearth_owner = placer;
         level.mg_hearth_gun = spawn_weapon_model( "blundergat_zm", undefined, c.origin, c.angles );
     }
 
     if ( state == "souls" )
-    {
-        level.mg_hearth_session++;
-        mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
-        level thread mg_hearth_office_watch_delayed();
-    }
+        level thread mg_lockdown_delayed( placer );
 
     if ( state == "pickup" )
+        level thread mg_hearth_owner_watch( placer, level.mg_hearth_session );
+
+    if ( state == "pickup" || state == "run" || state == "forge" || state == "done" )
     {
-        level.mg_orbs = 15;
-        level.mg_souls_sent = 15;
-        level.mg_souls_taken = 15;
-        mg_skull_light( 0 );
-        mg_skull_light( 1 );
-        mg_skull_light( 2 );
-        level.mg_hearth_gun moveto( level.mg_hearth_gun.origin + ( 0, 0, 14 ), 3 );
-        level thread mg_hearth_pickup_window();
+        level.mg_souls = 15;
+
+        for ( i = 0; i < 3; i++ )
+            level thread mg_skull_light( i );
     }
 }
 
-// the state is set right after fabrication; the watcher must start after that
-mg_hearth_office_watch_delayed()
+// the state is set right after fabrication; the lockdown must start after that
+mg_lockdown_delayed( placer )
 {
     level endon( "mg_goto" );
     wait 0.1;
-    level thread mg_hearth_office_watch();
-    level thread mg_hearth_round_watch();
+    level thread mg_lockdown( placer );
 }
-

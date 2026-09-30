@@ -5,6 +5,7 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_hearth;
+#include scripts\zm\zm_prison\mg_forge;
 #include scripts\zm\zm_prison\mg_weapon;
 #include scripts\zm\zm_prison\mg_place;
 
@@ -207,7 +208,6 @@ mg_debug_command( sub, arg, args )
     return 0;
 }
 
-// self = player. One script_model of `name` 80 in front, on the ground, facing the player; the previous one goes.
 // self = player. `!mg tour`: teleports to each anchor and plays what the quest plays there, labelled on screen.
 mg_debug_tour()
 {
@@ -220,174 +220,101 @@ mg_debug_tour()
     use = mg_coord( "MG_HEARTH_USE" ).origin;
     skull = mg_coord( "MG_SKULL_1" ).origin;
 
-    // 1. the fireplace fire, the gun laid in it
-    self mg_tour_look( "1/8 The fireplace: the Blundergat laid in it", use, hearth );
-    gun = spawn_weapon_model( "blundergat_zm", undefined, hearth, mg_coord( "MG_HEARTH" ).angles );
-    self playsoundtoplayer( "zmb_hellbox_lock", self );
+    // 1. the first press at the fireplace: the boards burn
+    self mg_tour_look( "1/7 The fireplace's first press: a flame burst, the boards burn", use, hearth );
     self playsoundtoplayer( "mg_flame_burst", self );
-    self playsoundtoplayer( "zmb_easteregg_laugh", self );
+    level thread mg_hearth_boards_burn();
     wait 4;
 
-    // 2. a soul: out of the body, the orb rising, taken, flying to the first skull, bursting in
-    spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90 + ( 0, 0, 22 );
-    self mg_tour_look( "2/8 A soul: the orb rises over the body; walk in, it flies to its skull", use + ( 0, 0, 10 ), spot );
+    // 2. the Blundergat placed: the lockdown (not while a real one runs)
+    self mg_tour_look( "2/7 The Blundergat placed: the laugh, the office outlined and shut", use, hearth );
+    gun = spawn_weapon_model( "blundergat_zm", undefined, hearth, mg_coord( "MG_HEARTH" ).angles );
+    self playsoundtoplayer( "zmb_easteregg_laugh", self );
+    lockdown = !mg_state_is( "souls" );
+
+    if ( lockdown )
+        mg_lockdown_on();
+
+    wait 4;
+
+    if ( lockdown && !mg_state_is( "souls" ) )
+        mg_lockdown_off();
+
+    // 3. a soul: the lightning streak rising over the body
+    spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90;
+    self mg_tour_look( "3/7 A soul: it rises over the body and counts by itself", use + ( 0, 0, 10 ), spot + ( 0, 0, 60 ) );
     self playsoundtoplayer( "mg_soul_kill", self );
-    orb = mg_fx_loop( "soul_trail", spot );
+    level thread mg_soul_rise( spot );
+    wait 2.5;
 
-    if ( isdefined( orb ) )
-    {
-        orb playloopsound( "mg_soul_loop" );
-        orb thread mg_soul_drift( spot, 2 );
-        wait 2;
-        spot = orb.origin;
-        mg_fx_stop( orb );
-    }
-
-    mg_fx_once( "soul_hit", spot );
-    self playsoundtoplayer( "evt_soulsuck_body", self );
-    up = spot + ( 0, 0, 20 );
-    soul = mg_fx_loop( "soul_trail", spot, vectortoangles( up - spot ) );
-
-    if ( isdefined( soul ) )
-    {
-        soul playloopsound( "mg_soul_loop" );
-        soul moveto( up, 0.4, 0, 0.2 );
-        wait 0.4;
-        soul.angles = vectortoangles( skull - up );
-        soul moveto( skull + ( 0, 0, 4 ), 1.5, 0.45, 0 );
-        wait 1.5;
-        mg_fx_stop( soul );
-    }
-
-    mg_fx_once( "soul_arrive", skull + ( 0, 0, 4 ) );
-    self playsoundtoplayer( "evt_soulsuck_body", self );
-    wait 1.5;
-
-    // 3. a skull full (6 souls)
-    self mg_tour_look( "3/8 A skull full (5 souls): the afterlife skull, its glow and hum", use, skull );
-    lit = spawn( "script_model", skull );
-    lit setmodel( mg_model( "skull_lit" ) );
-    lit.angles = mg_coord( "MG_SKULL_1" ).angles;
+    // 4. a skull lit (every 5 souls)
+    self mg_tour_look( "4/7 A skull lit (5 souls): its blue flame", use, skull );
     glow = mg_fx_loop( "soul_full", skull - ( 0, 0, 3.5 ) );
-
-    if ( isdefined( glow ) )
-        glow playloopsound( "evt_runeglow_loop" );
-
-    self playsoundtoplayer( "zmb_afterlife_zombie_warp_in", self );
     wait 4;
     mg_fx_stop( glow );
-    lit delete();
-
-    // 4. 15 souls given: the fire burns blue, the tempered gun rises
-    self mg_tour_look( "4/8 15 souls given: the fire burns blue, the tempered gun rises", use, hearth );
-    portal = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 30 ) );
-    self playsoundtoplayer( "evt_wolfhead_spawn", self );
-
-    if ( isdefined( portal ) )
-        portal playloopsound( "evt_wolfhead_fire_loop" );
-
-    if ( isdefined( gun ) )
-        gun moveto( gun.origin + ( 0, 0, 14 ), 3 );
-
-    wait 4;
-    mg_fx_stop( portal );
 
     if ( isdefined( gun ) )
         gun delete();
 
-    // 5. the run: a lit barrel, the temper on the gun
+    // 5. the run: a lit drum, then its flare as it refills the temper
     b = mg_coord( "MG_BARREL_1" ).origin;
-    self mg_tour_look( "5/8 The run: a barrel burning (refills the temper)", b + ( 90, 90, 40 ), b + ( 0, 0, 20 ) );
+    self mg_tour_look( "5/7 The run: a drum burning, its flare when it refills the temper", b + ( 90, 90, 40 ), b + ( 0, 0, 20 ) );
     fire = mg_fx_loop( "barrel_fire", b - ( 0, 0, 22.37 ) );
-
-    if ( isdefined( fire ) )
-        fire playloopsound( "amb_fire_sml" );
-
-    self playsoundtoplayer( "evt_wolfhead_depart", self );
+    wait 1.5;
+    mg_fx_once( "barrel_flare", b - ( 0, 0, 22.37 ), 5 );
+    self playsoundtoplayer( "mg_flame_burst", self );
     wait 4;
     mg_fx_stop( fire );
 
-    // 6. the forge: power, the gun placed, ghosts, the burst, the Magmagat rising
+    // 6. the forge: powered, then a gun pressed into the Magmagat (the ram stays up while a real press runs)
     fc = mg_coord( "MG_FORGE_GUN" );
-    self mg_tour_look( "6/8 The forge: power, the press at work, the burst, the Magmagat rises", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
-    mg_fx_once( "sparks", fc.origin );
+    angles = level.mg_press["press_body"].angles;
+    self mg_tour_look( "6/7 The forge: the Machine powered, a Blundergat pressed", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
+    mg_fx_once( "sparks", level.mg_press_rest, undefined, angles );
     self playsoundtoplayer( "zmb_powerpanel_activate", self );
-    wait 1.5;
-    gun = spawn_weapon_model( "blundergat_zm", undefined, fc.origin, fc.angles );
-    self playsoundtoplayer( "zmb_afterlife_shockbox_on", self );
-    self playsoundtoplayer( "mg_press", self );
-    fire = mg_fx_loop( "forge_rise", fc.origin - ( 0, 0, 6 ) );
-    smoke = mg_fx_loop( "smoke", fc.origin );
-
-    for ( i = 0; i < 5; i++ )
-    {
-        wait 1;
-
-        if ( i == 1 || i == 3 )
-        {
-            mg_fx_once( "ball_hit", fc.origin );
-            self playsoundtoplayer( "mg_flame_burst", self );
-        }
-    }
-
-    mg_fx_stop( fire );
-    mg_fx_stop( smoke );
-    mg_fx_once( "explo", fc.origin );
-    self playsoundtoplayer( "zmb_hellbox_open", self );
-    gun delete();
-    gun = spawn_weapon_model( "magmagat_zm", undefined, fc.origin - ( 0, 0, 10 ), fc.angles );
-    rise = mg_fx_loop( "forge_rise", fc.origin - ( 0, 0, 6 ) );
-    self playsoundtoplayer( "zmb_hellbox_slam_shake", self );
-    gun moveto( fc.origin, 1.5, 0.3, 0.6 );
-    gun rotateyaw( 360, 1.5, 0.3, 0.6 );
-    wait 1.5;
-    mg_fx_stop( rise );
-    mg_fx_once( "ball_hit", fc.origin );
-    glow = mg_fx_loop( "glow", fc.origin );
-    wait 3;
+    wait 1;
     self playsoundtoplayer( "mg_brutus_mgu", self );
-    mg_fx_stop( glow );
+    wait 2;
+    press = !is_true( level.mg_forge_busy ) && !isdefined( level.mg_forge_ready_gun );
+    gun = spawn_weapon_model( "blundergat_zm", undefined, fc.origin, fc.angles );
+    wait 0.5;
+
+    if ( press )
+        level thread mg_press_down();
+
+    wait 0.05;
+    self playsoundtoplayer( "mg_press", self );
+    wait 0.8;
+    mg_fx_once( "forge_rise", level.mg_press_rest, 6, angles );
+    gun delete();
+    wait 3;
+    gun = spawn_weapon_model( "magmagat_zm", undefined, fc.origin, fc.angles );
+
+    if ( press )
+        level thread mg_press_up();
+
+    wait 3;
     gun delete();
 
-    // 7. the Magmagat's shot: the lava blob in flight, the burst on a zombie
+    // 7. the Magmagat's shot, fired for real at the floor ahead: the blob flies and lays its pool
     self setorigin( back );
     self setplayerangles( back_angles );
     wait 0.2;
     fwd = anglestoforward( ( 0, back_angles[1], 0 ) );
-    self mg_tour_look( "7/8 The Magmagat's shot: the lava blob flies, a zombie hit bursts", back, back + fwd * 300 + ( 0, 0, 50 ) );
-    start = self geteye() + fwd * 30;
-    end = back + fwd * 300 + ( 0, 0, 40 );
-    ball = spawn( "script_model", start );
-    ball setmodel( mg_model( "ball" ) );
-    wait 0.15;
-
-    if ( isdefined( level._effect["mg_ball"] ) )
-        playfxontag( level._effect["mg_ball"], ball, "tag_origin" );
-
-    self playsoundtoplayer( "zmb_plane_fire_whoosh", self );
-    ball moveto( end, 0.6 );
-    ball rotatevelocity( ( 420, 260, 0 ), 1 );
-    wait 0.6;
-    ball delete();
-    mg_fx_once( "explo", end );
-    self playsoundtoplayer( "wpn_blundersplat_explode", self );
-    wait 2;
-
-    // 8. a miss: the molten pool and its fire
-    trace = bullettrace( end, end - ( 0, 0, 200 ), 0, undefined );
+    trace = bullettrace( back + fwd * 300 + ( 0, 0, 40 ), back + fwd * 300 - ( 0, 0, 200 ), 0, undefined );
     pos = trace["position"];
-    self mg_tour_look( "8/8 A miss: the molten pool, burning 8 s", back, pos );
-    fire = mg_fx_loop( "patch_fire", pos );
-    pool = spawn( "script_model", pos + ( 0, 0, 0.3 ) );
-    pool setmodel( mg_model( "pool" ) );
-    embers = mg_fx_loop( "embers", pos );
-    self playsoundtoplayer( "zmb_fire_loop", self );
-    wait 5;
-    mg_fx_stop( fire );
-    mg_fx_stop( embers );
-    pool delete();
+    self mg_tour_look( "7/7 The Magmagat's shot: the blob flies, a miss lays its pool (6 s), a zombie hit bursts", back, pos );
+    bolt = magicbullet( "mg_magma_bolt_zm", self geteye() + fwd * 30, pos, self );
 
-    self mg_out( "MG: tour done. Name a step (1-8) and what to change; any effect can be tried in place with `set mg_fx_<key> <fx>`" );
+    if ( isdefined( bolt ) )
+        level thread mg_blob_land( bolt, self, "magmagat_zm" );
+
+    wait 7;
+    mg_fx_once( "explo", pos + ( 0, 0, 20 ) );
+    self playsoundtoplayer( "wpn_blundersplat_explode", self );
+    wait 1;
+
+    self mg_out( "MG: tour done. Name a step (1-7) and what to change; any effect can be tried in place with `set mg_fx_<key> <fx>`" );
     self.mg_touring = 0;
 }
 
@@ -401,6 +328,7 @@ mg_tour_look( label, from, at )
     wait 1;
 }
 
+// self = player. One script_model of `name` 80 in front, on the ground, facing the player; the previous one goes.
 mg_debug_spawn_model( name )
 {
     if ( isdefined( level.mg_debug_model ) )

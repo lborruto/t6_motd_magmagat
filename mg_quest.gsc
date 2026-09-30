@@ -7,12 +7,14 @@
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_forge;
 
-// The quest state machine. States, in order: locked, ready, souls, pickup, run, forge, done (spec section 3).
+// The quest state machine. States, in order: locked, ready, souls, pickup, run, forge, done. Play goes from run
+// straight to done when the carrier powers the Machine (the remaster's run ends there); "forge" is only reached by
+// `!mg goto forge`, which leaves a pressed Magmagat on the open forge for the player typing it.
 
 mg_quest_init()
 {
     level.mg_state = "locked";
-    level.mg_orbs = 0;
+    level.mg_souls = 0;
     level thread mg_bridge_gate();
 }
 
@@ -29,18 +31,20 @@ mg_state_set( s )
     level notify( "mg_state", s );
 }
 
-// ready when the bridge has been reached once (vanilla flag set when the plane lands there). The gate waits for our
-// own "mg_bridge_reached": the vanilla flag sends it in play, `!mg bridge` sends it to test the gate (setting the
-// vanilla flag by hand would also open the bridge's spawn zone).
+// ready once the bridge's electric chair has been taken after the first plane trip (the remaster waits for
+// plane_trip_to_nml_successful, MG.gsc:109; T6's zm_alcatraz_sq sets the same flag in its chairs). An older map without
+// it falls back on the plane landing on the bridge. The gate waits for our own "mg_bridge_reached": the flag sends it
+// in play, `!mg bridge` sends it to test the gate (setting the vanilla flag by hand would give the chair's rewards).
 mg_bridge_gate()
 {
     level endon( "end_game" );
+    gate = mg_gate_flag();
 
-    if ( !flag_exists( "activate_player_zone_bridge" ) )
-        mg_debug_print( "MG: flag activate_player_zone_bridge missing, the fireplace opens at once" );
+    if ( !isdefined( gate ) )
+        mg_debug_print( "MG: no bridge flag, the fireplace opens at once" );
     else
     {
-        level thread mg_bridge_flag_watch();
+        level thread mg_bridge_flag_watch( gate );
         level waittill( "mg_bridge_reached" );
     }
 
@@ -50,29 +54,42 @@ mg_bridge_gate()
         if ( mg_state_is( "locked" ) )
         {
             mg_state_set( "ready" );
-            mg_debug_print( "MG: the bridge was reached, the fireplace takes a Blundergat" );
+            mg_debug_print( "MG: the bridge's chair was taken, the fireplace can burn its boards" );
         }
 
         level waittill( "mg_bridge_reached" );
     }
 }
 
-mg_bridge_flag_watch()
+// the flag the gate waits for, or undefined
+mg_gate_flag()
+{
+    if ( flag_exists( "plane_trip_to_nml_successful" ) )
+        return "plane_trip_to_nml_successful";
+
+    if ( flag_exists( "activate_player_zone_bridge" ) )
+        return "activate_player_zone_bridge";
+
+    return undefined;
+}
+
+mg_bridge_flag_watch( gate )
 {
     level endon( "end_game" );
     level endon( "mg_bridge_reached" );
-    flag_wait( "activate_player_zone_bridge" );
+    flag_wait( gate );
     level notify( "mg_bridge_reached" );
 }
 
-// The Blundergat variant the player holds, or undefined. As in BO4 the fireplace and the forge take all four: the
-// Blundergat, the Sweeper, the Acid Gat and the Vitriolic Withering (a Pack-a-Punched one forges the Magmus Operandi).
+// The Blundergat variant the player holds, or undefined. The fireplace and the forge take all four, in the remaster's
+// order (MG.gsc:130-145): the Blundergat, the Sweeper, the Acid Gat, the Vitriolic Withering (a Pack-a-Punched one
+// forges the Magmus Operandi).
 mg_has_blundergat( player )
 {
     if ( !isdefined( player ) || !is_player_valid( player ) )
         return undefined;
 
-    foreach ( weapon in array( "blundergat_upgraded_zm", "blundersplat_upgraded_zm", "blundergat_zm", "blundersplat_zm" ) )
+    foreach ( weapon in array( "blundergat_zm", "blundergat_upgraded_zm", "blundersplat_zm", "blundersplat_upgraded_zm" ) )
     {
         if ( player hasweapon( weapon ) )
             return weapon;
@@ -151,14 +168,20 @@ mg_goto( state )
 mg_status_lines()
 {
     l = [];
-    l[l.size] = "MG " + level.mg_version + " | state " + level.mg_state + " | orbs " + level.mg_orbs + "/15";
+    l[l.size] = "MG " + level.mg_version + " | state " + level.mg_state + " | souls " + level.mg_souls + "/15";
 
     if ( isdefined( level.mg_carrier ) && isdefined( level.mg_carrier.name ) )
         l[l.size] = "carrier " + level.mg_carrier.name + " | temper left " + mg_temper_left_str();
     else
         l[l.size] = "no carrier";
 
-    l[l.size] = "bridge " + is_true( level.flag["activate_player_zone_bridge"] ) + " | forge open " + is_true( level.mg_forge_open );
+    gate = mg_gate_flag();
+    bridge = "-";
+
+    if ( isdefined( gate ) )
+        bridge = "" + flag( gate );
+
+    l[l.size] = "bridge " + bridge + " | forge open " + is_true( level.mg_forge_open );
     return l;
 }
 

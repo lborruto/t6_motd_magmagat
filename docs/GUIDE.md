@@ -4,89 +4,98 @@
 > says it best: our advice is to discover it yourself first. Come back here only if you are stuck. Each
 > section below is folded; open only the one you need.
 
-The quest follows Black Ops 4's Blood of the Dead and the BO3 "Mob of the Dead" remaster: the same steps, counts
-and timers, on Mob of the Dead.
+The quest follows the BO3 remaster "MOB OF THE DEAD" by copforthat, step by step: the same counts and timers, on
+Mob of the Dead. The Magmagat itself is Black Ops 4's gun.
 
 <details>
 <summary>Requirements</summary>
 
 You need a Blundergat, a Sweeper (its Pack-a-Punched form), an Acid Gat or a Vitriolic Withering (the Pack-a-Punched
-Acid Gat), and someone must have reached the Golden Gate Bridge at least once (the plane's landing). Nothing else
-has to happen first: the quest does not care what round it is or how many players are in the game.
+Acid Gat), and the plane must have flown at least once: the quest opens when a player sits in the chair on the Golden
+Gate Bridge after the first trip. Nothing else has to happen first: the quest does not care what round it is or how
+many players are in the game.
 
 </details>
 
 <details>
 <summary>The fireplace</summary>
 
-Head to the fireplace in the Warden's Office holding one of those guns. Stand at the hearth and press use (no
-prompt shows): the gun goes into the fire, a laugh answers, and the quest begins.
+Once the quest is open, go to the fireplace in the Warden's Office. The first time you use it (no gun needed), the
+fire bursts and burns the boards above it. A second later "Hold [use] to place Blundergat" shows for every player. Without
+one of the four guns, you read "Missing Blundergat" instead.
+
+Hold use with the gun (in hand or not) and it goes into the fire. A laugh answers, a tense music starts, and the
+office is outlined in light: it is locked down. Nobody can walk through its door until the lockdown ends.
 
 </details>
 
 <details>
 <summary>The souls</summary>
 
-Every zombie a player kills **that dies inside the Warden's Office** releases its soul; the killer can stand
-anywhere. The soul, a blue streak of lightning, swirls up over the body for **3 seconds**: walk into it before it
-fades. A soul you take flies to its skull on the mantle. You need **15 souls**: the three skulls light up blue at
-**5**, **10** and **15**. While the office takes souls, its door and walls are outlined in light: it is locked down.
+Every regular zombie that dies **inside the Warden's Office** releases a soul, whoever killed it and from wherever.
+The soul, a blue streak of lightning, rises over the body, and half a second after the kill it counts by itself: there
+is nothing to pick up. Brutus gives none, and neither does a zombie that dies outside. You need **15 souls**: the
+three skulls on the mantle light up blue at **5**, **10** and **15**.
 
-The office belongs to the player who placed the gun. If that player spends **10 seconds** outside it, the souls
-taken so far are lost (the skulls go dark). **30 seconds** outside, or dying, and the fire lets go: the gun is lost.
+The lockdown fails only if the player who placed the gun goes down (last stand or Afterlife). The skulls go dark, the
+fire lets go a couple of seconds later, and the gun is lost: place a new one. Other players going down changes nothing.
+There is no time limit.
 
-At 15, press use at the hearth again. The skulls drain into the fire one after the other, the fire flares, and a
-second later it burns blue with the tempered gun rising in it: your Blundergat, its canisters now burning blue.
+A second after the 15th soul the laugh plays again, and two seconds later the lockdown ends.
 
 </details>
 
 <details>
 <summary>The run</summary>
 
-You have **30 seconds** to take the tempered gun, or it is lost.
+Now only the player who placed the gun can take the tempered gun from the fireplace: "Hold [use] to take the Tempered
+Blundergat". There is no time limit. The skulls stay lit.
 
-The tempered gun carries a blue flame, its essence, and it is a **25-second** temper that burns down on its own. Do
-**not** fire it: a single shot spends the essence. Five drums burn blue along the route (the office exit, down the
-stairs, the Citadel, the tunnels, the docks): walking up to one refills the temper to full, but each works **once per
-run** and goes out after. In the last 5 seconds the flame flickers and the gun shakes.
+The tempered gun carries a blue flame, and you have **15 seconds** before it burns out. Five drums burn blue along the
+route (the office exit, down the stairs, the Citadel, the tunnels, the docks): stepping up to the foot of one sets the
+timer back to 15, but each drum works **once per run**. Firing the gun does not end the run. Switching to any other
+weapon does (your Blundergat, Sweeper or Acid Gat is fine). So does going down, or running out of time.
 
-Fire it, switch weapons, go down, or let the temper run out, and the flame dies: the tempered gun turns back into your
-Blundergat, and it is back to the fireplace for a new temper.
+When the run fails, the flame dies silently, you get your Blundergat back, the skulls go dark, and five seconds
+later the fireplace takes a gun again: the whole step is to redo.
 
 </details>
 
 <details>
 <summary>The forge</summary>
 
-Carry the tempered gun to the generator in the Generator Room by the docks. Power it with one press, then place
-the gun on the remaster's press beside it. The press comes down on it and works it for **5 seconds** in fire and smoke, lifts, it bursts, and the Magmagat rises out of the fire. Take it
-within **30 seconds** or it is lost. The first forge wakes the warden: a Brutus comes for you.
+Carry the tempered gun to the forge in the Generator Room by the docks: "Hold [use] to power the Machine". Powering it
+ends the run in success: you get your Blundergat back, and a second later the forge is open **for good**. Now every
+player near it sees "Hold [use] to place the Blundergat" (or "Missing Blundergat" without one), and any of the four
+guns can be placed at any time, with no temper run. The fireplace takes no more guns.
 
-A Pack-a-Punched gun (a Sweeper or a Vitriolic Withering) comes out as the **Magmus Operandi**.
+The press comes down on the gun and works it for about **5.65 seconds**, then the Magmagat lies on the bed. Only the player
+who placed the gun can take it ("Hold [use] to take the Magmagat"), and only within **15 seconds**: after that it is
+gone without a sound, and the forge waits for a new gun. If you already own a Magmagat, taking a new one only refills
+the ammo of the one you have.
 
-Once the forge has made a Magmagat, it stays open: any of the four guns placed on it converts straight away, no
-temper run needed. The fireplace takes no more guns.
+A Pack-a-Punched gun (a Sweeper or a Vitriolic Withering) comes out as the **Magmus Operandi**. No Brutus comes for you
+at the forge.
 
 </details>
 
 <details>
 <summary>The weapon</summary>
 
-The Magmagat is the Black Ops 4 gun: its own model and name, its molten canisters and barrels glowing and
-flickering, a small flame riding it while you hold it. It handles and reloads like a Blundergat, but it fires with
-a burst of flame and a red-hot streak: no buckshot, every shot throws a tumbling blob of lava, and the blob does all
-the damage. The clip holds one (you start with 30, 36 at most).
+The Magmagat is the Black Ops 4 gun: its own model and name, with molten canisters and barrels. It handles and reloads
+like a Blundergat, but it fires a lava blob that sticks to what it hits, and the blob does all the damage. The clip
+holds one (you start with 30, 36 at most).
 
-A blob that lands on a zombie sticks for half a second, then kills it (a stronger one takes a heavy hit and burns
-to death over 4 seconds); everything within about 10 feet takes a blast and catches fire. A zombie on fire burns until
-it dies, fast in the early rounds, slower later. A miss leaves a molten pool for **5 seconds** (3 at most): zombies
-are drawn to it, catch fire when they step in, and crawlers die in it outright. Mind your feet: your own lava burns
-you too.
+A blob that sticks to a zombie sets it on fire: after about a second it burns to death, whatever its health, and the
+blob bursts, hurting the zombies around it. Brutus takes one heavy hit, and the blob stays on him and bursts 3 seconds
+later. Zombies are drawn to the blob until it is gone.
 
-Brutus takes the blob hard: it burns him for 5 seconds, enough to bring him down. The pools do not touch him.
+A blob that hits anything else lays a lava pool for **6 seconds**. A zombie that steps in burns and dies within a
+second; Brutus walks through it unharmed. Mind your feet: the pool hurts every player in it, you included (20 health
+every half second).
 
 Once forged, the Magmagat is yours like any other weapon. Pack-a-Punch it and it comes out as the Magmus Operandi
-(two blobs a clip, 25 to start and 30 at most, a bigger lure). The Acid Gat kit takes it too: it goes in as the Blundergat it was, and comes
-out as the Acid Gat.
+(two blobs a clip, 25 to start and 30 at most, a wider pool and a bigger lure). The Acid Gat kit takes it too: it goes
+in as the Blundergat it was, and comes out as the Acid Gat.
 
 </details>

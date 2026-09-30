@@ -26,44 +26,29 @@ mg_out( text )
 // (tools/bo3_fx.pl, tools/assets/bo3_fx.tsv). Dvars mg_fx_<key> override a path at load.
 mg_fx_table()
 {
-    // one key per visible role: the BO3 remaster's own effect where it has one (its souls, blue flames, lockdown, press,
-    // Harry's Magmagat), else the one zm_prison plays for that job (maps/mp/zm_prison_fx.gsc)
+    // one key per visible role: the BO3 remaster's own effect where it has one, else the one zm_prison plays for that
+    // job (maps/mp/zm_prison_fx.gsc)
     t = [];
-    t["fire_md"] = "maps/zombie_alcatraz/fx_alcatraz_fire_md";
-    t["fire_sm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm";
-    t["fire_xsm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm";
-    t["embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat";
-    t["blue_fire"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport";
-    // the souls: the wolf heads' own (a soul leaves the body and flies; a full catcher glows)
-    t["soul_trail"] = "mg/lightning_hands_muzzleflash_trail"; // the remaster's soul in flight
-    t["soul_arrive"] = "weapon/tomahawk/fx_tomahawk_charge_ug"; // a soul-energy flash (the wolf heads' impact is their bite blood)
-    t["soul_hit"] = "weapon/tomahawk/fx_tomahawk_charge"; // the soul taken by a player
-    t["soul_full"] = "mg/fx_alcatraz_blue_flame_skull"; // the remaster's lit skull
-    // the hearth: a real fire; the hell portal of the wolf heads opens in it for the tempered gun
-    t["hearth_blue"] = "mg/fx_alcatraz_blue_flame_loop"; // the remaster's blue fire, the tempered gun in it
+    // the fireplace: its boards burning at the first press, the lockdown, the souls and the lit skulls
+    t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the boards bursting into flame
+    t["fire_sm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the boards burning (4 s)
     t["lockdown"] = "mg/fx_alcatraz_lockdown_wardens"; // the remaster's lockdown: the office's door and walls outlined
-    t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the deposit's flare-up
-    t["gun_vanish"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a gun not taken in time vanishes
+    t["soul_trail"] = "mg/lightning_hands_muzzleflash_trail"; // the remaster's soul rising over the body
+    t["soul_full"] = "mg/fx_alcatraz_blue_flame_skull"; // the remaster's lit skull
     // the run: fire in the barrels, the temper riding the gun
     t["barrel_fire"] = "mg/fx_alcatraz_blue_flame_loop"; // the remaster's drum flame
     t["barrel_flare"] = "mg/fx_alcatraz_blue_flame_flare_up"; // the remaster's: a drum refilling the temper
     t["gun_flame"] = "mg/fx_alcatraz_blue_flame_vm"; // the remaster's tempered-gun flame
-    // the forge: the generator's own sparks and smoke, the quest-item glow on the gun to take
-    t["sparks"] = "mg/fx_alcatraz_magmagat_power"; // the remaster's: the forge powered
-    t["smoke"] = "maps/zombie_alcatraz/fx_alcatraz_generator_smk";
-    t["glow"] = "maps/zombie_alcatraz/fx_alcatraz_quest_item_glow";
-    t["glint"] = "maps/zombie_alcatraz/fx_alcatraz_key_glint";
+    // the forge
+    t["sparks"] = "mg/fx_alcatraz_magmagat_power"; // the remaster's: the Machine powered
     t["forge_rise"] = "mg/fx_prison_magmagat_press_fire"; // the remaster's press at work
-    // the weapon: the lava blob's fire trail, its impact, the lava gib, zombies on fire (the tomahawk's burning torso)
-    t["ball"] = "mg/fx_magmagat_trail_bolt"; // the remaster's blob in flight (Harry's Magmagat)
-    t["ball_hit"] = "mg/fx_magmagat_impact"; // the blob landing
-    t["scorch"] = "mg/fx_prison_magmagat_impact_decal"; // its scorch
-    t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso";
-    t["explo"] = "mg/fx_magmagat_explode"; // the blob bursting
-    t["blue_spark"] = "electrical/fx_elec_spark_bounce_blue_lg";
+    // the weapon (its bolt's trail, impact and burst are in the weapon files, tools/build_weapon.pl)
+    t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso"; // a zombie the blob stuck to, burning
     t["patch_fire"] = "mg/fx_prison_magmagat_aoe"; // the remaster's lava pool
-    t["magma_hold"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // the flame riding a held Magmagat
-    t["magmus_hold"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the same on the Magmus Operandi, bigger
+    t["explo"] = "mg/fx_magmagat_explode"; // the blob bursting (`!mg tour`; the weapon file plays it in the game)
+    // the debug tools: a saved anchor, a previewed one
+    t["blue_spark"] = "electrical/fx_elec_spark_bounce_blue_lg";
+    t["glint"] = "maps/zombie_alcatraz/fx_alcatraz_key_glint";
     return t;
 }
 

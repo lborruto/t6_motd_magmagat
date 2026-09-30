@@ -45,13 +45,13 @@ change.
 | `mg_coords.gsc` | anchor registry `mg_coord( key )` / `mg_coord_set`, `mg_apply_overrides()` (owner spots pasted here), `mg_models_init` / `mg_model( kind )` / `mg_precache()` (the barrel and skull models come from our mod.ff) |
 | `mg_place.gsc` | live placement mode `!mg grab <KEY>` / `drop` / `cancel` / `rot` / `up` (ported from Dead Frequency's `df_place.gsc`), anchor previews `mg_preview_show` / `mg_preview_refresh` / `mg_preview_hide` / `mg_preview_teleport` |
 | `mg_quest.gsc` | `level.mg_state`, `mg_state_set( s )`, `mg_state_is( s )`, `level notify( "mg_state", s )`, bridge gate, `mg_goto( state )` fabrication, `mg_status_lines()` |
-| `mg_hearth.gsc` | fireplace prompt, souls (orbs, skulls), pickup window |
-| `mg_run.gsc` | temper timer, barrels, carrier fail rules |
-| `mg_forge.gsc` | forge power, place, ghosts, take; open forge in `done` |
-| `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, shot watcher, lava ball, magma patch |
-| `mg_debug.gsc` | shock pistol, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg spots` |
+| `mg_hearth.gsc` | fireplace (boards, prompts, place), the lockdown (outline, door clip), souls, skulls, pickup |
+| `mg_run.gsc` | temper run (15 s timer, barrels, weapon rule), carrier fail rules |
+| `mg_forge.gsc` | forge power, the press, take; the open forge |
+| `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the bolt and blob (sticky projectiles), the lava pool |
+| `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg spots` |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
-| `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/bake_layers.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_fx.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain and the release (see "The mod.ff") |
+| `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/bake_layers.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain and the release (see "The mod.ff") |
 | `mod/zone_source/mod.zone`, `mod/mod.json`, `mod/templates/` | the fastfile's asset list (its blocks are written by the tools), the mod's name card, the material template for BO3 props |
 | `.github/workflows/check.yml`, `.github/workflows/release.yml`, `tools/publish.pl` | lints and a pack test on every push; the player zip when a release is published (see "The GitHub Actions") |
 | `README.md`, `LICENSE`, `docs/GUIDE.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md` | end-user and contributor docs |
@@ -138,10 +138,12 @@ games' files and are never committed (so is `mod/sound`).
   molten parts on the Acid Gat's emberglow shader (reveal = BO4's crack mask, ember = BO4's magma glow noise on a
   molten ramp, heat = BO2's flicker; `%lava` turns up glow, flicker and scroll). The display names come from
   `english/localizedstrings/mg_weapons.str`.
-- **The effects are meshes, as in BO4** (`tools/gen_lava_fx.pl`): BO4's Magmagat flies a lava blob model and lays
-  splat meshes. The two are generated (a noise-displaced sphere, an irregular domed splat) and skinned with the BO3
-  remaster's lava (`i_pbr_lava_magma_emissive_1_mtl`) on the emberglow shader; the script flies the blob (tumbling,
-  with a fire trail) and lays the pool under every miss.
+- **The blob and the pool** (`tools/gen_lava_mat.pl`, run by `tools/build_weapon.pl`): the script does not fly a mesh. The
+  Magmagat fires a real sticky projectile, as the Acid Gat does: `mg_magma_bolt_zm` (the flight, with the BO3 trail
+  `mg/fx_magmagat_trail_bolt`) leaves `mg_magma_blob_zm` where it lands, and that grenade wears the BO4 blob model
+  `mg_magma_blob` and bursts with `mg/fx_magmagat_explode`. The pool a miss lays is the remaster's aoe effect
+  (`mg/fx_prison_magmagat_aoe`) under the blob. The generator now only builds the lava material `mc/mg_lava`: the
+  BO3 remaster's lava (`i_pbr_lava_magma_emissive_1_mtl`) on the emberglow shader, which the blob wears.
 - **The sounds** (`tools/import_sounds.pl`, the list in `tools/assets/bo3_sounds.tsv`): BO3 banks are the same `2UX#`
   container as T6's (version 15), every sound plain FLAC 48 kHz. The map's zone data names them: each alias record
   holds the alias hash (T6's `SND_HashName`) and, 0x30 after it, the bank entry it plays (`tools/MgBo3.pm`). Every
@@ -149,11 +151,10 @@ games' files and are never committed (so is `mod/sound`).
   `streamed` one kept FLAC, as BO2 stores its own. The zone line `soundbank,mod.all` makes the Linker write
   `mod.all.sabl` / `mod.all.sabs` beside `mod.ff`; they ship in the mod folder. Our aliases are `mg_*`; `lint_sounds`
   reads the manifest. In game, `printsoundalias mg_press` (console) shows whether the bank is loaded.
-- **What the fastfile cannot carry** (OpenAssetTools v0.33): new particle effects (FxEffectDef is not loaded), new
-  tracers (the T6 tracer loader is not registered) and BO3 animations (no tool turns T7 xanims into T6 ones; the
-  rig is shared, so the Blundergat's animations fit the BO4 gun). So the particles are zm_prison's own: orange
-  buckshot muzzle flashes, `lmg_enemy` red tracers, fire over the pool, the flame riding a held Magmagat
-  (`mg_weapon_hold_loop`), the fire whoosh of each shot, the forge reveal.
+- **What the stock Linker cannot carry** (OpenAssetTools v0.33): particle effects (FxEffectDef is not loaded; the
+  mod links them with a patched Linker, see PORTING_BO3_ASSETS.md section 6), new tracers (the T6 tracer loader is not
+  registered: the weapons use no tracer) and BO3 animations (no tool turns T7 xanims into T6 ones; the rig is shared,
+  so the Blundergat's animations fit the BO4 gun).
 
 ### The GitHub Actions
 
@@ -187,9 +188,9 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 
 | Command | Effect |
 |---|---|
-| `!mg status` | state, orbs, carrier, timer, anchors resolved |
-| `!mg tour` | every step's effects and sounds in their real place, one after the other (teleports you, labels each step): the quick review of the quest's look |
-| `!mg lockdown` | the office lockdown (the remaster's effect outlining the door and walls) for 10 s, to check its placement |
+| `!mg status` | state, souls, carrier, timer, the gate flag, forge open |
+| `!mg tour` | the seven steps' effects and sounds in their real place, one after the other (teleports you, labels each step, ends with a real Magmagat bolt): the quick review of the quest's look |
+| `!mg lockdown` | the office lockdown (the remaster's outline on the door and walls, and the door clip) for 10 s, to check its placement |
 | `!mg bridge` | meet the bridge requirement (the gate's own event: setting the vanilla flag would also open the bridge's spawn zone) |
 | `!mg goto <locked\|ready\|souls\|pickup\|run\|forge\|done>` | fabricate the state (gives a Blundergat when the state needs one) |
 | `!mg spots` | print every anchor (`[SPOT] KEY \| x y z \| p y r`) |

@@ -6,31 +6,38 @@
 #include scripts\zm\zm_prison\mg_quest;
 
 // The Magmagat is its own weapon, magmagat_zm, shipped in our mod.ff (tools/build_weapon.pl: the Blundergat's rig
-// and animations, a lava skin); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. Each shot also
-// launches a lava blob with BO4's numbers (zm_weap_blundergat.gsc): a zombie that catches it burns 0.5 s, then dies
-// (up to 1000 health; stronger ones take 1000 and burn 4 s) and everything within 128 units takes 400 and catches
-// fire; a miss leaves a 5 s molten pool (3 at most) that sets zombies on fire, lures them, and hurts its owner.
-// Brutus burns (10-20 % of his health a second for 5 s, half from round 15): the lava can kill him, as in BO4.
-// The look lives in the weapon file (tools/build_weapon.pl: lava tanks, fire muzzle flash, red tracers); the script
-// adds the flame riding the held gun, the fire whoosh of every shot, and flies BO4's kind of effects: a tumbling
-// lava blob (mg_lava_blob) and a molten pool mesh under every miss (mg_lava_pool).
-// The Acid Gat kit takes it (BO4): the Magmagat goes in as the Blundergat it was, the kit makes the Acid Gat.
+// and animations, a lava skin); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. The remaster's
+// Magmagat (_zm_weap_magmagat.gsc) is BO2's Acid Gat with fire, and so is ours: each shot fires one lava blob as T6's
+// Acid Gat fires its dart (_zm_weap_blundersplat.gsc), a real sticky projectile (mg_magma_bolt_zm, which leaves the
+// blob grenade mg_magma_blob_zm where it lands). Then, as the remaster:
+// - on a zombie: it burns in the Acid Gat's stun for 1 s and dies, whatever its health; the blob bursts 0.05 s later;
+// - on Brutus: 2500 burn damage (his own armour takes 90 % of it), the blob bursts 3 s later;
+// - anywhere else: a lava pool for 6 s (32 units across, the Magmus 64), the blob lying in it. A zombie in it takes a
+//   quarter of its maximum health every 0.25 s; any player in it 20 every 0.5 s. Brutus walks through.
+// In all three the blob lures zombies (250 units, 5 of them; the Magmus 500 and 10). Magmagat damage pays no points per
+// hit (the kill still does). The Acid Gat kit takes the Magmagat as the Blundergat it was and makes the Acid Gat.
 
 mg_weapon_init()
 {
-    level.mg_patches = [];
+    level.mg_pools = [];
+    level.mg_burn_fx_count = 0;
     mg_weapon_register();
+    maps\mp\zombies\_zm_spawner::register_zombie_damage_callback( ::mg_magma_damage_callback );
     // chained, not replaced: vanilla _zm_ai_brutus.gsc installs its own hook on this map (a Brutus-locked table)
     level.mg_prev_craftable_validation = level.custom_craftable_validation;
     level.custom_craftable_validation = ::mg_acid_station_validation;
     level thread mg_weapon_connect_watch();
+    level thread mg_pool_damage_loop();
 }
 
-// init() only (precacheitem).
+// init() only (precacheitem). The script fires the bolt (magicbullet) and the bolt leaves the blob: both are precached,
+// as vanilla precaches the Acid Gat's dart and grenade.
 mg_weapon_precache()
 {
     precacheitem( "magmagat_zm" );
     precacheitem( "magmagat_upgraded_zm" );
+    precacheitem( "mg_magma_bolt_zm" );
+    precacheitem( "mg_magma_blob_zm" );
     precacheitem( "mg_tempered_zm" );
     precacheitem( "mg_tempered_upgraded_zm" );
 }
@@ -142,7 +149,7 @@ mg_tempered_give_back( tempered )
 }
 
 // The Magmagat a gun becomes at the forge: a Pack-a-Punched one (Sweeper, Vitriolic Withering) gives the Magmus
-// Operandi (BO4).
+// Operandi.
 mg_magma_of( weapon )
 {
     if ( isdefined( weapon ) && ( weapon == "blundergat_upgraded_zm" || weapon == "blundersplat_upgraded_zm" || weapon == "mg_tempered_upgraded_zm" ) )
@@ -154,6 +161,12 @@ mg_magma_of( weapon )
 mg_is_magma( weapon )
 {
     return isdefined( weapon ) && ( weapon == "magmagat_zm" || weapon == "magmagat_upgraded_zm" );
+}
+
+// The Magmagat, its bolt in flight or its blob bursting: the weapons whose damage is the Magmagat's.
+mg_is_magma_damage( weapon )
+{
+    return mg_is_magma( weapon ) || isdefined( weapon ) && ( weapon == "mg_magma_bolt_zm" || weapon == "mg_magma_blob_zm" );
 }
 
 // The Magmagat this player carries, or undefined.
@@ -171,9 +184,19 @@ mg_has_magma( player )
     return undefined;
 }
 
-// self = player. Swaps the held Blundergat (or gives one) for its Magmagat.
+// self = player. Swaps the held Blundergat (or, at two primaries, the gun in hand) for its Magmagat. A player who
+// already owns a Magmagat only has its ammo refilled (the remaster's forge: function_704b802a, giveMaxAmmo).
 mg_weapon_grant( weapon )
 {
+    owned = mg_has_magma( self );
+
+    if ( isdefined( owned ) )
+    {
+        self givemaxammo( owned );
+        mg_debug_print( "MG: " + self.name + " refills his " + owned );
+        return;
+    }
+
     magma = mg_magma_of( weapon );
     current = self getcurrentweapon();
     primaries = self getweaponslistprimaries();
@@ -183,12 +206,9 @@ mg_weapon_grant( weapon )
     else if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( self ) )
         self takeweapon( current );
 
-    if ( !self hasweapon( magma ) )
-        self giveweapon( magma );
-
+    self giveweapon( magma );
     self switchtoweapon( magma );
     self givemaxammo( magma );
-    self mg_snd_player( "zmb_hellbox_arrive" );
     mg_debug_print( "MG: " + self.name + " holds a " + magma );
 }
 
@@ -199,7 +219,6 @@ mg_weapon_connect_watch()
     foreach ( player in getplayers() )
     {
         player thread mg_weapon_shot_loop();
-        player thread mg_weapon_hold_loop();
         player thread mg_tempered_watch();
     }
 
@@ -207,67 +226,8 @@ mg_weapon_connect_watch()
     {
         level waittill( "connected", player );
         player thread mg_weapon_shot_loop();
-        player thread mg_weapon_hold_loop();
         player thread mg_tempered_watch();
     }
-}
-
-// self = player. While a Magmagat is in hand (and the player is up) a small flame rides the gun; switching away,
-// going down or dropping the gun puts it out.
-mg_weapon_hold_loop()
-{
-    self endon( "disconnect" );
-    level endon( "end_game" );
-
-    if ( is_true( self.mg_hold_watched ) )
-        return;
-
-    self.mg_hold_watched = 1;
-    held = undefined;
-
-    while ( true )
-    {
-        wait 0.2;
-        weapon = self getcurrentweapon();
-
-        if ( !mg_is_magma( weapon ) || !is_player_valid( self ) )
-            weapon = undefined;
-
-        if ( isdefined( held ) && isdefined( weapon ) && held == weapon && isdefined( self.mg_hold_fx ) )
-            continue;
-
-        mg_fx_stop( self.mg_hold_fx );
-        self.mg_hold_fx = undefined;
-        held = weapon;
-
-        if ( !isdefined( weapon ) )
-            continue;
-
-        key = "magma_hold";
-
-        if ( weapon == "magmagat_upgraded_zm" )
-            key = "magmus_hold";
-
-        fx = mg_fx_loop( key, self gettagorigin( "tag_weapon_right" ) );
-
-        if ( !isdefined( fx ) )
-            continue;
-
-        fx linkto( self, "tag_weapon_right", ( 0, 0, 0 ), ( 0, 0, 0 ) );
-        fx thread mg_weapon_hold_owner( self );
-        self.mg_hold_fx = fx;
-    }
-}
-
-// self = the held flame. It dies with its owner (a disconnect ends the hold loop before it can clean up).
-mg_weapon_hold_owner( owner )
-{
-    self endon( "death" );
-
-    while ( isdefined( owner ) )
-        wait 0.5;
-
-    self delete();
 }
 
 // self = player
@@ -285,358 +245,395 @@ mg_weapon_shot_loop()
     {
         self waittill( "weapon_fired", weapon );
 
-        if ( !mg_is_magma( weapon ) )
+        if ( mg_is_magma( weapon ) )
+            self mg_blob_fire( weapon );
+    }
+}
+
+// self = player. One blob per shot, fired from the eye to where the crosshair points, as the Acid Gat fires its dart
+// (_zm_weap_blundersplat.gsc _titus_locate_target; one blob and no aim help, as the remaster's single grenade).
+mg_blob_fire( weapon )
+{
+    origin = self getplayercamerapos();
+    trace = bullettrace( origin, origin + anglestoforward( self getplayerangles() ) * 20000, 1, self );
+    bolt = magicbullet( "mg_magma_bolt_zm", origin, trace["position"], self );
+
+    if ( isdefined( bolt ) )
+        level thread mg_blob_land( bolt, self, weapon );
+}
+
+// The bolt lands and leaves its blob (the grenade tools/build_weapon.pl gives it, stuck where it hit); the blob
+// then takes one of the remaster's three ways (_zm_weap_magmagat.gsc function_24eea6c5). player may leave meanwhile.
+mg_blob_land( bolt, player, weapon )
+{
+    level endon( "end_game" );
+    last = bolt.origin;
+
+    while ( isdefined( bolt ) )
+    {
+        last = bolt.origin;
+        wait 0.05;
+    }
+
+    blob = undefined;
+
+    for ( i = 0; i < 3 && !isdefined( blob ); i++ )
+    {
+        blob = mg_blob_find( last );
+
+        if ( !isdefined( blob ) )
+            wait 0.05;
+    }
+
+    // a bolt that hit nothing and timed out leaves no blob
+    if ( !isdefined( blob ) )
+        return;
+
+    blob.mg_claimed = 1;
+    blob mg_blob_lure( weapon );
+    host = mg_blob_host( blob );
+
+    if ( !isdefined( host ) )
+        level thread mg_pool( blob, player, weapon );
+    else if ( mg_is_brutus( host ) )
+        blob thread mg_blob_on_brutus( host, player, weapon );
+    else
+    {
+        blob thread mg_blob_on_zombie( host, player );
+
+        // a second blob on the same zombie only bursts with it
+        if ( !is_true( host.mg_magma_stuck ) )
+            host thread mg_magma_stuck( player, weapon );
+    }
+}
+
+// The unclaimed blob nearest to where its bolt was last seen (a grenade entity with the blob's model), or undefined.
+mg_blob_find( pos )
+{
+    best = undefined;
+    best_d = 300 * 300;
+
+    foreach ( g in getentarray( "grenade", "classname" ) )
+    {
+        if ( !isdefined( g.model ) || g.model != mg_model( "ball" ) || is_true( g.mg_claimed ) )
             continue;
 
-        mg_snd_near( "zmb_plane_fire_whoosh", self.origin, 900 );
-        self thread mg_lava_ball( weapon );
-    }
-}
+        d = distancesquared( g.origin, pos );
 
-// self = player. The ball flies to where the crosshair points (max 3000 units).
-mg_lava_ball( weapon )
-{
-    self endon( "disconnect" );
-    level endon( "end_game" );
-    eye = self geteye();
-    fwd = anglestoforward( self getplayerangles() );
-    trace = bullettrace( eye, eye + fwd * 3000, 1, self );
-    target = trace["position"];
-    start = self getweaponmuzzlepoint();
-    ball = spawn( "script_model", start );
-    ball setmodel( mg_model( "ball" ) );
-    ball.angles = self getplayerangles();
-
-    if ( isdefined( level._effect["mg_ball"] ) )
-        playfxontag( level._effect["mg_ball"], ball, "tag_origin" );
-
-    dist = distance( start, target );
-    time = dist / 2000;
-
-    if ( time < 0.05 )
-        time = 0.05;
-
-    ball moveto( target, time );
-    ball rotatevelocity( ( 420, 260, 0 ), time + 1 );
-    caught = undefined;
-    aimed = undefined;
-    hit_ent = trace["entity"];
-
-    // the aimed zombie is caught when the ball ARRIVES, not now: the flight must be seen
-    if ( isdefined( hit_ent ) && isai( hit_ent ) && isalive( hit_ent ) )
-        aimed = hit_ent;
-
-    elapsed = 0;
-
-    while ( !isdefined( caught ) && elapsed < time )
-    {
-        wait 0.05;
-        elapsed += 0.05;
-
-        foreach ( ai in getaiarray( level.zombie_team ) )
+        if ( d < best_d )
         {
-            if ( isdefined( ai ) && isalive( ai ) && distancesquared( ai.origin + ( 0, 0, 40 ), ball.origin ) < 40 * 40 )
-            {
-                caught = ai;
-                break;
-            }
+            best = g;
+            best_d = d;
         }
     }
 
-    if ( !isdefined( caught ) && isdefined( aimed ) && isalive( aimed ) && distancesquared( aimed.origin + ( 0, 0, 40 ), ball.origin ) < 80 * 80 )
-        caught = aimed;
-
-    if ( isdefined( caught ) && isalive( caught ) )
-    {
-        self thread mg_ball_explode( ball, caught, weapon );
-        return;
-    }
-
-    pos = ball.origin;
-    ball delete();
-    mg_fx_once( "ball_hit", pos );
-    mg_fx_once( "scorch", pos, 10, ( 270, 0, 0 ) ); // a decal projects along the effect's forward: up from the floor
-    self thread mg_patch( pos, weapon );
+    return best;
 }
 
-// self = player. The blob sticks 0.5 s, then (BO4): the zombie dies if it has 1000 health or less, else takes 1000
-// and burns 4 s before dying; everyone within 128 units not already alight takes 400 and catches fire. Brutus burns
-// instead.
-mg_ball_explode( ball, zombie, weapon )
+// The living zombie (or Brutus) this blob is stuck to, or undefined.
+mg_blob_host( blob )
 {
-    level endon( "end_game" );
-    ball linkto( zombie, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
-
-    if ( isdefined( zombie.animname ) && zombie.animname == "brutus_zombie" )
+    foreach ( ai in getaiarray( level.zombie_team ) )
     {
-        self thread mg_brutus_burn( zombie, ball, weapon );
-        return;
+        if ( isdefined( ai ) && isalive( ai ) && blob islinkedto( ai ) )
+            return ai;
     }
 
-    burn = mg_fx_loop( "burn", zombie.origin + ( 0, 0, 40 ) );
+    return undefined;
+}
 
-    if ( isdefined( burn ) )
-        burn linkto( zombie, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
+mg_is_brutus( ai )
+{
+    return isdefined( ai.animname ) && ai.animname == "brutus_zombie";
+}
 
-    wait 0.35;
-    pos = ball.origin;
+// self = blob. The lure, vanilla's point of interest (the Acid Gat's own numbers, which the remaster keeps).
+mg_blob_lure( weapon )
+{
+    if ( weapon == "magmagat_upgraded_zm" )
+        self create_zombie_point_of_interest( 500, 10, 10000 );
+    else
+        self create_zombie_point_of_interest( 250, 5, 10000 );
+}
 
-    if ( isdefined( zombie ) )
-        pos = zombie.origin + ( 0, 0, 30 );
+// self = zombie the blob stuck to (the remaster's function_876c11c9, BO2's _titus_target_animate_and_die): it burns in
+// the Acid Gat's stun for 1 s, then dies whatever its health. The notify feeds the spoon in the showers, as the
+// remaster's killed_by_a_magmagat does.
+mg_magma_stuck( player, weapon )
+{
+    self endon( "death" );
+    self.mg_magma_stuck = 1;
+    self thread maps\mp\zombies\_zm_weap_blundersplat::_blundersplat_target_acid_stun_anim();
+    self mg_burn_start();
+    wait 1;
+    self notify( "killed_by_a_blundersplat", player );
+    mg_magma_dodamage( self, self.health + 666, self.origin, player, "MOD_BURNED", weapon );
+}
 
-    ball delete();
-    mg_fx_stop( burn );
-    mg_fx_once( "explo", pos );
-    mg_snd_near( "wpn_blundersplat_explode", pos, 1200 );
+// self = blob on a zombie: it bursts 0.05 s after the zombie dies (BO2's _titus_grenade_detonate_on_target_death).
+mg_blob_on_zombie( zombie, player )
+{
+    self endon( "death" );
 
-    if ( isdefined( zombie ) && isalive( zombie ) )
-    {
-        if ( zombie.health <= 1000 )
-            zombie dodamage( zombie.health + 666, pos, self, self, "none", "MOD_PROJECTILE", 0, weapon );
-        else
-        {
-            zombie dodamage( 1000, pos, self, self, "none", "MOD_PROJECTILE", 0, weapon );
-            zombie thread mg_burn( self, weapon );
-            self thread mg_burn_then_die( zombie, 4, weapon );
-        }
-    }
+    if ( isalive( zombie ) )
+        zombie waittill( "death" );
+
+    self mg_blob_burst( player );
+}
+
+// self = blob on Brutus: 2500 burn damage once (vanilla brutus_damage_override keeps a tenth, half more for this
+// spread-class gun, as BO3's does), and the blob bursts 3 s later.
+mg_blob_on_brutus( brutus, player, weapon )
+{
+    self endon( "death" );
+    mg_magma_dodamage( brutus, 2500, brutus.origin, player, "MOD_BURNED", weapon );
+    wait 3;
+    self mg_blob_burst( player );
+}
+
+// self = blob. It bursts 0.05 s from now: the weapon's own explosion (mg/fx_magmagat_explode and
+// wpn_blundersplat_explode, tools/build_weapon.pl) through resetmissiledetonationtime, as the remaster and BO2 do.
+mg_blob_burst( player )
+{
+    self deactivate_zombie_point_of_interest();
+    self resetmissiledetonationtime( 0.05 );
+    level thread mg_blob_splash( self.origin, player );
+}
+
+// The burst's damage. The blob weapon itself deals none (T6 would hurt every player near it 75), so the script deals
+// the Acid Gat dart's to the zombies and Brutus: 1000 at the blob falling to 500 at 300 units.
+mg_blob_splash( pos, player )
+{
+    wait 0.05;
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
-        if ( !isdefined( ai ) || !isalive( ai ) || ai == zombie || is_true( ai.mg_burning ) || distancesquared( ai.origin, pos ) > 128 * 128 )
+        if ( !isdefined( ai ) || !isalive( ai ) )
             continue;
 
-        if ( isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
-            continue;
+        d = distance( ai.origin, pos );
 
-        ai thread mg_burn( self, weapon );
-        ai dodamage( 400, pos, self, self, "none", "MOD_GRENADE_SPLASH", 0, weapon );
+        if ( d <= 300 )
+            mg_magma_dodamage( ai, int( 1000 - 500 * d / 300 ), pos, player, "MOD_GRENADE_SPLASH", "mg_magma_blob_zm" );
     }
 }
 
-// self = player. A strong zombie burns, then dies.
-mg_burn_then_die( zombie, seconds, weapon )
+// Magmagat damage, credited to its player while he is still here.
+mg_magma_dodamage( victim, amount, pos, player, mod, weapon )
 {
-    zombie endon( "death" );
-    wait( seconds );
-
-    if ( isalive( zombie ) )
-        zombie dodamage( zombie.health + 666, zombie.origin, self, self, "none", "MOD_BURNED", 0, weapon );
+    if ( isdefined( player ) )
+        victim dodamage( amount, pos, player, player, "none", mod, 0, weapon );
+    else
+        victim dodamage( amount, pos );
 }
 
-// self = zombie
-mg_burn_fx( seconds )
+// self = zombie (vanilla _zm_spawner::zombie_damage). Magmagat damage pays no points per hit and skips vanilla's
+// flame and grenade handling, as the remaster's function_93036c27; the kill still pays.
+mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
 {
-    self endon( "death" );
-    fx = mg_fx_loop( "burn", self.origin + ( 0, 0, 40 ) );
-
-    if ( isdefined( fx ) )
-        fx linkto( self, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
-
-    wait( seconds );
-    mg_fx_stop( fx );
+    return mg_is_magma_damage( self.damageweapon );
 }
 
-// self = player. Brutus and the blob (BO4): 100 at once, then 10-20 % of his maximum health a second (5-10 % from
-// round 15) for 5 s while the blob burns on him. It can kill him.
-mg_brutus_burn( ai, ball, weapon )
+// The lava pool (the remaster's trigger magmagat_lava_pool): a trigger 32 units across (the Magmus 64) and 32 high on
+// the floor under the blob (one stuck to a wall pools below it), 6 s, the blob lying in it and its fire over it. No
+// cap as in the remaster, but 8 at once at most for T6's entity budget (the oldest goes).
+mg_pool( blob, player, weapon )
 {
     level endon( "end_game" );
-    ai dodamage( 100, ai.origin, self, self, "none", "MOD_PROJECTILE", 0, weapon );
-    ai thread mg_burn_fx( 5 );
-    lo = 0.1;
-    hi = 0.2;
+    radius = 32;
 
-    if ( level.round_number >= 15 )
-    {
-        lo = 0.05;
-        hi = 0.1;
-    }
+    if ( weapon == "magmagat_upgraded_zm" )
+        radius = 64;
 
-    for ( t = 0; t < 5 && isdefined( ai ) && isalive( ai ); t++ )
-    {
-        wait 1;
-
-        if ( isdefined( ai ) && isalive( ai ) )
-            ai dodamage( int( ai.maxhealth * randomfloatrange( lo, hi ) ), ai.origin, self, self, "none", "MOD_BURNED", 0, weapon );
-    }
-
-    if ( isdefined( ball ) )
-        ball delete();
-}
-
-// self = player. A molten pool (BO4): 5 s, 64 units across, 3 at most (the oldest goes). A zombie that walks in
-// catches fire: 10 % of its health at once, then the burn; a crawler dies at once, Brutus walks through. The pool
-// lures zombies (128 units, 3 of them; the Magmus Operandi's 256 and 6) and hurts its owner (1 every 0.4 s).
-mg_patch( pos, weapon )
-{
-    level endon( "end_game" );
-
-    if ( !isdefined( self.mg_patches ) )
-        self.mg_patches = [];
-
-    while ( self.mg_patches.size >= 3 )
-    {
-        mg_patch_stop( self.mg_patches[0] );
-        rest = [];
-
-        for ( i = 1; i < self.mg_patches.size; i++ )
-            rest[rest.size] = self.mg_patches[i];
-
-        self.mg_patches = rest;
-    }
-
-    // the patch lies on the floor under the impact (a ball that hit a wall pools below it)
-    trace = bullettrace( pos + ( 0, 0, 24 ), pos - ( 0, 0, 160 ), 0, undefined );
+    start = blob.origin + ( 0, 0, 4 );
+    trace = bullettrace( start, start - ( 0, 0, 160 ), 0, blob );
     pos = trace["position"];
-    fire = mg_fx_loop( "patch_fire", pos );
 
-    if ( !isdefined( fire ) )
-        return;
+    if ( trace["fraction"] >= 1 )
+        pos = blob.origin;
 
-    pool = spawn( "script_model", pos + ( 0, 0, 0.3 ) );
-    pool setmodel( mg_model( "pool" ) );
-    pool.angles = ( 0, randomint( 360 ), 0 );
-    fire.mg_pool = pool;
-    self.mg_patches[self.mg_patches.size] = fire;
-    embers = mg_fx_loop( "embers", pos );
-    fire playloopsound( "zmb_fire_loop" );
+    pool = spawn( "trigger_radius", pos, 0, radius, 32 );
+    pool.owner = player;
+    pool.weapon = weapon;
 
-    // the lure: vanilla's point of interest (the monkey bomb's), switched off with the pool
-    big = isdefined( weapon ) && weapon == "magmagat_upgraded_zm";
-    lure_dist = 128;
-    lure_count = 3;
+    if ( level.mg_pools.size >= 8 )
+        level.mg_pools[0] notify( "mg_pool_end" );
 
-    if ( big )
+    level.mg_pools[level.mg_pools.size] = pool;
+    fire = mg_fx_loop( "patch_fire", pool.origin );
+    pool waittill_any_timeout( 6, "mg_pool_end" );
+    arrayremovevalue( level.mg_pools, pool );
+    pool delete();
+    mg_fx_stop( fire );
+
+    if ( isdefined( blob ) )
     {
-        lure_dist = 256;
-        lure_count = 6;
+        blob deactivate_zombie_point_of_interest();
+        blob delete();
+    }
+}
+
+// The pool this entity stands in, or undefined.
+mg_pool_touched( ent )
+{
+    foreach ( pool in level.mg_pools )
+    {
+        if ( isdefined( pool ) && ent istouching( pool ) )
+            return pool;
     }
 
-    pool create_zombie_point_of_interest( lure_dist, lure_count, 10000 );
-    pool thread create_zombie_point_of_interest_attractor_positions( 4, 45 );
+    return undefined;
+}
 
-    for ( t = 0; t < 5 && isdefined( fire ); t += 0.4 )
+// Every 0.05 s, as the remaster's checks (function_8879b47f on zombies, function_a7de247a on players).
+mg_pool_damage_loop()
+{
+    level endon( "end_game" );
+
+    while ( true )
     {
+        wait 0.05;
+
         foreach ( ai in getaiarray( level.zombie_team ) )
         {
-            if ( !isdefined( ai ) || !isalive( ai ) || distancesquared( ai.origin, pos ) > 64 * 64 || abs( ai.origin[2] - pos[2] ) > 32 )
-                continue;
-
-            if ( is_true( ai.mg_burning ) || isdefined( ai.animname ) && ai.animname == "brutus_zombie" )
-                continue;
-
-            if ( !is_true( ai.has_legs ) && isdefined( ai.has_legs ) )
-            {
-                ai dodamage( ai.health + 666, pos, self, self, "none", "MOD_BURNED", 0, weapon );
-                continue;
-            }
-
-            ai thread mg_burn( self, weapon );
-            ai dodamage( int( ai.health * 0.1 ), pos, self, self, "none", "MOD_BURNED", 0, weapon );
+            if ( isdefined( ai ) && isalive( ai ) && !mg_is_brutus( ai ) )
+                ai mg_pool_zombie();
         }
 
-        // the owner is not immune to his own lava
-        if ( isdefined( self ) && is_player_valid( self ) && distancesquared( self.origin, pos ) < 64 * 64 && abs( self.origin[2] - pos[2] ) < 40 )
-            self dodamage( 1, pos );
-
-        wait 0.4;
+        foreach ( player in getplayers() )
+            player mg_pool_player();
     }
+}
 
-    if ( isdefined( pool ) )
-        pool deactivate_zombie_point_of_interest();
+// self = zombie. In the pool: a quarter of its maximum health every 0.25 s (dead in about 0.75 s), credited to the
+// pool's owner, and it burns; out of it, the burn fades (mg_burn_end).
+mg_pool_zombie()
+{
+    pool = mg_pool_touched( self );
 
-    mg_fx_stop( embers );
-
-    if ( isdefined( fire ) )
+    if ( !isdefined( pool ) )
     {
-        mg_patch_stop( fire );
-        kept = [];
-
-        foreach ( p in self.mg_patches )
+        if ( is_true( self.mg_in_pool ) )
         {
-            if ( isdefined( p ) )
-                kept[kept.size] = p;
+            self.mg_in_pool = undefined;
+            self thread mg_burn_end( 4 );
         }
 
-        self.mg_patches = kept;
+        return;
     }
-}
 
-// self = zombie. BO4's burn: once alight a zombie burns until it dies, a share of its maximum health every second that
-// shrinks with the round (60-90 % before round 9, 30-50 % to round 15, 20-30 % to round 28, then 15-20 %).
-mg_burn( attacker, weapon )
-{
-    if ( is_true( self.mg_burning ) )
+    self.mg_in_pool = 1;
+
+    if ( isdefined( self.mg_pool_next ) && gettime() < self.mg_pool_next )
         return;
 
-    self.mg_burning = 1;
-    self thread mg_burn_fx_hold();
-    self endon( "death" );
-    wait 0.05;
+    self.mg_pool_next = gettime() + 250;
+    self mg_burn_start();
+    mg_magma_dodamage( self, int( self.maxhealth / 4 ), pool.origin, pool.owner, "MOD_BURNED", pool.weapon );
+}
 
-    while ( isalive( self ) )
+// self = player. Every player standing in a pool (not only its owner) takes 20 every 0.5 s with the searing loop
+// (T6's evt_plr_fire_loop for the remaster's evt_searing_flesh).
+mg_pool_player()
+{
+    pool = undefined;
+
+    if ( is_player_valid( self ) )
+        pool = mg_pool_touched( self );
+
+    if ( !isdefined( pool ) )
     {
-        if ( level.round_number < 9 )
-            frac = randomfloatrange( 0.6, 0.9 );
-        else if ( level.round_number < 16 )
-            frac = randomfloatrange( 0.3, 0.5 );
-        else if ( level.round_number < 29 )
-            frac = randomfloatrange( 0.2, 0.3 );
-        else
-            frac = randomfloatrange( 0.15, 0.2 );
+        if ( is_true( self.mg_in_pool ) )
+        {
+            self.mg_in_pool = undefined;
+            self stoploopsound( 2 );
+        }
 
-        if ( isdefined( attacker ) && isalive( attacker ) )
-            self dodamage( int( self.maxhealth * frac ), self.origin, attacker, attacker, "none", "MOD_BURNED", 0, weapon );
-        else
-            self dodamage( int( self.maxhealth * frac ), self.origin );
-
-        wait 1;
-    }
-}
-
-// A patch goes: its fire and its pool mesh.
-mg_patch_stop( fire )
-{
-    if ( !isdefined( fire ) )
         return;
+    }
 
-    if ( isdefined( fire.mg_pool ) )
+    if ( !is_true( self.mg_in_pool ) )
     {
-        // the lure goes with it (vanilla keeps a list of points of interest)
-        fire.mg_pool deactivate_zombie_point_of_interest();
-        fire.mg_pool delete();
+        self.mg_in_pool = 1;
+        self playloopsound( "evt_plr_fire_loop", 1 );
     }
 
-    mg_fx_stop( fire );
-}
-
-// self = a burning zombie: its flames until it dies, on 12 zombies at most (BO4's cap)
-mg_burn_fx_hold()
-{
-    if ( !isdefined( level.mg_burn_fx_count ) )
-        level.mg_burn_fx_count = 0;
-
-    if ( level.mg_burn_fx_count >= 12 )
+    if ( isdefined( self.mg_pool_next ) && gettime() < self.mg_pool_next )
         return;
 
+    self.mg_pool_next = gettime() + 500;
+    self dodamage( 20, pool.origin );
+}
+
+// self = zombie. It burns: T6's fire loop (for the remaster's chr_burning_loop) and the torso flame, on 12 zombies at
+// most for T6's effect budget. A burnt corpse keeps vanilla's own flames (MOD_BURNED deaths, _zm_spawner).
+mg_burn_start()
+{
+    self notify( "mg_burn_restart" );
+
+    if ( !is_true( self.mg_burn_watched ) )
+    {
+        self.mg_burn_watched = 1;
+        self thread mg_burn_death();
+    }
+
+    if ( !is_true( self.mg_burn_loop ) )
+    {
+        self.mg_burn_loop = 1;
+        self playloopsound( "zmb_fire_loop", 1 );
+    }
+
+    if ( is_true( self.mg_burn_lit ) || level.mg_burn_fx_count >= 12 )
+        return;
+
+    self.mg_burn_lit = 1;
     level.mg_burn_fx_count++;
-    fx = mg_fx_loop( "burn", self.origin + ( 0, 0, 40 ) );
+    self thread mg_burn_fx();
+}
+
+// self = zombie. The torso flame, until its death or mg_burn_end.
+mg_burn_fx()
+{
+    fx = mg_fx_loop( "burn", self gettagorigin( "J_SpineUpper" ) );
 
     if ( isdefined( fx ) && isdefined( self ) && isalive( self ) )
     {
         fx linkto( self, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
-        self waittill( "death" );
+        self waittill_any( "death", "mg_burn_fx_off" );
     }
 
     mg_fx_stop( fx );
     level.mg_burn_fx_count--;
+
+    if ( isdefined( self ) )
+        self.mg_burn_lit = undefined;
+}
+
+// self = zombie out of the pool (the remaster's function_7a018272): the fire loop fades now, the flame 4 s later,
+// unless it steps back in.
+mg_burn_end( delay )
+{
+    self endon( "death" );
+    self endon( "mg_burn_restart" );
+    self stoploopsound( 2 );
+    self.mg_burn_loop = undefined;
+    wait( delay );
+    self notify( "mg_burn_fx_off" );
+}
+
+// self = zombie. Its fire loop stops with it.
+mg_burn_death()
+{
+    self waittill( "death" );
+
+    if ( isdefined( self ) )
+        self stoploopsound( 1 );
 }
 
 // self = the craftable trigger vanilla validates (zm_alcatraz_utility blundergat_upgrade_station). Vanilla's own hook
 // runs first. At the Acid Gat kit (targetname blundergat_upgrade) a player holding a Magmagat and no Blundergat hands
 // it in as the Blundergat of its tier: vanilla then makes the Acid Gat (the Magmus Operandi gives the Vitriolic
-// Withering), as BO4's kit does.
+// Withering), as the remaster's kit does.
 mg_acid_station_validation( player )
 {
     if ( isdefined( level.mg_prev_craftable_validation ) )

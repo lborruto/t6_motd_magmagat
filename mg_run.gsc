@@ -4,12 +4,15 @@
 #include scripts\zm\zm_prison\mg_systems;
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
+#include scripts\zm\zm_prison\mg_hearth;
 #include scripts\zm\zm_prison\mg_forge;
 #include scripts\zm\zm_prison\mg_weapon;
 
-// The temper run, after BO4 and the BO3 remaster: 25 s of flame, a shot spends it all, each of the five barrels refills it to full ONCE per run
-// (it burns while a tempered gun is out and goes out once spent), the flame flickers in the last 5 s, switching
-// weapon or going down ends it (the player keeps the Blundergat: back to the fireplace).
+// The temper run, as the BO3 remaster (_zm_weap_magmagat.gsc function_2ca6799): 15 s of temper counted in whole
+// seconds; each of the five barrels resets it to 15 once per run (a flare, then it keeps burning until the run ends);
+// from 0.5 s on, any weapon in hand but the tempered gun or a Blundergat variant ends it (firing does not). It
+// succeeds when the carrier powers the Machine at the forge (mg_forge); on failure, silent, the carrier gets his gun
+// back, the skulls go out and 5 s later the fireplace takes a Blundergat again.
 
 mg_run_init()
 {
@@ -45,21 +48,19 @@ mg_barrels_set( lit )
 
         if ( isdefined( ent ) )
         {
-            ent playloopsound( "amb_fire_sml" );
             level thread mg_fx_keepalive( ent );
             barrel.mg_fx = ent;
         }
     }
 }
 
-// A barrel refilled the temper: a flare, then it is out for the rest of the run.
+// A barrel refilled the temper (the remaster's function_bb489f3a): a 5 s flare with its flame burst, then it gives
+// no more this run, its own flame still burning.
 mg_barrel_spend( barrel )
 {
     barrel.mg_spent = 1;
-    mg_fx_stop( barrel.mg_fx );
-    barrel.mg_fx = undefined;
-    mg_fx_once( "barrel_flare", mg_barrel_base( barrel ) );
-    mg_snd_near( "zmb_plane_fire_whoosh", barrel.origin, 900 );
+    mg_fx_once( "barrel_flare", mg_barrel_base( barrel ), 5 );
+    mg_snd_near( "mg_flame_burst", barrel.origin, 2500 );
 }
 
 // The remaster plays its drum flame at the drum's foot (str_barrel_fire, where the drum stands; the flames rise inside
@@ -67,6 +68,16 @@ mg_barrel_spend( barrel )
 mg_barrel_base( barrel )
 {
     return barrel.origin - ( 0, 0, 22.37 );
+}
+
+// The remaster's barrel trigger: a trigger_radius 64 wide and 64 high standing on the drum's foot.
+mg_barrel_touch( player, barrel )
+{
+    if ( distance2dsquared( player.origin, barrel.origin ) >= 64 * 64 )
+        return 0;
+
+    dz = player.origin[2] - mg_barrel_base( barrel )[2];
+    return dz >= 0 && dz <= 64;
 }
 
 // pickup -> run
@@ -77,15 +88,38 @@ mg_run_start( player, weapon )
 
     level.mg_carrier = player;
     level.mg_run_weapon = weapon;
-    player.mg_temper_left = 25.0;
+    level.mg_run_failing = 0;
+    player.mg_temper_left = 15;
     mg_barrels_set( 1 );
     mg_state_set( "run" );
+    player thread mg_run_timer();
     player thread mg_run_loop( weapon );
-    player thread mg_run_shot_watch( weapon );
     player thread mg_run_down_watch();
 }
 
-// self = carrier. Timer, barrels, the last-5-s flicker, weapon-away rule.
+// self = carrier. The remaster's function_7f32cc1f: a second off, a second's wait, out at 0 (15 s after the start or
+// the last barrel).
+mg_run_timer()
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    level endon( "mg_run_over" );
+    self endon( "disconnect" );
+
+    while ( mg_state_is( "run" ) )
+    {
+        self.mg_temper_left--;
+        wait 1;
+
+        if ( self.mg_temper_left <= 0 )
+        {
+            mg_run_fail( "the flame died" );
+            return;
+        }
+    }
+}
+
+// self = carrier. Barrels and the weapon rule, polled every 0.1 s as the remaster's function_2bfa6391.
 mg_run_loop( weapon )
 {
     level endon( "end_game" );
@@ -93,83 +127,63 @@ mg_run_loop( weapon )
     level endon( "mg_run_over" );
     self endon( "disconnect" );
 
-    away_since = undefined;
-    in_hand = 0;    // the switch to the tempered gun takes a moment: the rule starts once it is in hand
-    flicker = 0;
     level.mg_run_flame = mg_run_flame_on( self );
+
+    // the remaster starts checking the weapon 0.5 s after the start, with no grace after that. Its player keeps his
+    // gun; ours was just handed the tempered one, so the switch to it still in progress is not a switch away.
+    wait 0.5;
+    in_hand = 0;
 
     while ( mg_state_is( "run" ) )
     {
-        wait 0.1;
-
-        if ( !is_player_valid( self ) )
-            continue;
-
-        // a burning barrel within 64 units refills the temper to full, once per run
-        foreach ( barrel in level.mg_barrels )
-        {
-            if ( !is_true( barrel.mg_spent ) && distancesquared( self.origin, barrel.origin ) < 64 * 64 )
-            {
-                self.mg_temper_left = 25.0;
-                self mg_snd_player( "evt_wolfhead_depart" );
-                self playrumbleonentity( "damage_heavy" );
-                mg_barrel_spend( barrel );
-            }
-        }
-
-        // weapon away (BO4 checks right after the change; a quarter second forgives a stray scroll)
         current = self getcurrentweapon();
 
-        if ( current == weapon )
+        if ( isdefined( current ) && current == weapon )
             in_hand = 1;
 
-        if ( in_hand && current != weapon )
+        if ( is_player_valid( self ) )
         {
-            if ( !isdefined( away_since ) )
-                away_since = gettime();
-
-            if ( gettime() - away_since > 250 )
+            // a barrel within reach resets the temper to full, once per run
+            foreach ( barrel in level.mg_barrels )
             {
-                mg_run_fail( "weapon switched away" );
-                return;
+                if ( !is_true( barrel.mg_spent ) && mg_barrel_touch( self, barrel ) )
+                {
+                    self.mg_temper_left = 15;
+                    mg_barrel_spend( barrel );
+                }
             }
         }
-        else
-            away_since = undefined;
 
-        self.mg_temper_left = self.mg_temper_left - 0.1;
-
-        if ( self.mg_temper_left <= 0 )
+        if ( ( in_hand || !self isswitchingweapons() ) && !mg_run_weapon_ok( current, weapon ) )
         {
-            mg_run_fail( "the flame died" );
+            mg_run_fail( "weapon switched away" );
             return;
         }
 
-        // the last 5 s: the flame flickers every 0.5 s, with a rumble and a tick
-        flicker++;
-
-        if ( self.mg_temper_left <= 5 && flicker % 5 == 0 )
-        {
-            if ( isdefined( level.mg_run_flame ) )
-            {
-                mg_fx_stop( level.mg_run_flame );
-                level.mg_run_flame = undefined;
-            }
-            else
-                level.mg_run_flame = mg_run_flame_on( self );
-
-            self playrumbleonentity( "damage_light" );
-            self mg_snd_player( "zmb_quest_nixie_count" );
-        }
-        else if ( self.mg_temper_left > 5 && !isdefined( level.mg_run_flame ) )
-            level.mg_run_flame = mg_run_flame_on( self );
+        wait 0.1;
     }
-
-    mg_fx_stop( level.mg_run_flame );
-    level.mg_run_flame = undefined;
 }
 
-// the temper riding the gun
+// The run's gun, or any of the four Blundergat variants (the remaster lets the Blundergat and the Acid Gat swap).
+mg_run_weapon_ok( current, weapon )
+{
+    if ( !isdefined( current ) )
+        return 0;
+
+    if ( current == weapon || mg_is_tempered( current ) )
+        return 1;
+
+    foreach ( w in array( "blundergat_zm", "blundergat_upgraded_zm", "blundersplat_zm", "blundersplat_upgraded_zm" ) )
+    {
+        if ( current == w )
+            return 1;
+    }
+
+    return 0;
+}
+
+// The temper riding the gun. The remaster's flame is on the carrier's viewmodel only; T6 has no server-side viewmodel
+// fx, so the tempered gun's own model shows it in first person and this world flame shows it to the others.
 mg_run_flame_on( player )
 {
     flame = mg_fx_loop( "gun_flame", player gettagorigin( "tag_weapon_right" ) );
@@ -180,28 +194,8 @@ mg_run_flame_on( player )
     return flame;
 }
 
-// self = carrier. Firing the tempered gun spends its essence: the blue flame dies and it is back to the fireplace
-// (the BO3 remaster; BO4 only took 6 s a shot).
-mg_run_shot_watch( weapon )
-{
-    level endon( "end_game" );
-    level endon( "mg_goto" );
-    level endon( "mg_run_over" );
-    self endon( "disconnect" );
-
-    while ( mg_state_is( "run" ) )
-    {
-        self waittill( "weapon_fired", fired );
-
-        if ( isdefined( fired ) && fired == weapon )
-        {
-            mg_run_fail( "the tempered gun was fired: its essence is spent" );
-            return;
-        }
-    }
-}
-
-// self = carrier. Last stand or death ends the temper.
+// self = carrier. Last stand or death ends the temper (the remaster gets there through the weapon rule: the pistol,
+// the afterlife hands).
 mg_run_down_watch()
 {
     level endon( "end_game" );
@@ -218,37 +212,43 @@ mg_run_down_watch()
 // them (and this tail) if it ran inside their thread.
 mg_run_fail( reason )
 {
-    if ( !mg_state_is( "run" ) )
+    if ( !mg_state_is( "run" ) || is_true( level.mg_run_failing ) )
         return;
 
+    level.mg_run_failing = 1;
     level thread mg_run_fail_do( reason );
 }
 
+// The remaster's failure: no sound, no fx, the lit skulls go out; 5 s later the fireplace takes a Blundergat again
+// and the whole step (place, 15 souls, take) is to redo. The state stays "run" meanwhile, with no carrier.
 mg_run_fail_do( reason )
 {
+    level endon( "mg_goto" );
     mg_debug_print( "MG: temper lost: " + reason + ". Temper the Blundergat again." );
     level notify( "mg_run_over" );
-
-    if ( isdefined( level.mg_carrier ) && is_player_valid( level.mg_carrier ) )
-    {
-        level.mg_carrier mg_snd_player( "wpn_blundersplat_explode_layer" );
-
-        if ( isdefined( level.mg_run_weapon ) && level.mg_carrier hasweapon( level.mg_run_weapon ) )
-            level.mg_carrier mg_tempered_give_back( level.mg_run_weapon );
-    }
-
+    mg_run_give_back();
     mg_run_cleanup();
+    mg_skulls_dark();
+    wait 5;
+    level.mg_run_failing = 0;
     mg_state_set( "ready" );
 }
 
-// Everything the run created, destroyed from one place (the loop may have been killed by a notify).
+// The carrier's tempered gun back to the Blundergat he placed.
+mg_run_give_back()
+{
+    if ( !isdefined( level.mg_carrier ) || !isdefined( level.mg_run_weapon ) )
+        return;
+
+    if ( level.mg_carrier hasweapon( level.mg_run_weapon ) )
+        level.mg_carrier mg_tempered_give_back( level.mg_run_weapon );
+}
+
+// Everything the run created, destroyed from one place (the loops may have been killed by a notify).
 mg_run_cleanup()
 {
     if ( isdefined( level.mg_carrier ) )
-    {
-
         level.mg_carrier.mg_temper_left = undefined;
-    }
 
     mg_fx_stop( level.mg_run_flame );
     level.mg_run_flame = undefined;
@@ -257,11 +257,12 @@ mg_run_cleanup()
     mg_barrels_set( 0 );
 }
 
-// run -> forge (called by mg_forge when the tempered gun is placed, after it has read what it needs from
-// level.mg_carrier / the weapon passed in): stop the timer and clean up.
+// run -> done (called by mg_forge when the carrier powers the Machine): the run stops and the carrier gets his gun
+// back.
 mg_run_end_ok()
 {
     level notify( "mg_run_over" );
+    mg_run_give_back();
     mg_run_cleanup();
 }
 
@@ -270,6 +271,7 @@ mg_run_fabricate( state )
 {
     level notify( "mg_run_over" );
     mg_run_cleanup();
+    level.mg_run_failing = 0;
 
     if ( state == "run" )
     {
@@ -297,4 +299,3 @@ mg_run_start_delayed( player, weapon )
     wait 0.1;
     mg_run_start( player, weapon );
 }
-
