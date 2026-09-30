@@ -128,7 +128,11 @@ BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effe
    visual samples 80; the element fields, flags, atlas, trail and rotation conversions are commented there).
 3. **Textures.** Greyhound with "Load xImage from the game" on, images only, exports the effect textures
    (`black_ops_3_sp/ximages`). `tools/bo3_fx.pl` clones a vanilla zm_prison effect material per BO3 material (blend,
-   premultiplied emissive blend, additive, distortion, cloud, decal) and embeds the texture.
+   emissive blend, additive, distortion, cloud, decal) and embeds the texture. BO3's emissive materials carry an HDR
+   `hdrScale` (8 for a soft glow, 256 for fire, 2048+ for a white-hot core), read from the snapshot (their settings
+   buffers, named by the pass shader's DXBC, as HydraX reads them): one above `HDR_WHITE` (64) draws additive with its
+   elements' colours scaled by `hdrScale / 64`, one below keeps BO3's alpha blend. A visual the snapshot missed is
+   dropped (a null material crashes T6 when drawn), and so is an element left with none.
 
 The effects in the mod are listed in `tools/assets/bo3_fx.tsv`; they become `mg/<name>`. Not carried over: BO3's
 sound elements and spawn sounds (BO3 aliases; the mod plays its sounds from script), BO3-only element types, and the

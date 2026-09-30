@@ -466,11 +466,13 @@ mg_zombies_near( pos, radius )
 }
 
 // ---- the Warden's Office, as a box ---------------------------------------------------------------------------
-// The map's zone_warden_office volume is smaller than the room looks (owner 2026-09-20: kills inside the room did not
-// count). The owner walked the four corners: (-1056 8804) (-1056 8527) (-463 8531) (-462 8809), floor 1311..1336.
+// The remaster's soul catcher volume (the info_volume soul_catcher_mg targets, BO3 centre -4241 3787 2770), brought onto
+// BO2 by the office fit (tools/assets/bo3_fx.tsv; it puts the BO3 skulls and office door within 10 units of ours): its
+// sides are the lockdown's blue walls, west x -1070, south y 8493, the inner doorway y 9187, east x -440 (its centre
+// maps to -755 8840). It holds the fireplace room and the office north of it up to that doorway. `!mg zone` shows it.
 mg_in_office_box( pos )
 {
-    return pos[0] > -1070 && pos[0] < -450 && pos[1] > 8515 && pos[1] < 8820 && pos[2] > 1280 && pos[2] < 1520;
+    return pos[0] > -1070 && pos[0] < -440 && pos[1] > 8493 && pos[1] < 9187 && pos[2] > 1280 && pos[2] < 1560;
 }
 
 mg_ent_in_office( ent )

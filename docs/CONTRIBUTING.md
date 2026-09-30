@@ -117,7 +117,9 @@ props, Greyhound's export of the BO3 map "Mob of the Dead Remastered" (`C:/Games
 games' files and are never committed (so is `mod/sound`).
 
 - **Props** (`tools/import_all.pl` lists them): each BO3 model becomes a rigid T6 xmodel (Greyhound's glTF, Z-up
-  centimetres, turned to the Linker's Y-up inches; at most 4 LODs), one material per surface cloned from a vanilla
+  centimetres, turned to the Linker's Y-up inches; at most 4 LODs, most detailed first by file size since Greyhound's
+  LOD numbers are no detail order, and LODs it exported without meshes left out: BO3 streams them, so export a model
+  while it is in view in game), one material per surface cloned from a vanilla
   lit template, and its textures embedded in the fastfile as `*mg_<name>` images. A texture given a plain name makes
   the Linker write a STREAMED image, which T6 only looks for in its own `.ipak` files: it never shows. A BO3 layered
   material (a paint and a rust layer through a mask) is baked into one colour map by `tools/bake_layers.pl`;
@@ -140,8 +142,10 @@ games' files and are never committed (so is `mod/sound`).
   `english/localizedstrings/mg_weapons.str`.
 - **The blob and the pool** (`tools/gen_lava_mat.pl`, run by `tools/build_weapon.pl`): the script does not fly a mesh. The
   Magmagat fires a real sticky projectile, as the Acid Gat does: `mg_magma_bolt_zm` (the flight, with the BO3 trail
-  `mg/fx_magmagat_trail_bolt`) leaves `mg_magma_blob_zm` where it lands, and that grenade wears the BO4 blob model
-  `mg_magma_blob` and bursts with `mg/fx_magmagat_explode`. The pool a miss lays is the remaster's aoe effect
+  `mg/fx_magmagat_trail_bolt`) leaves `mg_magma_blob_zm` where it lands, and that grenade bursts with
+  `mg/fx_magmagat_explode`. Both wear the Acid Gat dart's model (`$blob` in `tools/build_weapon.pl`, `mg_model( "ball" )`)
+  until BO4's blob `p8_fxp_magma_blob` is re-exported with its mesh (Greyhound exported it empty; `tools/import_all.pl`
+  leaves an empty export out); then `mg_magma_blob` in both places. The pool a miss lays is the remaster's aoe effect
   (`mg/fx_prison_magmagat_aoe`) under the blob. The generator now only builds the lava material `mc/mg_lava`: the
   BO3 remaster's lava (`i_pbr_lava_magma_emissive_1_mtl`) on the emberglow shader, which the blob wears.
 - **The sounds** (`tools/import_sounds.pl`, the list in `tools/assets/bo3_sounds.tsv`): BO3 banks are the same `2UX#`
@@ -191,6 +195,7 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | `!mg status` | state, souls, carrier, timer, the gate flag, forge open |
 | `!mg tour` | the seven steps' effects and sounds in their real place, one after the other (teleports you, labels each step, ends with a real Magmagat bolt): the quick review of the quest's look |
 | `!mg lockdown` | the office lockdown (the remaster's outline on the door and walls, and the door clip) for 10 s, to check its placement |
+| `!mg zone` | the souls' kill zone (`mg_in_office_box`) marked along its sides for 15 s, to check it against the lockdown's blue walls |
 | `!mg bridge` | meet the bridge requirement (the gate's own event: setting the vanilla flag would also open the bridge's spawn zone) |
 | `!mg goto <locked\|ready\|souls\|pickup\|run\|forge\|done>` | fabricate the state (gives a Blundergat when the state needs one) |
 | `!mg spots` | print every anchor (`[SPOT] KEY \| x y z \| p y r`) |

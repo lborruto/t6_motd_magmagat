@@ -40,9 +40,10 @@ unless ( -d "$tdump/materials" ) {
         or die "bo3_fx.pl: the effect dump failed (set MG_OAT_FX)\n";
 }
 my %tmpl = (
-    # soft (depth-feathered) sprites, as BO3 draws them: BO3's emissive fire as T6 draws its own fire, additive; lit
-    # blends (smoke, dust) alpha-blended
-    emissive => 'gfx_fxt_fire_flame_vert_e', blend => 'gfx_fxt_smk_gen_z40',
+    # BO3's emissive blend (every "_em" material: effect_lit_emissive_blend) as T6's own, its fire flame alpha-blended
+    # and unlit, or as T6's additive fire (depth-feathered) when its HDR makes it glow (hdr_gain); lit blends (smoke,
+    # dust) alpha-blended
+    emissive_blend => 'gfx_fxt_fire_flame_vert_e_blnd', emissive => 'gfx_fxt_fire_flame_vert_e', blend => 'gfx_fxt_smk_gen_z40',
     cloud => 'gfx_fxt_debris_fire_ember_cloud_01i',
     decal_mc => 'mc/gfx_impact_liquid_spatter01', decal_wc => 'wc/gfx_impact_liquid_spatter01',
 );
@@ -80,6 +81,20 @@ remove_tree($raw);
 make_path( "$raw/fx", "$raw/materials", "$raw/images" );
 
 sub t6fx { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; "mg/$b" }
+
+# BO3 multiplies an emissive material's colour by its hdrScale (8 for a soft glow, 256 for fire, 2048+ for a white-hot
+# core; the "_i<n>" in its name) before tone mapping; T6 has no HDR. HDR_WHITE is the hdrScale taken as plain white: a
+# material above it has its elements' colours scaled up by hdrScale / HDR_WHITE (saturating as BO3's tone map does)
+# and draws additive, so it glows; one at or below keeps its colours and BO3's alpha blend. A snapshot without the
+# material constants gives 1 (no change). Tune HDR_WHITE in game if the remaster's effects look too hot or too dim.
+use constant HDR_WHITE => 64;
+use List::Util qw(min);
+sub hdr_gain {
+    my $p = shift;
+    my $m = defined $p ? $c->material($p) : undef;
+    my $h = $m && $m->{settings}{hdrScale} ? $m->{settings}{hdrScale}[0] : 0;
+    return $h > HDR_WHITE ? $h / HDR_WHITE : 1;
+}
 sub t6mat { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; $b =~ s/\|.*//; "mg_$b" }
 
 my ( %done, %by_t6, %mats, @todo, $warn );
@@ -98,6 +113,13 @@ while ( my $n = shift @todo ) {
     $by_t6{$t6} = $n;
     print "bo3_fx.pl: $n: $_\n" for @$notes;
     for my $e ( @{ $fx->{elemDefs} } ) {
+        # BO3's HDR: a sprite's colour times its material's hdrScale, in LDR as far as a colour goes (see hdr_gain)
+        if ( $e->{elemType} <= 6 ) {
+            my ($g) = sort { $b <=> $a } map { hdr_gain( $need->{materials}{$_} ) } grep {defined} @{ $e->{visuals} };
+            if ( $g && $g > 1 ) {
+                for my $v ( map { @$_{qw(base amplitude)} } @{ $e->{visSamples} } ) { $_ = min( 255, $_ * $g ) for @{ $v->{color} }[ 0 .. 2 ] }
+            }
+        }
         $e->{$_} = defined $e->{$_} ? t6fx( $e->{$_} ) : undef for qw(effectOnImpact effectOnDeath effectEmitted effectAttached);
         if    ( $e->{elemType} == 12 ) { $_ = t6fx($_) for grep {defined} @{ $e->{visuals} } }
         elsif ( $e->{elemType} == 11 ) { $e->{visuals} = [ map { [ defined $_->[0] ? 'mc/' . t6mat( $_->[0] ) : undef, defined $_->[1] ? 'wc/' . t6mat( $_->[0] ) : undef ] } @{ $e->{visuals} } ] }
@@ -119,7 +141,7 @@ for my $mn ( sort keys %mats ) {
     my $m = $c->material( $mats{$mn} ) or do { warn "bo3_fx.pl: material $mn not captured\n"; $warn++; next };
     next if $mn =~ m{^vd/};    # a decal's second (model) material: made with the first
     my $t = $m->{techset};
-    my $kind = $t =~ /lit_weapon_impact|decal/ ? 'decal' : $t =~ /cloud/ ? 'cloud' : $t =~ /_add\b|additive|emissive/ ? 'emissive' : 'blend';
+    my $kind = $t =~ /lit_weapon_impact|decal/ ? 'decal' : $t =~ /cloud/ ? 'cloud' : $t =~ /emissive_blend/ ? ( hdr_gain( $mats{$mn} ) > 1 ? 'emissive' : 'emissive_blend' ) : $t =~ /_add\b|additive|emissive/ ? 'emissive' : 'blend';
     my $color = $m->{images}{a0ab1041};
     # a texture whose name the snapshot missed: BO3 names it after its material (gfx_<x>_em -> fxt_<x>, i_<material>, ...)
     if ( !defined $color ) {

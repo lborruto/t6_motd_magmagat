@@ -443,14 +443,14 @@ mg_lockdown_wall( origin, angles )
         level.mg_lock_fx[level.mg_lock_fx.size] = wall;
 }
 
-// T6's office has no wardens_playerclip: four player-only collision pillars (32 x 32 x 128, centred) stand in the
-// office door (the zombie_door activate_warden_office, its cell door at x -448 from y 9270 to 9360). Players can
-// neither leave nor come in; zombies walk through, and the windows are the map's own barriers.
+// T6's office has no wardens_playerclip: four player-only collision pillars (32 x 32 x 128, centred) stand where the
+// remaster's clip closes the zone, the inner doorway its blue wall frames (BO3 x -4469 to -4363 at y 4124: BO2 x -991
+// to -884 at y 9183). Players can neither leave nor come in; zombies walk through.
 mg_lockdown_clip_on()
 {
-    foreach ( dy in array( -48, -16, 16, 48 ) )
+    foreach ( dx in array( -48, -16, 16, 48 ) )
     {
-        clip = spawn( "script_model", ( -447, 9310 + dy, 1400 ) );
+        clip = spawn( "script_model", ( -938 + dx, 9183, 1400 ) );
         clip setmodel( mg_model( "player_clip" ) );
         clip ghost();
         level.mg_lock_clips[level.mg_lock_clips.size] = clip;

@@ -95,6 +95,10 @@ my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_u
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
     viewFlashEffect => 'weapon/blundersplat/fx_blundersplat_muzzleflash_ug',
     worldFlashEffect => 'weapon/blundersplat/fx_blundersplat_muzzleflash_ug_3p' );
+# the blob in flight and stuck: the Acid Gat dart's model until BO4's lava blob (p8_fxp_magma_blob) is re-exported from
+# Greyhound with its mesh streamed in (its export is empty, tools/import_all.pl leaves it out); then mg_magma_blob, here
+# and as mg_model( "ball" ) in mg_coords.gsc
+my $blob = 't6_wpn_zmb_projectile_blundergat';
 my @weapons = (
     [ 'magmagat_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MAGMAGAT', gunModel => 'mg_magmagat_view',
         worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, fireSound => 'wpn_blundersplat_fire_exp_npc',
@@ -102,9 +106,9 @@ my @weapons = (
     [ 'magmagat_upgraded_zm', 'blundergat_upgraded_zm', { displayName => 'ZMWEAPON_MAGMAGAT_UPGRADED', gunModel => 'mg_magmus_view',
         worldModel => 'mg_magmus_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights",
         %blob_only, clipSize => 2, maxAmmo => 30, startAmmo => 25 } ],
-    [ 'mg_magma_bolt_zm', 'blundersplat_bullet_zm', { projectileModel => 'mg_magma_blob', projTrailEffect => 'mg/fx_magmagat_trail_bolt',
+    [ 'mg_magma_bolt_zm', 'blundersplat_bullet_zm', { projectileModel => $blob, projTrailEffect => 'mg/fx_magmagat_trail_bolt',
         projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm' } ],
-    [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => 'mg_magma_blob',
+    [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => $blob,
         projExplosionEffect => 'mg/fx_magmagat_explode', explosionInnerDamage => 0, explosionOuterDamage => 0, fuseTime => 10,
         aifuseTime => 10, explosionTag => '' } ],
     # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still

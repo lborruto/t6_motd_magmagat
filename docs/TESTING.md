@@ -66,10 +66,13 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       (in hand or not): the gun leaves you and lies in the fire, with no sound on it; a laugh for all players; the
       laundry defend music; the office outlined in light. State is `souls`, the three skulls are dark.
       (`!mg goto souls` starts the same lockdown with you as the placer.)
-- [ ] **Door clip**: players cannot walk through the office door, from inside or outside; zombies still come in by the
-      door and the windows. No gap above or below, nobody stuck. `!mg lockdown` puts the outline and clip up for 10 s at
-      any time: the lines must sit on the door frame and along the walls (report any floating in the room or outside).
-- [ ] Kill regular zombies in the office (the killer inside or outside, any weapon): the soul-kill sound at the body, and
+- [ ] **Door clip**: players cannot pass the doorway the blue wall frames (north of the fireplace room, x -991 to -884
+      at y 9183), from either side; zombies still come through. No gap above or below, nobody stuck. `!mg lockdown` puts
+      the outline and clip up for 10 s at any time: the lines must sit on that doorway and along the walls (report any
+      floating in the room or outside).
+- [ ] **Kill zone**: `!mg zone` marks its sides for 15 s (the remaster's soul catcher volume: x -1070 to -440, y 8493
+      to 9187, the fireplace room and the office north of it up to that doorway). They must run along the blue walls.
+- [ ] Kill regular zombies in the zone (the killer inside or outside, any weapon): the soul-kill sound at the body, and
       the soul (the remaster's blue lightning streak) rises 60 units in 2 s, humming. `!mg status` shows the count go up
       0.5 s after each kill, with nothing to pick up. No blood.
 - [ ] Brutus dying in the office, and a zombie dying outside it, give no soul.

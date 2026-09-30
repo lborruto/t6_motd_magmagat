@@ -56,6 +56,11 @@ opendir my $dh, $src or die "$src: $!\n";
 my @lods = sort grep { /_LOD\d+\.XMODEL_EXPORT$/ } readdir $dh;
 closedir $dh;
 die "import_prop.pl: no *_LOD<n>.XMODEL_EXPORT in $src\n" unless @lods;
+# a LOD Greyhound exported without meshes (BO3 streams them; not loaded at export) would draw nothing past its distance
+@lods = grep { ( my $gl = $_ ) =~ s/\.XMODEL_EXPORT$/.gltf/; @{ decode_json( slurp("$src/$gl") )->{meshes} || [] } } @lods;
+unless (@lods) { warn "import_prop.pl: every LOD in $src is empty (re-export it with the model streamed in)\n"; exit 3 }
+# most detailed first: Greyhound's LOD numbers are not a detail order (p8_zm_esc_machinery_01's LOD0 is its coarsest)
+@lods = sort { -s "$src/$b" <=> -s "$src/$a" } @lods;
 @lods = @lods[ 0 .. 3 ] if @lods > 4;    # T6 models take at most 4 LODs
 
 # material name -> { color, normal } source image basenames, in first-seen order over every LOD's glTF

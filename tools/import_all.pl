@@ -53,9 +53,14 @@ for my $p (@paints) {
 ";
 }
 
+# a model Greyhound exported empty (import_prop.pl exits 3) is left out; what uses it falls back on a vanilla one
+my @built;
 for my $p (@props) {
     my ( $name, $model, @opt ) = @$p;
-    system( 'perl', "$FindBin::Bin/import_prop.pl", @opt, "$xm/$model", $name, $xi ) == 0 or die "import_all.pl: $name failed\n";
+    my $rc = system( 'perl', "$FindBin::Bin/import_prop.pl", @opt, "$xm/$model", $name, $xi ) >> 8;
+    if ( $rc == 3 ) { warn "import_all.pl: $name left out ($model exported empty)\n"; next }
+    $rc == 0 or die "import_all.pl: $name failed\n";
+    push @built, $p;
 }
 
 # the zone: our props block replaces the previous one
@@ -64,10 +69,10 @@ open my $h, '<:raw', $zone or die "$zone: $!\n";
 my $z = do { local $/; <$h> };
 $z =~ s/\r\n/\n/g;    # a checkout may hand it over with CRLF endings
 close $h;
-my $block = "// props (tools/import_all.pl)\n" . join( '', map { "xmodel,$_->[0]\n" } @props ) . "// end props\n";
+my $block = "// props (tools/import_all.pl)\n" . join( '', map { "xmodel,$_->[0]\n" } @built ) . "// end props\n";
 # in place when the block exists (the zone keeps its order), else appended
 if ( $z !~ s/\/\/ props \(tools\/import_all\.pl\).*?\/\/ end props\n/$block/s ) { $z =~ s/\s*\z/\n/; $z .= "\n$block" }
 open $h, '>:raw', $zone or die "$zone: $!\n";
 print $h $z;
 close $h;
-printf "import_all.pl: %d props\n", scalar @props;
+printf "import_all.pl: %d props\n", scalar @built;

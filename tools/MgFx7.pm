@@ -94,7 +94,6 @@ sub convert {
             push @notes, "element $i: BO3 type $t7 " . ( defined $type ? 'is a sound, dropped' : 'has no T6 equal, dropped' );
             next;
         }
-        $kept[ $i < $nl ? 0 : $i < $nl + $no ? 1 : 2 ]++;
         my ( $nvel, $nvis ) = ( u8( $b, 202 ), u8( $b, 205 ) );
         my $velp = ptr( $b, 208 );
         my $visp = ptr( $b, 224 );
@@ -124,6 +123,16 @@ sub convert {
             elsif ( $type == 9 ) { my $n = $s->name_at($p); $need{lights}{$n} = 1 if defined $n; push @visuals, $n }
             else { my $n = $s->name_at($p); $need{materials}{$n} = $p if defined $n; push @visuals, $n }
         }
+        # a visual the snapshot did not capture (its name unread) would be a null material, model or effect, which T6
+        # dereferences when it draws the element (the game crashed on the Magmagat's burst): it goes, and so does an
+        # element left with none
+        @visuals = $type == 11 ? grep { defined $_->[0] } @visuals : grep {defined} @visuals;
+        if ( !@visuals && $type != 8 ) {
+            push @notes, "element $i: no visual captured, dropped";
+            next;
+        }
+        push @notes, "element $i: " . ( @vptrs - @visuals ) . " visual(s) not captured, dropped" if $type != 8 && @visuals < @vptrs;
+        $kept[ $i < $nl ? 0 : $i < $nl + $no ? 1 : 2 ]++;
 
         my $ref = sub { my $p = ptr( $b, shift ); return undef unless $p; my $n = $self->{fxaddr}{$p} // $s->name_at($p); $need{effects}{$n} = 1 if defined $n; $n };
         my ( $abeh, $aidx, $afps, $aloop, $acol, $arow, $arange ) = unpack 'C7', substr( $b, 188, 7 );
@@ -231,7 +240,65 @@ sub material {
         my $n = $s->cstr( $s->u64( $ip + 0xF8 ) // 0 );
         $img{ sprintf '%08x', $hash } = $n if defined $n;
     }
-    return { name => $s->name_at($p), techset => $tech, rows => $rows || 1, cols => $cols || 1, images => \%img };
+    return { name => $s->name_at($p), techset => $tech, rows => $rows || 1, cols => $cols || 1, images => \%img,
+        settings => $self->settings( $m ) };
+}
+
+# A material's constants by name ({ name => [ 4 floats ] }), as HydraX reads them: technique i's four settings buffers
+# (material +48 + 48 i + 16, 64 bytes: data at +24, size at +32), their offsets named by the $Globals constant buffer of
+# the technique's pass shader (techset +16 + 8 i -> technique, pass at +40, DXBC at +24, size at +32). Empty when the
+# snapshot predates their capture.
+sub settings {
+    my ( $self, $m ) = @_;
+    my $s = $self->{s};
+    my $ts = ptr( $m, 632 );
+    my %out;
+    for my $i ( 0 .. 11 ) {
+        my $tech = $ts ? $s->u64( $ts + 16 + 8 * $i ) : undef;
+        my $pass = $tech ? $s->u64( $tech + 40 ) : undef;
+        my $pb = $pass ? $s->read( $pass, 36 ) : undef;
+        next unless $pb;
+        my ( $sp, $sz ) = ( ptr( $pb, 24 ), unpack( 'l<', substr( $pb, 32, 4 ) ) );
+        my $dxbc = $sz > 0 ? $s->read( $sp, $sz ) : undef;
+        my $vars = $dxbc ? dxbc_globals($dxbc) : undef;
+        next unless $vars;
+        for my $k ( 0 .. 3 ) {
+            my $bp = ptr( $m, 48 + 48 * $i + 16 + 8 * $k ) or next;
+            my $bb = $s->read( $bp, 64 ) or next;
+            my ( $dp, $dsz ) = ( ptr( $bb, 24 ), unpack( 'q<', substr( $bb, 32, 8 ) ) );
+            my $data = $dsz > 0 && $dsz < ( 1 << 16 ) ? $s->read( $dp, $dsz ) : undef;
+            next unless $data;
+            for my $name ( keys %$vars ) {
+                my $o = $vars->{$name};
+                $out{$name} //= [ unpack 'f<4', substr( $data . "\0" x 16, $o, 16 ) ] if $o + 4 <= length $data;
+            }
+        }
+    }
+    return \%out;
+}
+
+# DXBC's RDEF chunk: the $Globals buffer's variables, name -> byte offset
+sub dxbc_globals {
+    my $d = shift;
+    return undef unless length $d >= 32 && substr( $d, 0, 4 ) eq 'DXBC';
+    my $parts = unpack 'V', substr( $d, 28, 4 );
+    for my $po ( unpack "V$parts", substr( $d, 32, 4 * $parts ) ) {
+        next unless substr( $d, $po, 4 ) eq 'RDEF';
+        my $b = $po + 8;
+        my ( $ncb, $cbo ) = unpack 'V2', substr( $d, $b, 8 );
+        my $str = sub { my $o = $b + shift; my $z = index( $d, "\0", $o ); substr( $d, $o, $z - $o ) };
+        for my $c ( 0 .. $ncb - 1 ) {
+            my ( $no, $nv, $vo ) = unpack 'V3', substr( $d, $b + $cbo + 24 * $c, 12 );
+            next unless $str->($no) eq '$Globals';
+            my %v;
+            for my $k ( 0 .. $nv - 1 ) {
+                my ( $vn, $off ) = unpack 'V2', substr( $d, $b + $vo + 40 * $k, 8 );
+                $v{ $str->($vn) } = $off;
+            }
+            return \%v;
+        }
+    }
+    return undef;
 }
 
 1;

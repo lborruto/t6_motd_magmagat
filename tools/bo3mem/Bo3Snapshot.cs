@@ -166,6 +166,7 @@ static class Bo3Snapshot
         if (b == null) return;
         Capture(m, 656, 1);
         Capture(BitConverter.ToUInt64(b, 632), 64, 1);
+        CaptureSettings(b);
         int count = b[624];
         ulong table = BitConverter.ToUInt64(b, 640);
         if (count == 0 || count > 32 || !LooksLikePointer(table)) return;
@@ -181,6 +182,37 @@ static class Bo3Snapshot
             Capture(img, 0x100, 0);
             ulong name = BitConverter.ToUInt64(ib, 0xF8);
             if (LooksLikePointer(name)) Capture(name, 256, 0);
+        }
+    }
+
+    // a material's constants, as HydraX reads them: per technique i (0..11), four settings buffers at +48 + 48 i + 16
+    // (64 bytes each: data at +24, its size at +32), named by the technique's pass shader (DXBC; techset +16 + 8 i ->
+    // technique, pass at +40 -> pass, shader at +24, its size at +32)
+    static void CaptureSettings(byte[] m)
+    {
+        ulong ts = BitConverter.ToUInt64(m, 632);
+        var tsb = LooksLikePointer(ts) ? Read(ts, 112) : null;
+        if (tsb != null) Capture(ts, 112, 0);
+        for (int i = 0; i < 12; i++)
+        {
+            for (int k = 0; k < 4; k++)
+            {
+                ulong sp = BitConverter.ToUInt64(m, 48 + 48 * i + 16 + 8 * k);
+                var sb = LooksLikePointer(sp) ? Read(sp, 64) : null;
+                if (sb == null) continue;
+                Capture(sp, 64, 0);
+                CaptureArray(BitConverter.ToUInt64(sb, 24), (int)BitConverter.ToInt64(sb, 32), 0);
+            }
+            if (tsb == null) continue;
+            ulong tech = BitConverter.ToUInt64(tsb, 16 + 8 * i);
+            var tb = LooksLikePointer(tech) ? Read(tech, 48) : null;
+            if (tb == null) continue;
+            Capture(tech, 48, 0);
+            ulong pass = BitConverter.ToUInt64(tb, 40);
+            var pb = LooksLikePointer(pass) ? Read(pass, 36) : null;
+            if (pb == null) continue;
+            Capture(pass, 36, 0);
+            CaptureArray(BitConverter.ToUInt64(pb, 24), BitConverter.ToInt32(pb, 32), 0);
         }
     }
 

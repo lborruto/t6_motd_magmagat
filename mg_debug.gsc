@@ -26,6 +26,34 @@ mg_debug_lockdown()
         mg_lockdown_off();
 }
 
+// self = player. Glints every 48 units along the kill zone's sides (mg_in_office_box), 40 over its floor, for 15 s.
+mg_debug_zone()
+{
+    self mg_out( "MG: the kill zone marked for 15 s (x -1070 to -440, y 8493 to 9187)" );
+    corners = array( ( -1070, 8493, 1376 ), ( -440, 8493, 1376 ), ( -440, 9187, 1376 ), ( -1070, 9187, 1376 ) );
+    marks = [];
+
+    for ( i = 0; i < 4; i++ )
+    {
+        a = corners[i];
+        b = corners[( i + 1 ) % 4];
+        steps = int( distance( a, b ) / 48 );
+
+        for ( k = 0; k < steps; k++ )
+        {
+            mark = mg_fx_loop( "glint", a + ( b - a ) * ( k / steps ) );
+
+            if ( isdefined( mark ) )
+                marks[marks.size] = mark;
+        }
+    }
+
+    wait 15;
+
+    foreach ( mark in marks )
+        mg_fx_stop( mark );
+}
+
 mg_debug_init()
 {
     level.mg_shock = 0;
@@ -63,6 +91,11 @@ mg_debug_command( sub, arg, args )
         // the office lockdown for 10 s, outside the quest
         case "lockdown":
             self thread mg_debug_lockdown();
+            return 1;
+
+        // the souls' kill zone marked along its sides, to check it against the lockdown's blue walls
+        case "zone":
+            self thread mg_debug_zone();
             return 1;
 
         case "give":
