@@ -297,9 +297,11 @@ mg_blob_land( bolt, player, weapon )
     blob mg_blob_lure( weapon );
     host = mg_blob_host( blob );
 
-    // stuck to something that moves but is no living zombie (a teammate, the gondola, a corpse): no pool could follow
-    // it, so it bursts at once
-    if ( !isdefined( host ) && isdefined( blob getlinkedent() ) )
+    // stuck to something that moves but is no living zombie (a teammate, a corpse, the gondola): no pool could follow
+    // it, so it bursts at once. A blob on the map itself reports the world as what it is linked to: that one pools.
+    linked = blob getlinkedent();
+
+    if ( !isdefined( host ) && isdefined( linked ) && ( isplayer( linked ) || isai( linked ) || linked.classname == "script_brushmodel" ) )
     {
         blob mg_blob_burst();
         return;

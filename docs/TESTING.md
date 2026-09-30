@@ -129,18 +129,20 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 5. The forge
 
-- [ ] With the tempered gun at the forge, "Hold [use] to power the Machine" shows for the carrier. Using it plays the
-      power-panel sound (from the Machine) and sparks on the Machine, gives your Blundergat back and ends the run in
-      success (state `done`). A second later the Warden's line plays to that player only, and everyone near sees
-      "Hold [use] to place the Blundergat". (`!mg goto done` opens the forge; `!mg goto forge` opens it with a Magmagat
+- [ ] With the tempered gun at the forge, "Hold [use] to power the Machine" shows for the carrier only. Using it plays
+      the power-panel sound and the sparks on the Machine; the run goes on (the timer still counts) and the gun stays in
+      your hands. A second later the Warden's line plays to that player only. (`!mg goto forge` fabricates a Magmagat
       waiting for you.)
-- [ ] The skulls stay lit for the rest of the game; the fireplace shows no prompt any more.
-- [ ] Use the open forge without a Blundergat: "Missing Blundergat" for 2 s.
-- [ ] Place a gun: the gun lies on the bed, the ram comes down at about 0.8-1.1 s, the press sound starts at 0.55 s (it
-      plays from the Machine: walk around it and it stays there), the press fire plays once at about 1.35 s and the gun
-      disappears. At about 4.35 s the Magmagat lies still on the bed and the ram lifts. No smoke, no Brutus, no extra sounds or effects at the press.
+- [ ] Then "Hold [use] to place the Tempered Blundergat", for the carrier only: nobody else, and no plain Blundergat,
+      gets a prompt. Letting the temper run out before placing it fails the run as anywhere else.
+- [ ] The Machine has collision: you cannot walk through it.
+- [ ] Place it: the run ends, the skulls go out and the fireplace takes a Blundergat again. The gun lies on the bed,
+      the ram comes down at about 0.8-1.1 s, the press sound starts at 0.55 s (it plays from the Machine: walk around it
+      and it stays there), the press fire plays once at about 1.35 s and the gun disappears. At about 4.35 s the
+      Magmagat lies still on the bed and the ram lifts. No smoke, no extra sounds or effects at the press.
 - [ ] At about 5.65 s "Hold [use] to take the Magmagat" shows, for the placer only.
-- [ ] Every forge hint (power the Machine, place the Blundergat, take the Magmagat) and every fireplace hint shows the
+- [ ] Taking it: a Brutus spawns in the Generator Room about 1 s later.
+- [ ] Every forge hint (power the Machine, place the Tempered Blundergat, take the Magmagat) and every fireplace hint shows the
       use key in yellow and the rest in white (`^3` / `^7`), like vanilla's.
 - [ ] Take it: the weapon is `magmagat_zm` ("Magmagat" on the HUD). A Pack-a-Punched gun (Sweeper, Vitriolic
       Withering) gives `magmagat_upgraded_zm` (Magmus Operandi).

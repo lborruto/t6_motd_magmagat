@@ -74,18 +74,18 @@ later the fireplace takes a gun again: the whole step is to redo.
 <details>
 <summary>The forge</summary>
 
-Carry the tempered gun to the forge in the Generator Room by the docks: "Hold [use] to power the Machine". Powering it
-ends the run in success: you get your Blundergat back, and a second later the forge is open **for good**. Now every
-player near it sees "Hold [use] to place the Blundergat" (or "Missing Blundergat" without one), and any of the four
-guns can be placed at any time, with no temper run. The fireplace takes no more guns.
+Carry the tempered gun to the forge in the Generator Room by the docks, **before its temper runs out**: only a Tempered
+Blundergat still burning goes on the Machine (a plain Blundergat is refused). The first time, "Hold [use] to power the
+Machine": it powers up for good and the run goes on, your gun still tempered. Then "Hold [use] to place the Tempered
+Blundergat": the run ends in success.
 
 The press comes down on the gun and works it for about **5.65 seconds**, then the Magmagat lies on the bed. Only the player
 who placed the gun can take it ("Hold [use] to take the Magmagat"), and only within **15 seconds**: after that it is
-gone without a sound, and the forge waits for a new gun. If you already own a Magmagat, taking a new one only refills
-the ammo of the one you have.
+gone without a sound. If you already own a Magmagat, taking a new one only refills the ammo of the one you have.
+Taking it calls a **Brutus** into the Generator Room. The fireplace then takes a Blundergat again: every player can
+temper his own.
 
-A Pack-a-Punched gun (a Sweeper or a Vitriolic Withering) comes out as the **Magmus Operandi**. No Brutus comes for you
-at the forge.
+A Pack-a-Punched gun (a Sweeper or a Vitriolic Withering) comes out as the **Magmus Operandi**.
 
 </details>
 

@@ -4,14 +4,16 @@
 #include scripts\zm\zm_prison\mg_systems;
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
+#include scripts\zm\zm_prison\mg_hearth;
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_weapon;
 
-// The forge: the remaster's Machine (mg_upgrade_machine) in the dock Generator Room, as _zm_weap_magmagat.gsc runs it.
-// During the temper run the carrier powers it: that ends the run in success and opens the forge to every player for
-// good. Then any of the four Blundergats placed on its bed is pressed (5.65 s: the ram down, the press fire, the
-// Magmagat on the bed as the ram lifts), and only the player who placed it may take the Magmagat, within 15 s or it
-// is lost.
+// The forge: the remaster's Machine (mg_upgrade_machine) in the dock Generator Room. The owner's rule, BO4's: only a
+// Tempered Blundergat still burning (its run not expired) is pressed. The first carrier to reach it powers it (the
+// remaster's power cue; the run and its timer go on, the gun stays his), and it stays powered; then the carrier lays
+// the tempered gun on its bed: the run ends in success and the press works it (5.65 s: the ram down, the press fire,
+// the Magmagat on the bed as the ram lifts); the placer alone takes the Magmagat within 15 s or it is lost, and a
+// guardian comes for it. The fireplace then takes a Blundergat again, for the next player's Magmagat.
 
 mg_forge_init()
 {
@@ -38,6 +40,15 @@ mg_press_spawn()
         m.angles = ( 0, yaw, 0 );
         m setmodel( mg_model( part ) );
         level.mg_press[part] = m;
+    }
+
+    // a script_model has no collision: two clips 64 x 64 x 128 along the machine's length (77 x 134, 116 high)
+    foreach ( dy in array( -30, 34 ) )
+    {
+        clip = spawn( "script_model", origin + fwd * 2.5 + left * dy + ( 0, 0, 64 ) );
+        clip.angles = ( 0, yaw, 0 );
+        clip setmodel( mg_model( "press_clip" ) );
+        clip ghost();
     }
 
     level.mg_press_rest = origin;
@@ -121,16 +132,13 @@ mg_forge_prompt_text( player )
         return undefined;
     }
 
-    if ( mg_forge_carrying( player ) )
-        return "Hold ^3[{+activate}]^7 to power the Machine";
-
-    if ( !is_true( level.mg_forge_open ) )
+    if ( !mg_forge_carrying( player ) )
         return undefined;
 
-    if ( isdefined( player.mg_forge_missing_until ) && gettime() < player.mg_forge_missing_until )
-        return "Missing Blundergat";
+    if ( !is_true( level.mg_forge_open ) )
+        return "Hold ^3[{+activate}]^7 to power the Machine";
 
-    return "Hold ^3[{+activate}]^7 to place the Blundergat";
+    return "Hold ^3[{+activate}]^7 to place the Tempered Blundergat";
 }
 
 mg_forge_press( player )
@@ -146,37 +154,36 @@ mg_forge_press( player )
         return;
     }
 
-    if ( mg_forge_carrying( player ) )
+    // only the carrier, his temper still burning, uses the Machine
+    if ( !mg_forge_carrying( player ) )
+        return;
+
+    if ( !is_true( level.mg_forge_open ) )
     {
         mg_forge_power( player );
         return;
     }
 
-    if ( !is_true( level.mg_forge_open ) )
+    weapon = level.mg_run_weapon;
+
+    if ( !isdefined( weapon ) || !player hasweapon( weapon ) )
         return;
 
-    weapon = mg_has_blundergat( player );
-
-    // no gun to press: the remaster says so for 2 s
-    if ( !isdefined( weapon ) )
-    {
-        player.mg_forge_missing_until = gettime() + 2000;
-        return;
-    }
-
+    // the run won: the skulls go out and the fireplace takes a Blundergat again, for the next Magmagat
+    mg_run_end_ok();
+    mg_skulls_dark();
+    mg_state_set( "ready" );
     mg_forge_place( player, weapon );
 }
 
 // The carrier powers the Machine (the remaster's function_b09dee70): the power panel sound and the power effect on
-// the machine, the run ends in success and the carrier gets his Blundergat back; 1 s later the Warden's line to him,
-// and the forge is open to every player for good.
+// the machine, 1 s later the Warden's line to him. The run goes on (the owner's rule: the tempered gun is what the
+// forge takes); the Machine stays powered for good.
 mg_forge_power( player )
 {
     level endon( "mg_goto" );
     level.mg_forge_busy = 1;
     level.mg_press["press_body"] playsound( "zmb_powerpanel_activate" );
-    mg_run_end_ok();
-    mg_state_set( "done" );
     mg_fx_once( "sparks", level.mg_press_rest, undefined, level.mg_press["press_body"].angles );
     wait 1;
 
@@ -185,7 +192,7 @@ mg_forge_power( player )
 
     level.mg_forge_open = 1;
     level.mg_forge_busy = 0;
-    mg_debug_print( "MG: the Machine is powered; the forge stays open for any Blundergat" );
+    mg_debug_print( "MG: the Machine is powered: lay the Tempered Blundergat on it" );
 }
 
 // The gun goes on the bed and the press works it, on the remaster's timeline (function_fb635f94; t from the use).
@@ -272,7 +279,17 @@ mg_forge_take( player )
     else
         player mg_weapon_grant( weapon );
 
+    level thread mg_forge_guardian();
     mg_forge_rest();
+}
+
+// The Magmagat taken calls its guardian, as BO4: a Brutus in the Generator Room's zone (vanilla's own spawn, which
+// finds a Brutus spot there, even with the zone closed).
+mg_forge_guardian()
+{
+    level endon( "end_game" );
+    wait 1;
+    maps\mp\zombies\_zm_ai_brutus::brutus_spawn_in_zone( "zone_studio", 1 );
 }
 
 mg_forge_ready_clear()

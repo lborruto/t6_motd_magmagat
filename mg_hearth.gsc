@@ -333,6 +333,7 @@ mg_soul( pos, session )
     }
 
     essence playloopsound( "mg_soul_loop" );
+    mg_fx_add( essence, "soul_full" );    // the soul alone is a thin streak: a compact blue flame makes an orb to see
     level thread mg_fx_keepalive( essence );
     taker = essence mg_essence_wait( session );
     level.mg_essences--;

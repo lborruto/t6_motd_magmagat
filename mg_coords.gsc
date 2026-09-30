@@ -18,6 +18,7 @@ mg_models_init()
     level.mg_models["press_body"] = "mg_press_body"; // mod.ff: the remaster's press (p8_zm_esc_machinery_01) without its ram
     level.mg_models["press_ram"] = "mg_press_ram"; // its ram, which script brings down
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
+    level.mg_models["press_clip"] = "collision_clip_64x64x128"; // common_zm: the forge machine's collision, centred
     level.mg_models["clip"] = "collision_clip_32x32x128"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none), centred
     level.mg_models["player_clip"] = "collision_player_32x32x128"; // patch_zm, always loaded: blocks players only (the office door in the lockdown), centred
 }
@@ -95,7 +96,7 @@ mg_apply_overrides()
 
     mg_coord_override( "MG_BARREL_2", ( 270, 8855, 1152 ), ( 0, 248, 0 ) );
 
-    mg_coord_override( "MG_BARREL_3", ( 268, 8828, 848 ), ( 0, 351, 0 ) );
+    mg_coord_override( "MG_BARREL_3", ( 268, 8828, 856 ), ( 0, 351, 0 ) ); // 8 up: it sank into the floor
 
     mg_coord_override( "MG_BARREL_4", ( 85, 8697, 399 ), ( 0, 8, 0 ) );
 

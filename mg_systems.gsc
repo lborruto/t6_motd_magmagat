@@ -136,6 +136,13 @@ mg_fx_stop( ent )
         ent delete();
 }
 
+// A second looping fx on an entity mg_fx_loop spawned (it goes with it).
+mg_fx_add( ent, key )
+{
+    if ( isdefined( ent ) && isdefined( level._effect["mg_" + key] ) )
+        playfxontag( level._effect["mg_" + key], ent, "tag_origin" );
+}
+
 // A looping fx on a still entity is culled by the client after a while: nudge it 0.5 units every 5 s, until it goes
 // or starts moving ("mg_moving": setting its origin would cut a moveto short).
 mg_fx_keepalive( ent )

@@ -220,6 +220,43 @@ static class Bo3Snapshot
         }
     }
 
+    // the named xmodels of pool 4 (HydraX's XModelAsset, 392 bytes: LOD count at +64, per-LOD materials at +200, 24 bytes
+    // each: count at +0, material pointers at +8), each listed as "xmodel/<name>" with every material it draws
+    static void CaptureModels(ulong pools, HashSet<string> models, List<Tuple<ulong, string, int>> assets)
+    {
+        var info = Read(pools + 4 * 32, 32);
+        if (info == null) return;
+        ulong poolPtr = BitConverter.ToUInt64(info, 0);
+        int assetSize = BitConverter.ToInt32(info, 8);
+        int poolSize = BitConverter.ToInt32(info, 12);
+        for (int i = 0; i < poolSize; i++)
+        {
+            ulong header = poolPtr + (ulong)i * (ulong)assetSize;
+            var h = Read(header, 392);
+            if (h == null) continue;
+            string name = CString(BitConverter.ToUInt64(h, 0));
+            if (name == null || !models.Contains(name)) continue;
+            Capture(header, 392, 0);
+            assets.Add(Tuple.Create(header, "xmodel/" + name, 392));
+            int lods = BitConverter.ToInt32(h, 64);
+            ulong mm = BitConverter.ToUInt64(h, 200);
+            var mb = lods > 0 && lods <= 8 && LooksLikePointer(mm) ? Read(mm, lods * 24) : null;
+            if (mb == null) continue;
+            Capture(mm, lods * 24, 0);
+            int n = 0;
+            for (int l = 0; l < lods; l++)
+            {
+                int count = BitConverter.ToInt32(mb, l * 24);
+                ulong mp = BitConverter.ToUInt64(mb, l * 24 + 8);
+                var arr = count > 0 && count < 256 && LooksLikePointer(mp) ? Read(mp, count * 8) : null;
+                if (arr == null) continue;
+                Capture(mp, count * 8, 0);
+                for (int k = 0; k < count; k++) { CaptureMaterial(BitConverter.ToUInt64(arr, k * 8)); n++; }
+            }
+            Console.WriteLine("Bo3Snapshot: model {0}: {1} LODs, {2} materials", name, lods, n);
+        }
+    }
+
     static void CaptureArray(ulong p, int len, int depth)
     {
         if (len > 0 && len < (1 << 20) && LooksLikePointer(p))
@@ -270,9 +307,15 @@ static class Bo3Snapshot
     {
         if (args.Length < 1)
         {
-            Console.Error.WriteLine("usage: Bo3Snapshot.exe <out.bin> [pool index] [depth] | --scripts [out dir, default mod/work/bo3scripts] [name filter]");
+            Console.Error.WriteLine("usage: Bo3Snapshot.exe <out.bin> [pool index] [depth] [--models=name,name] | --scripts [out dir, default mod/work/bo3scripts] [name filter]");
             return 2;
         }
+        // --models=a,b: those xmodels' materials too (their colour constants: a BO3 model material may carry no colour map)
+        var models = new HashSet<string>();
+        foreach (var a in args)
+            if (a.StartsWith("--models="))
+                foreach (var m in a.Substring(9).Split(',')) models.Add(m);
+        args = Array.FindAll(args, a => !a.StartsWith("--models="));
         bool scripts = args[0] == "--scripts";
         int poolIndex = scripts ? 54 : args.Length > 1 ? int.Parse(args[1]) : 38;
         int depth = !scripts && args.Length > 2 ? int.Parse(args[2]) : 5;
@@ -317,7 +360,7 @@ static class Bo3Snapshot
         if (scripts)
             return DumpScripts(poolPtr, assetSize, poolSize, args.Length > 1 ? args[1] : Path.Combine("mod", "work", "bo3scripts"), args.Length > 2 ? args[2] : "");
 
-        var assets = new List<Tuple<ulong, string>>();
+        var assets = new List<Tuple<ulong, string, int>>();
         ulong poolEnd = poolPtr + (ulong)poolSize * (ulong)assetSize;
         for (int i = 0; i < poolSize; i++)
         {
@@ -328,7 +371,7 @@ static class Bo3Snapshot
             if (namePtr == 0 || (namePtr >= poolPtr && namePtr < poolEnd)) continue; // a free slot
             string name = CString(namePtr);
             if (name == null) continue;
-            assets.Add(Tuple.Create(header, name));
+            assets.Add(Tuple.Create(header, name, assetSize));
             // the elements first, whole: the header gives their count (T7 FxEffectDef: counts at +12, elemDefs at +32, 608 bytes each)
             var hd = Read(header, assetSize);
             if (hd != null && assetSize >= 40)
@@ -346,6 +389,8 @@ static class Bo3Snapshot
                 Console.WriteLine("Bo3Snapshot: {0} effects, {1} MB", assets.Count, total >> 20);
         }
 
+        if (models.Count > 0) CaptureModels(pools, models, assets);
+
         using (var w = new BinaryWriter(File.Create(args[0])))
         {
             w.Write(Encoding.ASCII.GetBytes("BO3SNAP1"));
@@ -354,7 +399,7 @@ static class Bo3Snapshot
             {
                 var nb = Encoding.ASCII.GetBytes(a.Item2);
                 w.Write(a.Item1);
-                w.Write((uint)assetSize);
+                w.Write((uint)a.Item3);
                 w.Write((ushort)nb.Length);
                 w.Write(nb);
             }

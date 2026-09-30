@@ -282,12 +282,15 @@ mg_run_cleanup()
     mg_barrels_set( 0 );
 }
 
-// run -> done (called by mg_forge when the carrier powers the Machine): the run stops and the carrier gets his gun
-// back.
+// The run's success (mg_forge, as the carrier lays the tempered gun on the Machine): it stops, the gun stays his for
+// the press to take.
 mg_run_end_ok()
 {
     level notify( "mg_run_over" );
-    mg_run_give_back();
+
+    if ( isdefined( level.mg_carrier ) )
+        level.mg_carrier.mg_tempered_from = undefined;
+
     mg_run_cleanup();
 }
 
