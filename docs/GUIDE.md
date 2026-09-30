@@ -59,7 +59,7 @@ Blundergat, and it is back to the fireplace for a new temper.
 <summary>The forge</summary>
 
 Carry the tempered gun to the generator in the Generator Room by the docks. Power it with one press, then place
-the gun on it. The press works it for **5 seconds** in fire and smoke, it bursts, and the Magmagat rises out of the fire. Take it
+the gun on the remaster's press beside it. The press comes down on it and works it for **5 seconds** in fire and smoke, lifts, it bursts, and the Magmagat rises out of the fire. Take it
 within **30 seconds** or it is lost. The first forge wakes the warden: a Brutus comes for you.
 
 A Pack-a-Punched gun (a Sweeper or a Vitriolic Withering) comes out as the **Magmus Operandi**.

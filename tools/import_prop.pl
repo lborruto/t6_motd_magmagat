@@ -13,6 +13,8 @@
 #   perl tools/import_prop.pl [options] <greyhound xmodel dir> <prop name> [ximages dir]
 #     --skip <regex>              drop the surfaces whose BO3 material matches (e.g. a transparent overlay shell)
 #     --color <regex>=<png>       use this colour map for the matching material (e.g. one baked by tools/bake_layers.pl)
+#     --bones <b,..> / --bones '!b,..'   keep only the triangles riding these bones / all but those (a part of a skinned
+#                                 model that script moves on its own, e.g. a press's ram)
 #     --material <name>          every surface uses this existing material (e.g. mc/mg_lava, built by tools/build_weapon.pl)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
@@ -30,7 +32,8 @@ use Getopt::Long;
 my ( @skip, %color_for );
 my $offset = '0,0,0';
 my $use_material;
-GetOptions( 'skip=s' => \@skip, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material ) or die "import_prop.pl: bad options\n";
+my $bones_opt;
+GetOptions( 'skip=s' => \@skip, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt ) or die "import_prop.pl: bad options\n";
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
@@ -121,6 +124,48 @@ for my $idx ( 0 .. $#mat_order ) {
     printf "import_prop.pl: material mc/%s <- %s (color %s, normal %s)\n", $mname, $srcname, $t->{color} // '-', $t->{normal} // '-';
 }
 
+
+# --bones: a triangle rides the bone most of its first vertex's weight is on; the kept ones get fresh uint32 indices
+sub read_acc {
+    my ( $g, $buf, $ai ) = @_;
+    my $a = $g->{accessors}[$ai];
+    my $bv = $g->{bufferViews}[ $a->{bufferView} ];
+    my %f = ( 5121 => [ 'C', 1 ], 5123 => [ 'v', 2 ], 5125 => [ 'V', 4 ], 5126 => [ 'f<', 4 ] );
+    my ( $t, $sz ) = @{ $f{ $a->{componentType} } };
+    my $n = { SCALAR => 1, VEC4 => 4 }->{ $a->{type} };
+    my $stride = $bv->{byteStride} || $n * $sz;
+    my $base = ( $bv->{byteOffset} // 0 ) + ( $a->{byteOffset} // 0 );
+    return map { [ unpack( "$t$n", substr( $$buf, $base + $_ * $stride, $n * $sz ) ) ] } 0 .. $a->{count} - 1;
+}
+sub keep_bones {
+    my ( $g, $buf ) = @_;
+    my ( $not, $list ) = $bones_opt =~ /^(!?)(.*)$/;
+    my %in = map { $_ => 1 } split /,/, $list;
+    my @joint = map { $g->{nodes}[$_]{name} } @{ $g->{skins}[0]{joints} };
+    for my $mesh ( @{ $g->{meshes} } ) {
+        for my $p ( @{ $mesh->{primitives} } ) {
+            my @j = read_acc( $g, $buf, $p->{attributes}{JOINTS_0} );
+            my @w = read_acc( $g, $buf, $p->{attributes}{WEIGHTS_0} );
+            my @idx = map { $_->[0] } read_acc( $g, $buf, $p->{indices} );
+            my @bone = map { my $v = $_; my $b = 0; $w[$v][$_] > $w[$v][$b] and $b = $_ for 1 .. 3; $joint[ $j[$v][$b] ] } 0 .. $#j;
+            my @keep;
+            for ( my $i = 0; $i < @idx; $i += 3 ) {
+                my $on = $in{ $bone[ $idx[$i] ] } ? 1 : 0;
+                push @keep, @idx[ $i .. $i + 2 ] if $on != ( $not ? 1 : 0 );
+            }
+            $$buf .= "\0" x ( ( 4 - length($$buf) % 4 ) % 4 );
+            push @{ $g->{bufferViews} }, { buffer => 0, byteOffset => length $$buf, byteLength => 4 * @keep };
+            $$buf .= pack 'V*', @keep;
+            push @{ $g->{accessors} }, { bufferView => $#{ $g->{bufferViews} }, componentType => 5125, type => 'SCALAR', count => scalar @keep };
+            $p->{indices} = $#{ $g->{accessors} };
+            $p->{_empty} = !@keep;
+        }
+        $mesh->{primitives} = [ grep { !$_->{_empty} } @{ $mesh->{primitives} } ];
+        delete $_->{_empty} for @{ $mesh->{primitives} };
+    }
+    $g->{buffers}[0]{byteLength} = length $$buf;
+}
+
 # LODs with our material names
 my @lodjson;
 # switch distances; the last LOD stays drawn to 10000 units (a prop that vanished at its LOD0 distance, 300, was a bug)
@@ -132,6 +177,9 @@ for my $k ( 0 .. $#lods ) {
     # the Linker reads glTF, not XMODEL_EXPORT: Greyhound's glTF of the same LOD, made rigid (no skin) with our material names
     ( my $gl = $lods[$k] ) =~ s/\.XMODEL_EXPORT$/.gltf/;
     my $g = decode_json( slurp("$src/$gl") );
+    die "import_prop.pl: $gl has more than one buffer\n" if @{ $g->{buffers} } != 1;
+    my $buf = slurp( "$src/" . $g->{buffers}[0]{uri} );
+    keep_bones( $g, \$buf ) if defined $bones_opt;
     # skipped surfaces go; a mesh left with none goes too (its nodes lose their mesh)
     my ( @meshes, %new_index );
     for my $mi ( 0 .. $#{ $g->{meshes} } ) {
@@ -160,8 +208,6 @@ for my $k ( 0 .. $#lods ) {
     for my $mesh ( @{ $g->{meshes} } ) { delete @{ $_->{attributes} }{qw(JOINTS_0 WEIGHTS_0)} for @{ $mesh->{primitives} } }
     delete @$g{qw(images textures samplers)};
     for my $m ( @{ $g->{materials} } ) { delete $m->{pbrMetallicRoughness}{baseColorTexture}; delete $m->{normalTexture} }
-    die "import_prop.pl: $gl has more than one buffer\n" if @{ $g->{buffers} } != 1;
-    my $buf = slurp( "$src/" . $g->{buffers}[0]{uri} );
     # Greyhound's glTF is Z-up in centimetres, the Linker's is Y-up in inches (like its own dumps): (x, y, z) -> (x, z, -y) / 2.54
     my %seen;
     for my $mesh ( @{ $g->{meshes} } ) {

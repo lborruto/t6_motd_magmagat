@@ -16,7 +16,47 @@ mg_forge_init()
     level.mg_forge_powered = 0;
     level.mg_forge_open = 0;
     level.mg_forge_busy = 0;
+    mg_press_spawn();
     level thread mg_forge_prompt_loop();
+}
+
+// The remaster's press (p8_zm_esc_machinery_01, mg_upgrade_machine), placed as the remaster places it around the
+// gun on its bed (mg_upgrade_struct): turned 90 degrees from the gun, (-8.75, -6.51) in its own frame, 44 below.
+mg_press_spawn()
+{
+    c = mg_coord( "MG_FORGE_GUN" );
+    yaw = c.angles[1] + 90;
+    fwd = anglestoforward( ( 0, yaw, 0 ) );
+    left = anglestoright( ( 0, yaw, 0 ) ) * -1;
+    origin = c.origin + fwd * -8.75 + left * -6.51 - ( 0, 0, 44 );
+    level.mg_press = [];
+
+    foreach ( part in array( "press_body", "press_ram" ) )
+    {
+        m = spawn( "script_model", origin );
+        m.angles = ( 0, yaw, 0 );
+        m setmodel( mg_model( part ) );
+        level.mg_press[part] = m;
+    }
+
+    level.mg_press_rest = origin;
+}
+
+// The press's own animations, played on its ram: fxanim_zom_magmagat_press_start_anim brings it down 74.5 cm onto the
+// bed from frame 9 to 19 (30 fps, eased), _end_anim lifts it back the same way.
+mg_press_down()
+{
+    wait 0.3;
+    level.mg_press["press_ram"] moveto( level.mg_press_rest - ( 0, 0, 29.33 ), 0.333, 0.15, 0.15 );
+    wait 0.333;
+    mg_snd_near( "zmb_hellbox_slam_shake", level.mg_press_rest, 1200 );
+}
+
+mg_press_up()
+{
+    wait 0.3;
+    level.mg_press["press_ram"] moveto( level.mg_press_rest, 0.333, 0.15, 0.15 );
+    wait 0.333;
 }
 
 mg_forge_near( player )
@@ -158,8 +198,9 @@ mg_forge_place( player, weapon, tempered )
     mg_snd_near( "zmb_afterlife_shockbox_on", c.origin, 800 );
     mg_snd_near( "mg_press", c.origin, 2000 ); // the remaster's magmagat press at work
 
-    // the press works the gun for 5 s (the remaster: its press sound over the press fire; no ghosts), in the
-    // generator's own smoke, with flame bursts
+    // the press comes down and works the gun for 5 s (the remaster: its press sound over the press fire), in the
+    // generator's own smoke, with flame bursts, then lifts
+    level thread mg_press_down();
     fire = mg_fx_loop( "forge_rise", c.origin - ( 0, 0, 6 ) );
 
     if ( isdefined( fire ) )
@@ -181,6 +222,7 @@ mg_forge_place( player, weapon, tempered )
         }
     }
 
+    mg_press_up();
     mg_fx_stop( fire );
     mg_fx_stop( smoke );
     mg_fx_once( "explo", c.origin );

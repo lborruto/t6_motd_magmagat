@@ -101,7 +101,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] `!mg goto forge` (or carry the tempered gun to the powered generator honestly): state is `forge`.
 - [ ] At the generator: press once to power it (the generator's sparks and the power-panel sound), then place the
-      tempered gun: the press sound for 5 s over fire and the generator's smoke, two flame bursts.
+      tempered gun: the remaster's press (it stands by the generator from the start) brings its ram down on the gun
+      with a slam, 5 s of the press sound over fire and smoke with two flame bursts, then the ram lifts.
 - [ ] After the ghosts: a burst, then the Magmagat rises out of a flame, turning once, and glows.
 - [ ] Take it within 30 s: state `done`, the weapon is `magmagat_zm` ("Magmagat" on the HUD). A Pack-a-Punched gun
       (Sweeper, Vitriolic Withering) gives `magmagat_upgraded_zm` (Magmus Operandi).
