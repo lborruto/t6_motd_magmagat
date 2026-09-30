@@ -25,6 +25,9 @@ my @paints = ( [ "$work/i_mtl_p7_barrel_metal_55gal_green_drk_c.png", 'i_mtl_p7_
 
 # [ our xmodel, BO3 model, importer options ]. The owner's anchors were placed with the vanilla props these replace, so
 # each mesh is moved to put its pivot where that prop had it (the BO3 models pivot at their base).
+# the press's decal layers (rust grunge, dirt, bolts, truck decals): BO3 blends them over the machine, T6's lit
+# template would draw them as opaque patches
+my @press_decals = ( '--skip-color', 'decal|grunge|dirty' );
 my @props = (
     # the temper run's drums: the remaster stands this one at each of its five str_barrel_fire spots (only the flame is blue)
     [ 'mg_barrel_green', 'p7_zm_gen_barrel_metal_55gal_green_drk_lod', '--offset', '0,0,-22.37', '--color', "green_drk=$work/i_mtl_p7_barrel_metal_55gal_green_drk_c.png" ],    # p6_zm_al_wood_barrel_01 pivots at mid height
@@ -36,8 +39,8 @@ my @props = (
     [ 'mg_magma_blob', 'p8_fxp_magma_blob', '--material', 'mc/mg_lava' ],
     # the remaster's press (p8_zm_esc_machinery_01) in two parts, so script plays its animations: the body and the ram
     # (j_press: 74.5 cm down onto the bed and back; the model has no mesh on its lever bone)
-    [ 'mg_press_body', 'p8_zm_esc_machinery_01', '--bones', '!j_press,j_switch' ],
-    [ 'mg_press_ram', 'p8_zm_esc_machinery_01', '--bones', 'j_press' ],
+    [ 'mg_press_body', 'p8_zm_esc_machinery_01', '--bones', '!j_press,j_switch', @press_decals ],
+    [ 'mg_press_ram', 'p8_zm_esc_machinery_01', '--bones', 'j_press', @press_decals ],
 );
 
 system( 'perl', "$FindBin::Bin/dump_game.pl" ) == 0 or die "import_all.pl: the dump failed\n";    # the material template

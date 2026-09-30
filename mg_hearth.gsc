@@ -408,7 +408,7 @@ mg_hearth_take( player )
         player takeweapon( player getcurrentweapon() );
 
     player giveweapon( tempered );
-    player switchtoweapon( tempered );
+    player thread mg_switch_to( tempered );
     player.mg_tempered_from = weapon;
 
     if ( isdefined( level.mg_hearth_gun ) )

@@ -44,7 +44,7 @@ mg_barrels_set( lit )
         if ( !lit )
             continue;
 
-        ent = mg_fx_loop( "barrel_fire", mg_barrel_base( barrel ) );
+        ent = mg_fx_loop( "barrel_fire", mg_barrel_flame( barrel ) );
 
         if ( isdefined( ent ) )
         {
@@ -59,7 +59,7 @@ mg_barrels_set( lit )
 mg_barrel_spend( barrel )
 {
     barrel.mg_spent = 1;
-    mg_fx_once( "barrel_flare", mg_barrel_base( barrel ), 5 );
+    mg_fx_once( "barrel_flare", mg_barrel_flame( barrel ), 5 );
     mg_snd_near( "mg_flame_burst", barrel.origin, 2500 );
 }
 
@@ -70,14 +70,21 @@ mg_barrel_base( barrel )
     return barrel.origin - ( 0, 0, 22.37 );
 }
 
-// The remaster's barrel trigger: a trigger_radius 64 wide and 64 high standing on the drum's foot.
+// The remaster's barrel trigger: a trigger_radius of 64 and 64 high standing on the drum's foot. Our drums stand where
+// the owner placed them, some a little above the floor, so feet up to 24 below the foot count too (they did not).
 mg_barrel_touch( player, barrel )
 {
     if ( distance2dsquared( player.origin, barrel.origin ) >= 64 * 64 )
         return 0;
 
     dz = player.origin[2] - mg_barrel_base( barrel )[2];
-    return dz >= 0 && dz <= 64;
+    return dz >= -24 && dz <= 64;
+}
+
+// The flame's origin, 8 below the foot: the remaster's flame at the foot showed its bottom over our drum's rim.
+mg_barrel_flame( barrel )
+{
+    return mg_barrel_base( barrel ) - ( 0, 0, 8 );
 }
 
 // pickup -> run
@@ -130,7 +137,9 @@ mg_run_loop( weapon )
     level.mg_run_flame = mg_run_flame_on( self );
 
     // the remaster starts checking the weapon 0.5 s after the start, with no grace after that. Its player keeps his
-    // gun; ours was just handed the tempered one, so the switch to it still in progress is not a switch away.
+    // gun; ours was just handed the tempered one (mg_switch_to raises it), so until it first reaches his hands, for
+    // 1.5 s at most, the gun in hand is not a switch away.
+    start = gettime();
     wait 0.5;
     in_hand = 0;
 
@@ -154,7 +163,7 @@ mg_run_loop( weapon )
             }
         }
 
-        if ( ( in_hand || !self isswitchingweapons() ) && !mg_run_weapon_ok( current, weapon ) )
+        if ( ( in_hand || gettime() - start > 1500 ) && !mg_run_weapon_ok( current, weapon ) )
         {
             mg_run_fail( "weapon switched away" );
             return;

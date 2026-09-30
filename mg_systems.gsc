@@ -415,6 +415,26 @@ mg_hud_disconnect_watch()
     self.mg_bars = [];
 }
 
+// ---- weapons ----------------------------------------------------------------------------------------------
+
+// self = player. Puts weapon in his hands: T6 drops a switch asked in the same frame as the giveweapon, or while use
+// is still held (the taken gun stayed in the second slot), so it asks again every 0.05 s for up to a second.
+mg_switch_to( weapon )
+{
+    self endon( "disconnect" );
+
+    for ( i = 0; i < 20; i++ )
+    {
+        if ( !self hasweapon( weapon ) || self getcurrentweapon() == weapon )
+            return;
+
+        if ( !self isswitchingweapons() )
+            self switchtoweapon( weapon );
+
+        wait 0.05;
+    }
+}
+
 // ---- zombie deaths ------------------------------------------------------------------------------------------
 mg_death_dispatch_init()
 {

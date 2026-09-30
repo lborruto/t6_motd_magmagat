@@ -101,9 +101,12 @@ mg_apply_overrides()
 
     mg_coord_override( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ) );
 
-    mg_coord_override( "MG_FORGE", ( -391, 6791, 72 ), ( 0, 305, 0 ) );
+    // the forge where the remaster stands it (its tr_forge and mg_upgrade_struct, BO3 -3329 1629 / -3311.26 1626.56 1480,
+    // brought onto BO2 by the office fit, good to 40 units at the docks' drums): the gun on the bed at the remaster's yaw,
+    // rolled flat as BO2's world gun lies, and mg_press_spawn stands the machine 90 degrees from it (BO3 yaw 190.7)
+    mg_coord_override( "MG_FORGE", ( 203, 6640, 84 ), ( 0, 190.7, 0 ) );
 
-    mg_coord_override( "MG_FORGE_GUN", ( -394, 6809, 107 ), ( 0, 190, -90 ) ); // yaw 550 = 190
+    mg_coord_override( "MG_FORGE_GUN", ( 220.9, 6637.2, 128 ), ( 0, 100.7, -90 ) );
 }
 
 mg_coord_set( key, origin, angles, model )

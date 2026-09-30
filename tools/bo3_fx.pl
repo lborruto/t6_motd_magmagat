@@ -17,6 +17,8 @@ use File::Path qw(make_path remove_tree);
 use JSON::PP;
 use MgSnap;
 use MgFx7;
+use MgPng;
+use MgDds;
 
 my $repo = "$FindBin::Bin/..";
 my $work = "$repo/mod/work";
@@ -158,8 +160,11 @@ for my $mn ( sort keys %mats ) {
         $warn++;
         next;
     }
-    my $img = "mg_" . lc $color;
-    $images{$img} = [ $png{ lc $color } ];
+    # a glowing material's HDR goes into its texture too (its colours alone saturate: BO3's blue flame is (0, 76, 255)
+    # times 256, over a texture whose brightest pixels are 146): one copy of the texture per gain
+    my $gain = $kind eq 'emissive' ? hdr_gain( $mats{$mn} ) : 1;
+    my $img = "mg_" . lc($color) . ( $gain > 1 ? sprintf( '_x%d', $gain ) : '' );
+    $images{$img} = [ $png{ lc $color }, undef, $gain ];
     my @out = $kind eq 'decal' ? ( [ "mc/" . t6mat($mn), $tj{decal_mc} ], [ "wc/" . t6mat($mn), $tj{decal_wc} ] ) : ( [ t6mat($mn), $tj{$kind} ] );
     for my $o (@out) {
         my ( $name, $tpl ) = @$o;
@@ -178,9 +183,15 @@ for my $mn ( sort keys %mats ) {
     }
 }
 
-# images: BC3 (the alpha matters), BC5 normals
+# images: BC3 (the alpha matters), BC5 normals; a gain scales colour and alpha (an additive sprite adds both), clamped
 for my $img ( sort keys %images ) {
-    my ( $src, $normal ) = @{ $images{$img} };
+    my ( $src, $normal, $gain ) = @{ $images{$img} };
+    if ( $gain && $gain > 1 ) {
+        my $p = MgPng::read($src);
+        $_ = min( 255, int( $_ * $gain + 0.5 ) ) for @{ $p->{px} };
+        MgDds::write( "$raw/images/_$img.dds", $p, 'bc3' );
+        next;
+    }
     system( 'perl', "$FindBin::Bin/png2dds.pl", $src, "$raw/images/_$img.dds", $normal ? 'bc5' : 'bc3' ) == 0 or die "bo3_fx.pl: png2dds failed on $src\n";
 }
 

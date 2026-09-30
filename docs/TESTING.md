@@ -135,13 +135,15 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 6. The weapon (Magmagat / Magmus Operandi)
 
-- [ ] Fire it: one orange blob flies with a trail, the Acid Gat's muzzle flash, no tracer streak, no bullet impact. The
+- [ ] Fire it: one orange blob flies with a trail, the remaster's fire-coloured muzzle flash (not the Acid Gat's green), no tracer streak, no bullet impact. The
       clip holds one (the Magmus two).
 - [ ] **Hit a zombie**: the blob sticks, the zombie plays the Acid Gat stun and burns (torso fire and loop sound), and dies
       after about 1 s at any round; the blob bursts about 0.05 s later (explosion effect and sound). Zombies within
-      about 300 units take heavy damage; players nearby take none. Other zombies gather on the blob during that second.
+      about 300 units take heavy damage, and so do players near it (the Acid Gat dart's explosion, as the remaster's;
+      its sound is the Acid Gat's, the only one the remaster ships). Other zombies gather on the blob during that second.
 - [ ] **Hit Brutus**: one hit of about 250-375; the blob stays on him and bursts 3 s later; zombies are lured to it.
-- [ ] **Hit the floor or a wall**: the blob stays where it landed, with the fire under it, for 6 s, then vanishes (no
+- [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
+      turned the same way, for 6 s, then vanishes (no
       explosion). Zombies stepping in burn and die in about 0.75 s. Brutus walks through unharmed. Any player standing
       in it (you too) loses 20 health every 0.5 s with a sizzle loop. The Magmus pool is visibly wider (64).
 - [ ] A zombie leaving a pool: the sound stops, the flames stay about 4 s, then go.

@@ -292,9 +292,9 @@ mg_debug_tour()
     // 5. the run: a lit drum, then its flare as it refills the temper
     b = mg_coord( "MG_BARREL_1" ).origin;
     self mg_tour_look( "5/7 The run: a drum burning, its flare when it refills the temper", b + ( 90, 90, 40 ), b + ( 0, 0, 20 ) );
-    fire = mg_fx_loop( "barrel_fire", b - ( 0, 0, 22.37 ) );
+    fire = mg_fx_loop( "barrel_fire", b - ( 0, 0, 30.37 ) );
     wait 1.5;
-    mg_fx_once( "barrel_flare", b - ( 0, 0, 22.37 ), 5 );
+    mg_fx_once( "barrel_flare", b - ( 0, 0, 30.37 ), 5 );
     self playsoundtoplayer( "mg_flame_burst", self );
     wait 4;
     mg_fx_stop( fire );

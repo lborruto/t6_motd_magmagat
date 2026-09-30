@@ -143,7 +143,7 @@ mg_tempered_give_back( tempered )
         self giveweapon( original );
 
     if ( held )
-        self switchtoweapon( original );
+        self thread mg_switch_to( original );
 
     self.mg_tempered_from = undefined;
 }
@@ -207,7 +207,7 @@ mg_weapon_grant( weapon )
         self takeweapon( current );
 
     self giveweapon( magma );
-    self switchtoweapon( magma );
+    self thread mg_switch_to( magma );
     self givemaxammo( magma );
     mg_debug_print( "MG: " + self.name + " holds a " + magma );
 }
@@ -268,9 +268,11 @@ mg_blob_land( bolt, player, weapon )
 {
     level endon( "end_game" );
     last = bolt.origin;
+    prev = last;
 
     while ( isdefined( bolt ) )
     {
+        prev = last;
         last = bolt.origin;
         wait 0.05;
     }
@@ -293,8 +295,12 @@ mg_blob_land( bolt, player, weapon )
     blob mg_blob_lure( weapon );
     host = mg_blob_host( blob );
 
+    // the blob stands out of the surface it hit, a wall or a ceiling as the floor, and its pool with it
     if ( !isdefined( host ) )
+    {
+        blob.angles = mg_up_angles( mg_blob_normal( prev, last, blob ) );
         level thread mg_pool( blob, player, weapon );
+    }
     else if ( mg_is_brutus( host ) )
         blob thread mg_blob_on_brutus( host, player, weapon );
     else
@@ -305,6 +311,29 @@ mg_blob_land( bolt, player, weapon )
         if ( !is_true( host.mg_magma_stuck ) )
             host thread mg_magma_stuck( player, weapon );
     }
+}
+
+// The normal of the surface the bolt hit, from its last two positions (straight up when nothing is found).
+mg_blob_normal( prev, last, blob )
+{
+    dir = vectornormalize( last - prev );
+
+    if ( lengthsquared( last - prev ) < 1 )
+        dir = ( 0, 0, -1 );
+
+    trace = bullettrace( last - dir * 16, last + dir * 48, 0, blob );
+
+    if ( trace["fraction"] >= 1 )
+        return ( 0, 0, 1 );
+
+    return trace["normal"];
+}
+
+// Angles that stand a model's up axis along n (pitch 90 more than n's own: forward to n, then up to it).
+mg_up_angles( n )
+{
+    a = vectortoangles( n );
+    return ( a[0] + 90, a[1], 0 );
 }
 
 // The unclaimed blob nearest to where its bolt was last seen (a grenade entity with the blob's model), or undefined.
@@ -378,7 +407,7 @@ mg_blob_on_zombie( zombie, player )
     if ( isalive( zombie ) )
         zombie waittill( "death" );
 
-    self mg_blob_burst( player );
+    self mg_blob_burst();
 }
 
 // self = blob on Brutus: 2500 burn damage once (vanilla brutus_damage_override keeps a tenth, half more for this
@@ -388,34 +417,16 @@ mg_blob_on_brutus( brutus, player, weapon )
     self endon( "death" );
     mg_magma_dodamage( brutus, 2500, brutus.origin, player, "MOD_BURNED", weapon );
     wait 3;
-    self mg_blob_burst( player );
+    self mg_blob_burst();
 }
 
-// self = blob. It bursts 0.05 s from now: the weapon's own explosion (mg/fx_magmagat_explode and
-// wpn_blundersplat_explode, tools/build_weapon.pl) through resetmissiledetonationtime, as the remaster and BO2 do.
-mg_blob_burst( player )
+// self = blob. It bursts 0.05 s from now: the weapon's own explosion (mg/fx_magmagat_explode, the Acid Gat dart's
+// damage and sound, tools/build_weapon.pl) through resetmissiledetonationtime, as the remaster and BO2 do. It hurts
+// the zombies and Brutus around it, and players near it as the remaster's.
+mg_blob_burst()
 {
     self deactivate_zombie_point_of_interest();
     self resetmissiledetonationtime( 0.05 );
-    level thread mg_blob_splash( self.origin, player );
-}
-
-// The burst's damage. The blob weapon itself deals none (T6 would hurt every player near it 75), so the script deals
-// the Acid Gat dart's to the zombies and Brutus: 1000 at the blob falling to 500 at 300 units.
-mg_blob_splash( pos, player )
-{
-    wait 0.05;
-
-    foreach ( ai in getaiarray( level.zombie_team ) )
-    {
-        if ( !isdefined( ai ) || !isalive( ai ) )
-            continue;
-
-        d = distance( ai.origin, pos );
-
-        if ( d <= 300 )
-            mg_magma_dodamage( ai, int( 1000 - 500 * d / 300 ), pos, player, "MOD_GRENADE_SPLASH", "mg_magma_blob_zm" );
-    }
 }
 
 // Magmagat damage, credited to its player while he is still here.
@@ -434,8 +445,8 @@ mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
     return mg_is_magma_damage( self.damageweapon );
 }
 
-// The lava pool (the remaster's trigger magmagat_lava_pool): a trigger 32 units across (the Magmus 64) and 32 high on
-// the floor under the blob (one stuck to a wall pools below it), 6 s, the blob lying in it and its fire over it. No
+// The lava pool (the remaster's trigger magmagat_lava_pool): a trigger 32 units across (the Magmus 64) and 32 high at
+// the blob, wherever it stuck, 6 s, and its fire played the blob's way up (the remaster plays it on the blob). No
 // cap as in the remaster, but 8 at once at most for T6's entity budget (the oldest goes).
 mg_pool( blob, player, weapon )
 {
@@ -445,13 +456,7 @@ mg_pool( blob, player, weapon )
     if ( weapon == "magmagat_upgraded_zm" )
         radius = 64;
 
-    start = blob.origin + ( 0, 0, 4 );
-    trace = bullettrace( start, start - ( 0, 0, 160 ), 0, blob );
-    pos = trace["position"];
-
-    if ( trace["fraction"] >= 1 )
-        pos = blob.origin;
-
+    pos = blob.origin;
     pool = spawn( "trigger_radius", pos, 0, radius, 32 );
     pool.owner = player;
     pool.weapon = weapon;
@@ -460,7 +465,7 @@ mg_pool( blob, player, weapon )
         level.mg_pools[0] notify( "mg_pool_end" );
 
     level.mg_pools[level.mg_pools.size] = pool;
-    fire = mg_fx_loop( "patch_fire", pool.origin );
+    fire = mg_fx_loop( "patch_fire", pool.origin, blob.angles );
     pool waittill_any_timeout( 6, "mg_pool_end" );
     arrayremovevalue( level.mg_pools, pool );
     pool delete();

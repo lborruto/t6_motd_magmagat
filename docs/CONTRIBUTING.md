@@ -123,7 +123,9 @@ games' files and are never committed (so is `mod/sound`).
   lit template, and its textures embedded in the fastfile as `*mg_<name>` images. A texture given a plain name makes
   the Linker write a STREAMED image, which T6 only looks for in its own `.ipak` files: it never shows. A BO3 layered
   material (a paint and a rust layer through a mask) is baked into one colour map by `tools/bake_layers.pl`;
-  `--skip` drops surfaces T6 cannot draw (the barrel's transparent shell, its alpha decal). Textures are block
+  `--skip` drops surfaces T6 cannot draw (the barrel's transparent shell, its alpha decal), `--skip-color` those whose
+  colour texture matches (the press's decal layers, which BO3 blends over it and T6 would draw opaque); a `$black_color`
+  surface gets a small embedded black image. Textures are block
   compressed by `tools/MgDds.pm` (BC1 colour, BC5 normal): the fastfile stays small.
 - **The Magmagat** (`tools/build_weapon.pl`): the Unlinker dumps zm_prison's weapons, models, materials and images
   (the map's images sit in DLC `.ipak` files it only opens under a name it loads itself, so they are hard-linked as
@@ -146,7 +148,7 @@ games' files and are never committed (so is `mod/sound`).
   `mg/fx_magmagat_explode`. Both wear BO4's blob `mg_magma_blob` (`$blob` in `tools/build_weapon.pl`, `mg_model( "ball" )`),
   exported from Greyhound after the Magmagat fired in BO3 (before, BO3 has not streamed its mesh in and the export is
   empty, which `tools/import_all.pl` leaves out). The pool a miss lays is the remaster's aoe effect
-  (`mg/fx_prison_magmagat_aoe`) under the blob. The generator now only builds the lava material `mc/mg_lava`: the
+  (`mg/fx_prison_magmagat_aoe`) at the blob, turned with it to the surface it stuck to. The generator now only builds the lava material `mc/mg_lava`: the
   BO3 remaster's lava (`i_pbr_lava_magma_emissive_1_mtl`) on the emberglow shader, which the blob wears.
 - **The sounds** (`tools/import_sounds.pl`, the list in `tools/assets/bo3_sounds.tsv`): BO3 banks are the same `2UX#`
   container as T6's (version 15), every sound plain FLAC 48 kHz. The map's zone data names them: each alias record

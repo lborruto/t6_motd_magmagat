@@ -12,6 +12,8 @@
 #
 #   perl tools/import_prop.pl [options] <greyhound xmodel dir> <prop name> [ximages dir]
 #     --skip <regex>              drop the surfaces whose BO3 material matches (e.g. a transparent overlay shell)
+#     --skip-color <regex>        drop the surfaces whose BO3 colour texture matches (decals: BO3 blends them over the
+#                                 surface, T6's lit template would draw them opaque)
 #     --color <regex>=<png>       use this colour map for the matching material (e.g. one baked by tools/bake_layers.pl)
 #     --bones <b,..> / --bones '!b,..'   keep only the triangles riding these bones / all but those (a part of a skinned
 #                                 model that script moves on its own, e.g. a press's ram)
@@ -23,23 +25,30 @@
 use strict;
 use warnings;
 use FindBin;
+use lib $FindBin::Bin;
+use MgDds;
 use File::Path qw(make_path);
 use File::Basename qw(basename);
 use JSON::PP;
 use MIME::Base64 qw(encode_base64);
 use Getopt::Long;
 
-my ( @skip, %color_for );
+my ( @skip, @skip_color, %color_for );
 my $offset = '0,0,0';
 my $use_material;
 my $bones_opt;
-GetOptions( 'skip=s' => \@skip, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt ) or die "import_prop.pl: bad options\n";
+GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt ) or die "import_prop.pl: bad options\n";
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
 my ( $src, $prop, $ximages ) = @ARGV;
 die "usage: import_prop.pl [--skip re] [--color re=png] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
-sub skipped { my $name = shift; return scalar grep { $name =~ /$_/ } @skip }
+our %mat;
+sub skipped {
+    my $name = shift;
+    my $color = $mat{$name} ? $mat{$name}{color} // '' : '';
+    return scalar( grep { $name =~ /$_/ } @skip ) + scalar( grep { $color =~ /$_/ } @skip_color );
+}
 $src =~ s{\\}{/}g;
 $ximages //= "$src/../../../black_ops_3/ximages";
 my $repo = "$FindBin::Bin/..";
@@ -65,13 +74,12 @@ unless (@lods) { warn "import_prop.pl: every LOD in $src is empty (re-export it 
 
 # material name -> { color, normal } source image basenames, in first-seen order over every LOD's glTF
 # (a lower LOD can use a material LOD0 does not)
-my ( %mat, @mat_order );
+my @mat_order;    # %mat is declared with skipped()
 for my $lod (@lods) {
     ( my $gl = $lod ) =~ s/\.XMODEL_EXPORT$/.gltf/;
     my $j = decode_json( slurp("$src/$gl") );
     for my $m ( @{ $j->{materials} } ) {
     next if $mat{ $m->{name} };
-    push @mat_order, $m->{name} unless skipped( $m->{name} );
     my %t = ( dir => $m->{name} );
     my $ci = $m->{pbrMetallicRoughness}{baseColorTexture}{index};
     my $ni = $m->{normalTexture}{index};
@@ -84,6 +92,7 @@ for my $lod (@lods) {
         $t{$k} = $uri;
     }
     $mat{ $m->{name} } = \%t;
+    push @mat_order, $m->{name} unless skipped( $m->{name} );
   }
 }
 
@@ -91,7 +100,14 @@ for my $lod (@lods) {
 my %img_done;
 sub image_for {
     my ( $name, $kind, $dir, $png ) = @_;
-    return $kind eq 'normal' ? 'global_normal_flat_16x16' : '$white' if !defined $name || $name =~ /^\$/;
+    return 'global_normal_flat_16x16' if $kind eq 'normal' && ( !defined $name || $name =~ /^\$/ );
+    # BO3's engine colours: $black_color stays black (a material whose colour is its own, no texture), as our own tiny
+    # black image (T6's $black lives in a zone the Linker does not load)
+    if ( defined $name && $name =~ /^\$black/ ) {
+        MgDds::write( "$raw/images/_mg_black.dds", { w => 4, h => 4, px => [ ( 0, 0, 0, 255 ) x 16 ] }, 'bc1' ) unless $img_done{'*mg_black'}++;
+        return '*mg_black';
+    }
+    return '$white' if !defined $name || $name =~ /^\$/;
     my $ours = "*mg_$name";
     return $ours if $img_done{$ours}++;
     ($png) = grep { -f $_ } "$ximages/$name.png", "$src/_images/$dir/$name.png" unless defined $png;
