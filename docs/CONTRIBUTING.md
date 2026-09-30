@@ -85,7 +85,11 @@ and an environment variable to point elsewhere.
 - **The BO3 snapshot** (`mod/work/bo3mem/fx.bin`, for `tools/bo3_fx.pl`): build `tools/bo3mem/Bo3Snapshot.exe` with
   the `csc.exe` line at the top of `Bo3Snapshot.cs` (the .NET Framework 4 compiler Windows ships; git ignores the exe),
   start BO3 on the map (solo is enough) and, while the map is loaded, run
-  `tools/bo3mem/Bo3Snapshot.exe mod/work/bo3mem/fx.bin` from the repo root.
+  `tools/bo3mem/Bo3Snapshot.exe mod/work/bo3mem/fx.bin` from the repo root. Standing by the forge machine, run it once
+  more as `tools/bo3mem/Bo3Snapshot.exe mod/work/bo3mem/models.bin --models=p8_zm_esc_machinery_01`: most of the
+  machine's materials take their colour from BO3 constants (`colorTint`) Greyhound does not export, which
+  `tools/model_tints.pl` reads for `tools/import_prop.pl --tints` (`tools/import_all.pl` does it when the file is there;
+  without it the machine comes out light grey).
 - **Greyhound** (Scobalula; `MG_GREYHOUND`, the folder holding `exported_files`), with BO3 running on the map. Export
   these models (glTF + XMODEL_EXPORT) into `exported_files/black_ops_3_sp/xmodels`:
   `p7_zm_gen_barrel_metal_55gal_green_drk_lod`, `p7_zm_zod_skull`, `fx_magma_splat02_mesh`, `fx_magma_splat03_mesh`,

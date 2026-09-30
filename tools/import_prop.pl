@@ -27,22 +27,23 @@ use warnings;
 use FindBin;
 use lib $FindBin::Bin;
 use MgDds;
+use MgPng;
 use File::Path qw(make_path);
 use File::Basename qw(basename);
 use JSON::PP;
 use MIME::Base64 qw(encode_base64);
 use Getopt::Long;
 
-my ( @skip, @skip_color, %color_for );
+my ( @skip, @skip_color, %color_for, $tints_file );
 my $offset = '0,0,0';
 my $use_material;
 my $bones_opt;
-GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt ) or die "import_prop.pl: bad options\n";
+GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file ) or die "import_prop.pl: bad options\n";
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
 my ( $src, $prop, $ximages ) = @ARGV;
-die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--material name] [--offset x,y,z] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
+die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--material name] [--offset x,y,z] [--tints tsv] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
 our %mat;
 sub skipped {
     my $name = shift;
@@ -122,6 +123,45 @@ sub image_for {
     return $ours;
 }
 
+# --tints (tools/model_tints.pl): the BO3 colour constants, baked into the colour map as BO3 draws it, multiplied in
+# linear light: a colour map times colorTint; $black_color (a dark base, the second layer showing through its mask) as
+# the second layer times colorTint1 at a quarter; $white_diffuse as a flat colorTint
+my %tint;
+if ( defined $tints_file ) {
+    open my $th, '<', $tints_file or die "$tints_file: $!\n";
+    while (<$th>) {
+        chomp;
+        my ( $name, $color, $layer2, $t, $t1 ) = split /\t/;
+        $tint{$name} = { color => $color, layer2 => $layer2, tint => [ split /,/, $t ], tint1 => [ split /,/, $t1 ] };
+    }
+}
+sub src_png { my ( $name, $dir ) = @_; my ($p) = grep { -f $_ } "$ximages/$name.png", "$src/_images/$dir/$name.png"; $p }
+sub tinted {    # an image (or a flat colour) times a linear tint, back to sRGB
+    my ( $img, $t ) = @_;
+    my @px = @{ $img->{px} };
+    for ( my $i = 0; $i < @px; $i += 4 ) {
+        $px[ $i + $_ ] = int( 255 * ( ( ( $px[ $i + $_ ] / 255 )**2.2 * $t->[$_] )**( 1 / 2.2 ) ) + 0.5 ) for 0 .. 2;
+    }
+    return { %$img, px => \@px };
+}
+sub tint_image {    # the baked colour map for a material, as an image name for image_for, or undef
+    my ( $name, $dir ) = @_;
+    my $t = $tint{$name} // return undef;
+    my $img;
+    if ( $t->{color} =~ /^\$black/ ) {
+        my $p = $t->{layer2} =~ /^\$/ ? undef : src_png( $t->{layer2}, $dir );
+        $img = $p ? tinted( MgPng::read($p), [ map { $_ * 0.25 } @{ $t->{tint1} } ] ) : { w => 4, h => 4, px => [ ( 8, 8, 8, 255 ) x 16 ] };
+    }
+    elsif ( $t->{color} =~ /^\$/ ) { $img = tinted( { w => 4, h => 4, px => [ ( 255, 255, 255, 255 ) x 16 ] }, $t->{tint} ) }
+    else {
+        my $p = src_png( $t->{color}, $dir ) // return undef;
+        $img = tinted( MgPng::read($p), $t->{tint} );
+    }
+    my $out = "tint_$name";
+    MgDds::write( "$raw/images/_mg_$out.dds", $img, 'bc1' ) unless $img_done{"*mg_$out"}++;
+    return "*mg_$out";
+}
+
 # materials, cloned from the template
 my $tmpl = decode_json( slurp($tmpl_path) );
 my %ours_of;
@@ -136,13 +176,15 @@ for my $idx ( 0 .. $#mat_order ) {
         $t->{color} =~ s/\.png$//i;
     }
     for my $tex ( @{ $m->{textures} } ) {
-        $tex->{image} = image_for( $t->{color}, 'color', $t->{dir}, defined $ckey ? $color_for{$ckey} : undef ) if $tex->{name} eq 'colorMap';
+        if ( $tex->{name} eq 'colorMap' ) {
+            $tex->{image} = tint_image( $srcname, $t->{dir} ) // image_for( $t->{color}, 'color', $t->{dir}, defined $ckey ? $color_for{$ckey} : undef );
+        }
         $tex->{image} = image_for( $t->{normal}, 'normal', $t->{dir} ) if $tex->{name} eq 'normalMap';
     }
     my $mname = "${prop}_m$idx";
     spit( "$raw/materials/mc/$mname.json", JSON::PP->new->pretty->canonical->encode($m) );
     $ours_of{$srcname} = "mc/$mname";
-    printf "import_prop.pl: material mc/%s <- %s (color %s, normal %s)\n", $mname, $srcname, $t->{color} // '-', $t->{normal} // '-';
+    printf "import_prop.pl: material mc/%s <- %s (color %s%s, normal %s)\n", $mname, $srcname, $t->{color} // '-', $tint{$srcname} ? ', BO3 tint' : '', $t->{normal} // '-';
 }
 
 

@@ -26,6 +26,16 @@ my @paints = ( [ "$work/i_mtl_p7_barrel_metal_55gal_green_drk_c.png", 'i_mtl_p7_
 # the press's decal layers (rust grunge, dirt, bolts, truck decals): BO3 blends them over the machine, T6's lit
 # template would draw them as opaque patches
 my @press_decals = ( '--skip-color', 'decal|grunge|dirty' );
+# and its colours: most of its materials draw a light-grey map or none, tinted by BO3 colour constants that Greyhound does
+# not export, read from a BO3 snapshot taken by the machine (tools/bo3mem: Bo3Snapshot.exe mod/work/bo3mem/models.bin
+# --models=p8_zm_esc_machinery_01; tools/model_tints.pl). Without it the machine comes out light grey.
+my $models_snap = "$work/bo3mem/models.bin";
+my $press_tints = "$work/tints_p8_zm_esc_machinery_01.tsv";
+if ( -f $models_snap ) {
+    system( 'perl', "$FindBin::Bin/model_tints.pl", $models_snap, 'p8_zm_esc_machinery_01', $press_tints ) == 0 or die "import_all.pl: the press tints failed\n";
+    push @press_decals, '--tints', $press_tints;
+}
+else { warn "import_all.pl: no $models_snap: the forge machine keeps Greyhound's untinted maps\n" }
 my @props = (
     # the temper run's drums: the remaster stands this one at each of its five str_barrel_fire spots (only the flame is blue)
     [ 'mg_barrel_green', 'p7_zm_gen_barrel_metal_55gal_green_drk_lod', '--offset', '0,0,-22.37', '--color', "green_drk=$work/i_mtl_p7_barrel_metal_55gal_green_drk_c.png" ],    # p6_zm_al_wood_barrel_01 pivots at mid height
