@@ -8,7 +8,8 @@
 //
 //   build: C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /platform:x64 /out:Bo3Snapshot.exe Bo3Snapshot.cs
 //   run:   Bo3Snapshot.exe <out.bin> [pool index, default 38 = fx] [depth, default 5]
-//          Bo3Snapshot.exe --scripts <out dir> [name filter]   (the loaded compiled scripts)
+//          Bo3Snapshot.exe --scripts [out dir, default mod/work/bo3scripts: run it from the repo root] [name filter]
+//                                                              (the loaded compiled scripts)
 //
 // out.bin: "BO3SNAP1", u32 asset count, per asset (u64 header address, u32 header size, u16 name length, name), then
 // the memory: records of (u64 address, u32 length, bytes) until the end.
@@ -269,7 +270,7 @@ static class Bo3Snapshot
     {
         if (args.Length < 1)
         {
-            Console.Error.WriteLine("usage: Bo3Snapshot.exe <out.bin> [pool index] [depth] | --scripts <out dir> [name filter]");
+            Console.Error.WriteLine("usage: Bo3Snapshot.exe <out.bin> [pool index] [depth] | --scripts [out dir, default mod/work/bo3scripts] [name filter]");
             return 2;
         }
         bool scripts = args[0] == "--scripts";
@@ -314,7 +315,7 @@ static class Bo3Snapshot
         int poolSize = BitConverter.ToInt32(info, 12);
         Console.WriteLine("Bo3Snapshot: pools at 0x{0:X}, pool {1}: {2} slots of {3} bytes at 0x{4:X}", pools, poolIndex, poolSize, assetSize, poolPtr);
         if (scripts)
-            return DumpScripts(poolPtr, assetSize, poolSize, args.Length > 1 ? args[1] : "scripts", args.Length > 2 ? args[2] : "");
+            return DumpScripts(poolPtr, assetSize, poolSize, args.Length > 1 ? args[1] : Path.Combine("mod", "work", "bo3scripts"), args.Length > 2 ? args[2] : "");
 
         var assets = new List<Tuple<ulong, string>>();
         ulong poolEnd = poolPtr + (ulong)poolSize * (ulong)assetSize;

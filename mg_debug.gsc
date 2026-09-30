@@ -9,11 +9,9 @@
 #include scripts\zm\zm_prison\mg_weapon;
 #include scripts\zm\zm_prison\mg_place;
 
-// Debug tools (`!mg`, needs `set mg_debug 1`): give / magma / shock and the fx / snd audition (ported from
-// the Dead Frequency mod's audition tool and renamed to this mod's prefix). The fx/snd grid ("!mg fx grid")
-// was dropped: it needs a ground-trace helper and a "beacon" pedestal model that do not exist in this mod
-// (owner 2026-09-18); the required part (`!mg fx <n|name|next|prev|stop>`, `!mg snd <n|alias|next|prev>`)
-// ported unchanged.
+// Debug tools (`!mg`, needs `set mg_debug 1`): give / magma / shock, the tour, the lockdown and zone checks, and the fx
+// / snd audition (`!mg fx <n|name|next|prev|stop>`, `!mg snd <n|alias|next|prev>`, ported from the Dead Frequency
+// mod's audition tool without its grid).
 
 // self = player
 mg_debug_lockdown()
@@ -26,7 +24,7 @@ mg_debug_lockdown()
         mg_lockdown_off();
 }
 
-// self = player. Glints every 48 units along the kill zone's sides (mg_in_office_box), 40 over its floor, for 15 s.
+// self = player. Glints every 48 units along the kill zone's sides (mg_in_office_box), at z 1376, for 15 s.
 mg_debug_zone()
 {
     self mg_out( "MG: the kill zone marked for 15 s (x -1070 to -440, y 8493 to 9187)" );
@@ -375,6 +373,13 @@ mg_tour_look( label, from, at )
 // self = player. One script_model of `name` 80 in front, on the ground, facing the player; the previous one goes.
 mg_debug_spawn_model( name )
 {
+    // a model nobody precached ends the map for everyone: only the mod's own (mg_coords) are offered
+    if ( !isinarray( level.mg_models, name ) )
+    {
+        self mg_out( "MG: unknown model " + name + " (one of mg_coords' models)" );
+        return;
+    }
+
     if ( isdefined( level.mg_debug_model ) )
         level.mg_debug_model delete();
 
@@ -564,7 +569,7 @@ mg_aud_is_number( s )
     return 1;
 }
 
-// Prints the list ten names a line (the console wraps long lines).
+// Prints the list a few names a line (the console wraps long lines).
 mg_aud_print_list( list, label )
 {
     self mg_out( label + ": " + list.size + " entries (number = the n of !mg " + label + " <n>)" );

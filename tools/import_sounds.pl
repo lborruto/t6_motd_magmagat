@@ -46,7 +46,7 @@ while (<$m>) {
     next if /^#/ || !/\S/;
     chomp;
     my @c = split /\t/;
-    die "import_sounds.pl: bo3_sounds.tsv line $.: 9 columns expected\n" unless @c >= 8;
+    die "import_sounds.pl: bo3_sounds.tsv line $.: 8 tab-separated columns expected (a 9th, what for, is optional)\n" unless @c >= 8;
     push @rows, { ours => $c[0], bo3 => $c[1], storage => $c[2], pan => $c[3], loop => $c[4], vol => $c[5], dmin => $c[6], dmax => $c[7] };
 }
 close $m;

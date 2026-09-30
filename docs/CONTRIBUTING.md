@@ -4,8 +4,8 @@ This file is for people who want to read, build, test or change the mod. Players
 [README](../README.md) and, for spoilers, [GUIDE.md](GUIDE.md). The owner's in-game test protocol is
 [TESTING.md](TESTING.md).
 
-The mod is ONE folder, `mods\zm_magmagat\`: a `mod.ff` fastfile (the props and the Magmagat weapons), a
-`mod.json`, and the quest scripts in `scripts\zm\zm_prison\`. The scripts' sources are the `mg_*.gsc` files in the
+The mod is ONE folder, `mods\zm_magmagat\`: a `mod.ff` fastfile (the props, the Magmagat weapons and the effects),
+its sound bank `mod.all.sabl` / `mod.all.sabs`, a `mod.json`, and the quest scripts in `scripts\zm\zm_prison\`. The scripts' sources are the `mg_*.gsc` files in the
 repository root; the release carries a BUILD of them: `tools/pack.pl` concatenates the sources into one loadable
 file (or a few, when the sources no longer fit one). Never edit a packed file; edit a source and pack again.
 The fastfile is built from the game's own files and a Greyhound export of the BO3 map (see "The mod.ff").
@@ -18,7 +18,7 @@ change.
 - Plutonium T6 loads every `*.gsc` in `scripts\zm\` and `scripts\zm\zm_prison\` (root level only), and the same
   folders inside the mod picked in the Mods menu (`mods\zm_magmagat\scripts\zm\zm_prison\`). All loaded scripts
   share ONE namespace: a function defined twice is a fatal duplicate at load. So the packed files and the
-  sources must never sit in the game folders together, nor an old loose install beside the mod
+  sources must never sit in the game folders together, nor a loose copy in `scripts\zm\zm_prison\` beside the mod
   (`tools/deploy.pl` handles both for you).
 - A compiled T6 script addresses every function and import name as a 16-bit offset into its string block, so
   that block cannot pass 65535 bytes. Over it the game reads names from the wrong place and prints nonsense
@@ -26,7 +26,7 @@ change.
   (`release/zm_prison_magmagat.gsc`); if the sources grow past the limit, `tools/pack.pl --parts N` splits
   them into `zm_prison_magmagat_1.gsc` / `_2.gsc` (or more) instead, and both `tools/deploy.pl` and the
   release workflow already try 1, then 2, then 3 parts, so nothing else needs to change when that day comes.
-- `"C:/Games/t6/gsc-tools/gsc-tool.exe" -m comp -g t6 -s pc -y <file>` (xensik's gsc-tool) catches SYNTAX
+- `"C:/Games/t6/gsc-tools/gsc-tool.exe" -m comp -g t6 -s pc -y <file>` (xensik's gsc-tool, env `MG_GSC_TOOL`) catches SYNTAX
   errors only. It does not catch a misspelled or non-existent function name; those show up as script errors
   in the game console when the map loads (needs `developer 1; developer_script 1`). The lints below exist for
   exactly that gap.
@@ -41,20 +41,23 @@ change.
 | File | Responsibility |
 |---|---|
 | `mg_main.gsc` | `init()` (zm_prison guard, precache, version), `mg_boot()`, chat listener `!mg`, command dispatch, help |
-| `mg_systems.gsc` | ported helpers: `mg_debug_print`, `mg_out`, `mg_fx_init`, `mg_fx_loop/once/stop`, `mg_fx_keepalive`, `mg_snd_near`, `mg_prompt`, `mg_press_use`, `mg_bar_*`, `mg_hud_title`, `mg_death_listen_add/remove`, `mg_zombies_near`, `mg_trail`, HUD disconnect cleanup |
+| `mg_systems.gsc` | ported helpers: `mg_debug_print`, `mg_out`, `mg_fx_init`, `mg_fx_loop/once/stop`, `mg_fx_keepalive`, `mg_prompt`, `mg_press_use`, `mg_bar_*`, `mg_hud_title`, `mg_death_listen_add/remove`, `mg_zombies_near`, `mg_trail`, HUD disconnect cleanup |
 | `mg_coords.gsc` | anchor registry `mg_coord( key )` / `mg_coord_set`, `mg_apply_overrides()` (owner spots pasted here), `mg_models_init` / `mg_model( kind )` / `mg_precache()` (the barrel and skull models come from our mod.ff) |
 | `mg_place.gsc` | live placement mode `!mg grab <KEY>` / `drop` / `cancel` / `rot` / `up` (ported from Dead Frequency's `df_place.gsc`), anchor previews `mg_preview_show` / `mg_preview_refresh` / `mg_preview_hide` / `mg_preview_teleport` |
 | `mg_quest.gsc` | `level.mg_state`, `mg_state_set( s )`, `mg_state_is( s )`, `level notify( "mg_state", s )`, bridge gate, `mg_goto( state )` fabrication, `mg_status_lines()` |
-| `mg_hearth.gsc` | fireplace (boards, prompts, place), the lockdown (outline, door clip), souls, skulls, pickup |
+| `mg_hearth.gsc` | fireplace (boards, prompts, place), the lockdown (outline, door clip), the souls (essences dropped, stepped on, flown into the skulls), skulls, the deposit, pickup |
 | `mg_run.gsc` | temper run (15 s timer, barrels, weapon rule), carrier fail rules |
 | `mg_forge.gsc` | forge power, the press, take; the open forge |
 | `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the bolt and blob (sticky projectiles), the lava pool |
-| `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg spots` |
+| `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg zone`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg spots` |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
-| `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/bake_layers.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain and the release (see "The mod.ff") |
-| `mod/zone_source/mod.zone`, `mod/mod.json`, `mod/templates/` | the fastfile's asset list (its blocks are written by the tools), the mod's name card, the material template for BO3 props |
+| `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/paint_mask.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain (the dump, the props, the drums' paint tint, the Magmagat, the lava material, PNG / DDS) and the release (see "The mod.ff") |
+| `tools/import_sounds.pl`, `tools/flac2wav.pl`, `tools/MgBo3.pm`, `tools/assets/bo3_sounds.tsv` | the sound bank: the BO3 map's fastfile and banks read, FLAC decoded to WAV, the list of our `mg_*` aliases |
+| `tools/bo3_fx.pl`, `tools/MgFx7.pm`, `tools/MgSnap.pm`, `tools/bo3mem/Bo3Snapshot.cs`, `tools/assets/bo3_fx.tsv`, `tools/oat/t6-fx-json.patch` | the effects: the T7 to T6 conversion, the snapshot reader, the snapshot tool (C#), the list of effects, and the OpenAssetTools patch (GPL-3.0) that gives the Linker a T6 effect loader (see [PORTING_BO3_ASSETS.md](PORTING_BO3_ASSETS.md)) |
+| `tools/assets/assets_zm_prison.txt`, `tools/assets/fx_registered_zm_prison.txt`, `tools/assets/zm_prison.d3dbsp.ents.txt`, `tools/assets/soundbank/*.aliases.csv` | reference data dumped from BO2's zm_prison: its assets, its registered effects, its map entities, its sound alias tables (read by `lint_sounds`) |
+| `mod/zone_source/mod.zone`, `mod/mod.json` | the fastfile's asset list (its blocks are written by the tools), the mod's name card. The props' material template is vanilla's wood barrel, `mod/work/dump/materials/mc/mtl_p6_zm_al_wood_barrel_01.json`, dumped by `tools/dump_game.pl` (never committed) |
 | `.github/workflows/check.yml`, `.github/workflows/release.yml`, `tools/publish.pl` | lints and a pack test on every push; the player zip when a release is published (see "The GitHub Actions") |
-| `README.md`, `LICENSE`, `docs/GUIDE.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md` | end-user and contributor docs |
+| `README.md`, `LICENSE`, `docs/GUIDE.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md`, `docs/PORTING_BO3_ASSETS.md` | end-user and contributor docs |
 
 Anchor keys (all in `mg_coords.gsc`): `MG_HEARTH` (gun rest in the fire), `MG_HEARTH_USE` (where the player
 stands to press), `MG_SKULL_1`, `MG_SKULL_2`, `MG_SKULL_3`, `MG_BARREL_1..5`, `MG_FORGE` (use point at the
@@ -63,6 +66,54 @@ Blundergat desk struct and the dock generator; the owner replaces them through `
 "Coordinate workflow" below).
 
 State names (strings, exactly): `"locked"`, `"ready"`, `"souls"`, `"pickup"`, `"run"`, `"forge"`, `"done"`.
+
+## Prerequisites
+
+Linting, packing and deploying the scripts need only Perl 5 (core modules; Git for Windows ships one). Rebuilding the
+`mod.ff` and its sound bank needs all of the following, on one Windows PC. Every path has a default (the table below)
+and an environment variable to point elsewhere.
+
+- **Black Ops II** (Steam) with Plutonium T6: its `zone/all` fastfiles are the source of the Magmagat, the material
+  templates and the zones the Linker loads.
+- **OpenAssetTools, twice.** A stock release (`MG_OAT`) for the Unlinker of `tools/dump_game.pl`. And the mod's
+  patched build (`MG_OAT_FX`): upstream OAT has no T6 effect dumper or loader, so `tools/build_mod.pl` links with the
+  patched Linker and `tools/bo3_fx.pl` dumps the vanilla effect materials (`mod/work/fxdump`) with the patched
+  Unlinker. The patch and its build steps (clone OAT at the commit named there, `git apply tools/oat/t6-fx-json.patch`,
+  build `LinkerCli` and `UnlinkerCli`) are in [PORTING_BO3_ASSETS.md](PORTING_BO3_ASSETS.md), "The effects".
+- **Black Ops III** (Steam) with the Workshop map "MOB OF THE DEAD", item 3373649394 (`MG_BO3_MAP`, the map's
+  Workshop folder): `tools/import_sounds.pl` reads its `zm_prison.ff` and sound banks.
+- **The BO3 snapshot** (`mod/work/bo3mem/fx.bin`, for `tools/bo3_fx.pl`): build `tools/bo3mem/Bo3Snapshot.exe` with
+  the `csc.exe` line at the top of `Bo3Snapshot.cs` (the .NET Framework 4 compiler Windows ships; git ignores the exe),
+  start BO3 on the map (solo is enough) and, while the map is loaded, run
+  `tools/bo3mem/Bo3Snapshot.exe mod/work/bo3mem/fx.bin` from the repo root.
+- **Greyhound** (Scobalula; `MG_GREYHOUND`, the folder holding `exported_files`), with BO3 running on the map. Export
+  these models (glTF + XMODEL_EXPORT) into `exported_files/black_ops_3_sp/xmodels`:
+  `p7_zm_gen_barrel_metal_55gal_green_drk_lod`, `p7_zm_zod_skull`, `fx_magma_splat02_mesh`, `fx_magma_splat03_mesh`,
+  `p8_fxp_magma_blob`, `p8_zm_esc_machinery_01`, `wpn_t8_zm_magmagat_view` and `wpn_t8_zm_blundergat_tempered_view`.
+  BO3 streams meshes in: export a model while it is in view in game, or its LODs come out empty (`tools/import_prop.pl`
+  leaves empty LODs out, and a model with none is left out of the mod). `p8_fxp_magma_blob` in particular exports only
+  after the Magmagat has fired in BO3. Then, with "Load xImage from the game" on, export the images (PNG): the models' textures
+  into `exported_files/black_ops_3/ximages` (among them `i_mtl_p7_barrel_metal_55gal_blue_c`, the drum's paint mask,
+  and `i_pbr_lava_magma_emissive_1_mtl_*`, the lava), and the effect textures there or in `black_ops_3_sp/ximages`
+  (`tools/bo3_fx.pl` names any that is missing).
+- **gsc-tool** (xensik; `MG_GSC_TOOL`, the exe): the syntax check; `tools/pack.pl` also reads the exact string block
+  size from its output when it is there.
+- **The decompiled T6 scripts** (the `ZM` folder of a t6-scripts dump; `MG_T6_SCRIPTS`): `tools/lint_calls.pl` checks
+  every call against them, and skips (passing) without them, as in CI.
+- **The GitHub CLI**, signed in (`gh auth login`), for `tools/publish.pl`.
+
+| Variable | Used by | Default |
+|---|---|---|
+| `MG_BO2` | `dump_game.pl`, `build_mod.pl`, `bo3_fx.pl` | `C:/Program Files (x86)/Steam/steamapps/common/Call of Duty Black Ops II` |
+| `MG_OAT` | `dump_game.pl` (run by `import_all.pl` and `build_weapon.pl`) | `C:/Games/t6/openassettools` |
+| `MG_OAT_FX` | `build_mod.pl`, `bo3_fx.pl` | `C:/Games/t6/oat-src/build/bin/Release_x86` |
+| `MG_BO3_MAP` | `import_sounds.pl` | `C:/Program Files (x86)/Steam/steamapps/workshop/content/311210/3373649394` |
+| `MG_GREYHOUND` | `import_all.pl`, `build_magmagat_model.pl`, `gen_lava_mat.pl`, `bo3_fx.pl` | `C:/Games/t6/Greyhound-1.49.4.0` |
+| `MG_GSC_TOOL` | `pack.pl` | `C:/Games/t6/gsc-tools/gsc-tool.exe` |
+| `MG_T6_SCRIPTS` | `lint_calls.pl` | `C:/Games/t6/t6-scripts/t6-scripts-main/ZM` |
+| `MG_RAW` | `import_prop.pl` (its output folder) | `mod/props` |
+| `MG_TEMPLATE_MTL` | `import_prop.pl` (the props' material template) | `mod/work/dump/materials/mc/mtl_p6_zm_al_wood_barrel_01.json` |
+| `LOCALAPPDATA` | `build_mod.pl`, `deploy.pl` (the Plutonium folder; `deploy.pl --game DIR` overrides it) | set by Windows |
 
 ## The build
 
@@ -93,8 +144,8 @@ perl tools/deploy.pl --game DIR
 ```
 
 Game folder: `%localappdata%\Plutonium\storage\t6\mods\zm_magmagat\scripts\zm\zm_prison\`. Each mode removes what
-the other modes installed before, and the loose install of the older releases in `scripts\zm\zm_prison\`,
-because two layouts must never coexist. Never hand-edit an installed file. `tools/build_mod.pl` installs the
+the other modes installed before, and any loose copy of the scripts in `scripts\zm\zm_prison\` (an early
+development layout), because two layouts must never coexist. Never hand-edit an installed file. `tools/build_mod.pl` installs the
 `mod.ff` and `mod.json` beside them.
 
 ### The mod.ff (props and the Magmagat)
@@ -104,28 +155,25 @@ perl tools/import_all.pl       # the BO3 props from the Greyhound export -> mod/
 perl tools/build_weapon.pl     # the Magmagat weapons from BO2's Blundergat -> mod/weapon (--redump to dump again)
 perl tools/import_sounds.pl    # the BO3 remaster's quest sounds -> mod/sound (the mod.all sound bank)
 perl tools/bo3_fx.pl           # the BO3 remaster's effects -> mod/fx (needs the BO3 snapshot, see PORTING_BO3_ASSETS.md)
-perl tools/build_mod.pl        # OpenAssetTools Linker -> mod/out/mod.ff + mod.json, installed into the mod folder
+perl tools/build_mod.pl        # OpenAssetTools Linker -> mod/out/mod.ff + mod.all.sabl/.sabs + mod.json, installed into the mod folder
 perl tools/deploy.pl           # the scripts, beside it
 perl tools/release.pl          # release/zm_magmagat/ (the folder players drop into mods\) + its zip, to try it locally
-perl tools/publish.pl          # the GitHub Release: mod.ff up, the release workflow attaches the player zip
+perl tools/publish.pl          # the GitHub Release: mod.ff and the sound bank up, the release workflow attaches the player zip
 ```
 
-Needs OpenAssetTools (`C:/Games/t6/openassettools`, env `MG_OAT`), the BO2 install (env `MG_BO2`) and, for the
-props, Greyhound's export of the BO3 map "Mob of the Dead Remastered" (`C:/Games/t6/Greyhound-1.49.4.0`, env
-`MG_GREYHOUND`: its models in `exported_files/black_ops_3_sp/xmodels`, the map's textures loaded from its `.xpak` in
-`exported_files/black_ops_3/ximages`). `mod/props`, `mod/weapon`, `mod/work` and `mod/out` are generated from the
-games' files and are never committed (so is `mod/sound`).
+Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/weapon`, `mod/sound`, `mod/fx`,
+`mod/work` and `mod/out` are generated from the games' files and are never committed (`.gitignore` lists them).
 
 - **Props** (`tools/import_all.pl` lists them): each BO3 model becomes a rigid T6 xmodel (Greyhound's glTF, Z-up
   centimetres, turned to the Linker's Y-up inches; at most 4 LODs, most detailed first by file size since Greyhound's
   LOD numbers are no detail order, and LODs it exported without meshes left out: BO3 streams them, so export a model
   while it is in view in game), one material per surface cloned from a vanilla
-  lit template, and its textures embedded in the fastfile as `*mg_<name>` images. A texture given a plain name makes
-  the Linker write a STREAMED image, which T6 only looks for in its own `.ipak` files: it never shows. A BO3 layered
-  material (a paint and a rust layer through a mask) is baked into one colour map by `tools/bake_layers.pl`;
-  `--skip` drops surfaces T6 cannot draw (the barrel's transparent shell, its alpha decal), `--skip-color` those whose
-  colour texture matches (the press's decal layers, which BO3 blends over it and T6 would draw opaque); a `$black_color`
-  surface gets a small embedded black image. Textures are block
+  lit template (vanilla's wood barrel, from the dump of `tools/dump_game.pl`), and its textures embedded in the fastfile as `*mg_<name>` images. A texture given a plain name makes
+  the Linker write a STREAMED image, which T6 only looks for in its own `.ipak` files: it never shows. A BO3 paint
+  tint (the drum's colour map masks its paint, its material tints it) is baked into the colour map by
+  `tools/paint_mask.pl`. `--skip-color` drops the surfaces whose colour texture matches (the press's decal layers,
+  which BO3 blends over it and T6 would draw opaque), `--skip` those whose material name matches (no prop needs it
+  today); a `$black_color` surface gets a small embedded black image. Textures are block
   compressed by `tools/MgDds.pm` (BC1 colour, BC5 normal): the fastfile stays small.
 - **The Magmagat** (`tools/build_weapon.pl`): the Unlinker dumps zm_prison's weapons, models, materials and images
   (the map's images sit in DLC `.ipak` files it only opens under a name it loads itself, so they are hard-linked as
@@ -148,7 +196,7 @@ games' files and are never committed (so is `mod/sound`).
   `mg/fx_magmagat_explode`. Both wear BO4's blob `mg_magma_blob` (`$blob` in `tools/build_weapon.pl`, `mg_model( "ball" )`),
   exported from Greyhound after the Magmagat fired in BO3 (before, BO3 has not streamed its mesh in and the export is
   empty, which `tools/import_all.pl` leaves out). The pool a miss lays is the remaster's aoe effect
-  (`mg/fx_prison_magmagat_aoe`) at the blob, turned with it to the surface it stuck to. The generator now only builds the lava material `mc/mg_lava`: the
+  (`mg/fx_prison_magmagat_aoe`) at the blob, turned with it to the surface it stuck to. The generator builds only the lava material `mc/mg_lava`: the
   BO3 remaster's lava (`i_pbr_lava_magma_emissive_1_mtl`) on the emberglow shader, which the blob wears.
 - **The sounds** (`tools/import_sounds.pl`, the list in `tools/assets/bo3_sounds.tsv`): BO3 banks are the same `2UX#`
   container as T6's (version 15), every sound plain FLAC 48 kHz. The map's zone data names them: each alias record
@@ -158,7 +206,7 @@ games' files and are never committed (so is `mod/sound`).
   `mod.all.sabl` / `mod.all.sabs` beside `mod.ff`; they ship in the mod folder. Our aliases are `mg_*`; `lint_sounds`
   reads the manifest. In game, `printsoundalias mg_press` (console) shows whether the bank is loaded.
 - **What the stock Linker cannot carry** (OpenAssetTools v0.33): particle effects (FxEffectDef is not loaded; the
-  mod links them with a patched Linker, see PORTING_BO3_ASSETS.md section 6), new tracers (the T6 tracer loader is not
+  mod links them with a patched Linker, see PORTING_BO3_ASSETS.md, "The effects"), new tracers (the T6 tracer loader is not
   registered: the weapons use no tracer) and BO3 animations (no tool turns T7 xanims into T6 ones; the rig is shared,
   so the Blundergat's animations fit the BO4 gun).
 
@@ -168,10 +216,10 @@ games' files and are never committed (so is `mod/sound`).
   `check_links`, then a pack test (one file, else two, else three) to prove the scripts still load.
 - `.github/workflows/release.yml`, when a GitHub Release is published: the player zip. The mod.ff is built from the
   games' files, which never leave the maintainer's PC, so `perl tools/publish.pl` builds it and publishes the release
-  `v<version>` (`level.mg_version`) with `mod.ff` attached, on the pushed commit (needs `gh auth login`). The workflow
-  checks the tag against the version, lints, packs the scripts from the tagged sources, assembles `zm_magmagat/`
-  (mod.ff, mod.json with the version, the packed scripts), attaches `zm_magmagat-<version>.zip` and removes the bare
-  `mod.ff`. `workflow_dispatch` rebuilds the zip of an existing release. `tools/release.pl` builds the same folder and
+  `v<version>` (`level.mg_version`) with `mod.ff`, `mod.all.sabl` and `mod.all.sabs` attached, on the pushed commit
+  (needs `gh auth login`). The workflow checks the tag against the version, lints, packs the scripts from the tagged
+  sources, assembles `zm_magmagat/` (mod.ff, the sound bank, mod.json with the version, the packed scripts), attaches
+  `zm_magmagat-<version>.zip` and removes the bare mod.ff and sound bank. `workflow_dispatch` rebuilds the zip of an existing release. `tools/release.pl` builds the same folder and
   zip locally, to try a release before publishing it.
 
 ## The lints (run all four before every push)
@@ -183,7 +231,7 @@ perl tools/lint_includes.pl && perl tools/lint_calls.pl && perl tools/lint_sound
 | Tool | Catches |
 |---|---|
 | `tools/lint_includes.pl` | a `mg_*.gsc` that calls a vanilla SCRIPT helper (not an engine builtin) without the three utility includes (`common_scripts\utility`, `maps\mp\_utility`, `maps\mp\zombies\_zm_utility`) |
-| `tools/lint_calls.pl` | a function name called in the sources that is defined in no `mg_*.gsc` and used by name in no vanilla T6 zombies script: almost surely a helper from another CoD |
+| `tools/lint_calls.pl` | a function name called in the sources that is defined in no `mg_*.gsc` and used by name in no vanilla T6 zombies script: almost surely a helper from another CoD (needs the decompiled scripts, `MG_T6_SCRIPTS`; without them it prints "calls skipped" and passes, as in CI) |
 | `tools/lint_sounds.pl` | a sound alias played by a source that is in none of the game's real alias tables (`tools/assets/soundbank/*.aliases.csv`), i.e. silent in game |
 | `tools/check_links.pl` | a `mg_*` function called in a file that is defined neither there nor in a `mg_*` file it `#include`s, and duplicate definitions across files (all mg files share one namespace) |
 
@@ -249,7 +297,8 @@ repository and are never edited here — see "Rules every change must keep" belo
 
 1. **One mod folder.** Everything the player installs is `mods\zm_magmagat\` (`tools/release.pl`). No edits to any
    file outside this repository except the installs done by `tools/build_mod.pl` and `tools/deploy.pl`. Files
-   generated from the games (`mod/props`, `mod/weapon`, `mod/work`, dumps, textures) are never committed.
+   generated from the games (`mod/props`, `mod/weapon`, `mod/sound`, `mod/fx`, `mod/work`, `mod/out`, dumps,
+   textures) are never committed.
 2. **Never edit another mod's files.** In particular `zm_scavenger.gsc`, `cheats_zm.gsc`, `motd_solo.gsc`,
    `b2op-plutonium.gsc` and `nav_autocomplete.gsc` are off limits; read them for reference only.
 3. **Every source starts with the three utility includes**, then `#include scripts\zm\zm_prison\mg_<other>;`

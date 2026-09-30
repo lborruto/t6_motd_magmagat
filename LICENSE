@@ -20,7 +20,36 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This licence covers the Magmagat sources (the mg_*.gsc files, the tools and
-the documentation). It does not cover the third-party files referenced for
-convenience, which keep their own authors' terms:
-  - the game data extracted under tools/assets, which belongs to Activision / Treyarch
+----------------------------------------------------------------------------
+
+What this licence covers
+
+The MIT licence above covers the Magmagat's own sources: the mg_*.gsc
+scripts, the tools under tools/ (except the file named below) and the
+documentation.
+
+It does not cover:
+
+  - tools/oat/t6-fx-json.patch. It is a patch against OpenAssetTools
+    (github.com/Laupetin/OpenAssetTools), so it is a derivative work of
+    OpenAssetTools and is licensed under the GNU General Public License
+    version 3 (GPL-3.0), as OpenAssetTools is.
+
+  - The game data under tools/assets (asset lists, entity dumps, sound alias
+    tables), extracted from Call of Duty: Black Ops II. It belongs to
+    Activision / Treyarch. The mod's own manifests there (bo3_fx.tsv,
+    bo3_sounds.tsv) are MIT like the tools.
+
+  - The built mod: mod.ff and the sound bank (mod.all.sabl, mod.all.sabs) in
+    a release. Their models, textures, materials, effects and sounds are
+    other people's work and keep their owners' terms. None of them is under
+    the MIT licence:
+      - Treyarch / Activision assets from Black Ops II, Black Ops III and
+        Black Ops 4, among them BO4's Magmagat and Tempered Blundergat
+        models, the p8_fxp_magma_blob lava blob and the
+        p8_zm_esc_machinery_01 press;
+      - assets from the BO3 Workshop map "MOB OF THE DEAD" by copforthat and
+        the map's team (its effects, sounds, lava, drums and skulls);
+      - Harry's effects that map ships (harry/magmagat/* and
+        harry/blundersplat/*: the lava blob's trail, impact and burst, and
+        the muzzle flashes).

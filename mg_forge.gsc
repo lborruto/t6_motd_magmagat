@@ -9,7 +9,7 @@
 
 // The forge: the remaster's Machine (mg_upgrade_machine) in the dock Generator Room, as _zm_weap_magmagat.gsc runs it.
 // During the temper run the carrier powers it: that ends the run in success and opens the forge to every player for
-// good. Then any Blundergat or Acid Gat placed on its bed is pressed (5.65 s: the ram down, the press fire, the
+// good. Then any of the four Blundergats placed on its bed is pressed (5.65 s: the ram down, the press fire, the
 // Magmagat on the bed as the ram lifts), and only the player who placed it may take the Magmagat, within 15 s or it
 // is lost.
 
@@ -116,13 +116,13 @@ mg_forge_prompt_text( player )
     if ( isdefined( level.mg_forge_ready_gun ) )
     {
         if ( isdefined( level.mg_forge_placer ) && level.mg_forge_placer == player )
-            return "Hold [{+activate}] to take the Magmagat";
+            return "Hold ^3[{+activate}]^7 to take the Magmagat";
 
         return undefined;
     }
 
     if ( mg_forge_carrying( player ) )
-        return "Hold [{+activate}] to power the Machine";
+        return "Hold ^3[{+activate}]^7 to power the Machine";
 
     if ( !is_true( level.mg_forge_open ) )
         return undefined;
@@ -130,7 +130,7 @@ mg_forge_prompt_text( player )
     if ( isdefined( player.mg_forge_missing_until ) && gettime() < player.mg_forge_missing_until )
         return "Missing Blundergat";
 
-    return "Hold [{+activate}] to place the Blundergat";
+    return "Hold ^3[{+activate}]^7 to place the Blundergat";
 }
 
 mg_forge_press( player )
@@ -174,7 +174,7 @@ mg_forge_power( player )
 {
     level endon( "mg_goto" );
     level.mg_forge_busy = 1;
-    mg_snd_near( "zmb_powerpanel_activate", level.mg_press_rest, 800 );
+    level.mg_press["press_body"] playsound( "zmb_powerpanel_activate" );
     mg_run_end_ok();
     mg_state_set( "done" );
     mg_fx_once( "sparks", level.mg_press_rest, undefined, level.mg_press["press_body"].angles );
@@ -215,7 +215,7 @@ mg_forge_place( player, weapon )
     wait 0.5;
     level thread mg_press_down();
     wait 0.05;
-    mg_snd_near( "mg_press", level.mg_press_rest, 2000 );
+    level.mg_press["press_body"] playsound( "mg_press" );
 
     // t 1.35, the start anim over: the press fire once at the machine, the gun under the ram gone
     wait 0.8;
@@ -257,6 +257,10 @@ mg_forge_take( player )
         return;
 
     if ( !isdefined( level.mg_forge_placer ) || level.mg_forge_placer != player )
+        return;
+
+    // as the fireplace's take (the remaster ignores the press while drinking, or with a mine, equipment or nothing in hand)
+    if ( is_true( player.is_drinking ) || !mg_can_replace_current( player ) )
         return;
 
     weapon = level.mg_forge_gun_weapon;

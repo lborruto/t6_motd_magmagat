@@ -136,10 +136,13 @@ mg_fx_stop( ent )
         ent delete();
 }
 
-// A looping fx on a still entity is culled by the client after a while: nudge it 0.5 units every 5 s.
+// A looping fx on a still entity is culled by the client after a while: nudge it 0.5 units every 5 s, until it goes
+// or starts moving ("mg_moving": setting its origin would cut a moveto short).
 mg_fx_keepalive( ent )
 {
     level endon( "end_game" );
+    ent endon( "death" );
+    ent endon( "mg_moving" );
     up = 1;
 
     while ( isdefined( ent ) )
@@ -158,39 +161,7 @@ mg_fx_keepalive( ent )
     }
 }
 
-// A fresh trail entity that settles 0.15 s before it flies (a moved-on-spawn entity is sometimes never seen).
-mg_trail( fxkey, from, to, speed )
-{
-    level endon( "end_game" );
-    // aimed along the flight: the soul streak points where it goes
-    ent = mg_fx_loop( fxkey, from, vectortoangles( to - from ) );
-
-    if ( !isdefined( ent ) )
-        return;
-
-    time = distance( from, to ) / speed;
-
-    if ( time < 0.3 )
-        time = 0.3;
-
-    if ( time > 2 )
-        time = 2;
-
-    ent moveto( to, time );
-    wait( time );
-    mg_fx_stop( ent );
-}
-
 // ---- sound --------------------------------------------------------------------------------------------------
-mg_snd_near( alias, origin, radius )
-{
-    foreach ( player in getplayers() )
-    {
-        if ( distancesquared( player.origin, origin ) <= radius * radius )
-            player playsoundtoplayer( alias, player );
-    }
-}
-
 mg_snd_player( alias )
 {
     if ( isdefined( self ) && isplayer( self ) )
@@ -263,116 +234,6 @@ mg_press_use()
     return 1;
 }
 
-mg_bar_elem( color, alpha, width )
-{
-    hud = newclienthudelem( self );
-    hud.alignx = "left";
-    hud.aligny = "middle";
-    hud.horzalign = "user_center";
-    hud.vertalign = "user_bottom";
-    hud.x = -100;
-    hud.y = -48;
-    hud.color = color;
-    hud.alpha = alpha;
-    hud.foreground = 1;
-    hud.hidewheninmenu = 1;
-    hud setshader( "white", width, 8 );
-    return hud;
-}
-
-// self = player
-mg_bar_create( label )
-{
-    bar = spawnstruct();
-    bar.width = 200;
-    bar.owner = self;
-    bar.bg = self mg_bar_elem( ( 0.1, 0.1, 0.1 ), 0.6, bar.width );
-    bar.fill = self mg_bar_elem( ( 1, 0.55, 0.1 ), 0.9, 1 );
-
-    if ( isdefined( label ) )
-    {
-        bar.text = self mg_text_elem( -56, 1.2, ( 1, 1, 1 ) );
-        bar.text settext( label );
-    }
-
-    if ( !isdefined( self.mg_bars ) )
-        self.mg_bars = [];
-
-    if ( !isdefined( self.mg_bar_seq ) )
-        self.mg_bar_seq = 0;
-
-    self.mg_bar_seq++;
-    bar.id = "b" + self.mg_bar_seq;
-    self.mg_bars[bar.id] = bar;
-    return bar;
-}
-
-mg_bar_update( bar, frac )
-{
-    if ( !isdefined( bar ) || !isdefined( bar.fill ) )
-        return;
-
-    if ( frac < 0 )
-        frac = 0;
-
-    if ( frac > 1 )
-        frac = 1;
-
-    w = int( bar.width * frac );
-
-    if ( w < 1 )
-        w = 1;
-
-    bar.fill setshader( "white", w, 8 );
-}
-
-mg_bar_destroy( bar )
-{
-    if ( !isdefined( bar ) )
-        return;
-
-    if ( isdefined( bar.bg ) )
-        bar.bg destroy();
-
-    if ( isdefined( bar.fill ) )
-        bar.fill destroy();
-
-    if ( isdefined( bar.text ) )
-        bar.text destroy();
-
-    if ( isdefined( bar.owner ) && isdefined( bar.owner.mg_bars ) && isdefined( bar.id ) )
-        bar.owner.mg_bars[bar.id] = undefined;
-}
-
-// self = player. A big centred title for `seconds` (the weapon name the HUD cannot show).
-mg_hud_title( text, seconds )
-{
-    self endon( "disconnect" );
-
-    if ( isdefined( self.mg_title_hud ) )
-        self.mg_title_hud destroy();
-
-    hud = self mg_text_elem( -140, 2.2, ( 1, 0.6, 0.15 ) );
-    hud settext( text );
-    hud.alpha = 0;
-    hud fadeovertime( 0.3 );
-    hud.alpha = 1;
-    self.mg_title_hud = hud;
-    wait( seconds );
-
-    if ( isdefined( self.mg_title_hud ) && self.mg_title_hud == hud )
-    {
-        hud fadeovertime( 0.5 );
-        hud.alpha = 0;
-        wait 0.5;
-
-        if ( isdefined( hud ) )
-            hud destroy();
-
-        self.mg_title_hud = undefined;
-    }
-}
-
 // HUD cleanup on disconnect, per player (started for everybody by mg_systems_boot).
 mg_systems_boot()
 {
@@ -400,20 +261,6 @@ mg_hud_disconnect_watch()
         return;
 
     self mg_prompt( 0, undefined );
-
-    if ( isdefined( self.mg_title_hud ) )
-        self.mg_title_hud destroy();
-
-    if ( isdefined( self.mg_bars ) )
-    {
-        foreach ( bar in self.mg_bars )
-        {
-            if ( isdefined( bar ) )
-                mg_bar_destroy( bar );
-        }
-    }
-
-    self.mg_bars = [];
 }
 
 // ---- weapons ----------------------------------------------------------------------------------------------
@@ -472,20 +319,6 @@ mg_death_listen_remove( key )
         level.mg_death_listeners[key] = undefined;
 }
 
-mg_zombies_near( pos, radius )
-{
-    n = 0;
-    r2 = radius * radius;
-
-    foreach ( ai in getaiarray( level.zombie_team ) )
-    {
-        if ( isdefined( ai ) && isalive( ai ) && distancesquared( ai.origin, pos ) < r2 )
-            n++;
-    }
-
-    return n;
-}
-
 // ---- the Warden's Office, as a box ---------------------------------------------------------------------------
 // The remaster's soul catcher volume (the info_volume soul_catcher_mg targets, BO3 centre -4241 3787 2770), brought onto
 // BO2 by the office fit (tools/assets/bo3_fx.tsv; it puts the BO3 skulls and office door within 10 units of ours): its
@@ -502,9 +335,4 @@ mg_ent_in_office( ent )
         return 0;
 
     return mg_in_office_box( ent.origin );
-}
-
-mg_player_in_office( player )
-{
-    return isdefined( player ) && is_player_valid( player ) && mg_ent_in_office( player );
 }

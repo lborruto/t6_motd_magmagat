@@ -8,7 +8,7 @@ use File::Basename qw(dirname);
 # external" at load, the compiler cannot know). Exit 1 on any unknown name.
 my $tools   = dirname(__FILE__);
 my $repo    = "$tools/..";
-my $vanilla = 'C:/Games/t6/t6-scripts/t6-scripts-main/ZM';
+my $vanilla = $ENV{MG_T6_SCRIPTS} // 'C:/Games/t6/t6-scripts/t6-scripts-main/ZM';    # the decompiled T6 ZM scripts
 
 my %known = ( notifyonplayercommand => 1 ); # a real T6 builtin the ZM scripts never use (MP ones do)
 my %keyword = map { $_ => 1 } qw(if else while for foreach switch case return wait waittill waittillmatch waittillframeend
@@ -27,7 +27,7 @@ sub walk {
     closedir $dh;
 }
 walk($vanilla);
-if ( !@files ) { print "calls skipped (no vanilla scripts under $vanilla: run this lint on the owner machine)\n"; exit 0 }
+if ( !@files ) { print "calls skipped (no vanilla scripts under $vanilla: set MG_T6_SCRIPTS to the decompiled ZM folder)\n"; exit 0 }
 for my $f (@files) {
     open my $h, '<', $f or next;
     while (<$h>) {

@@ -14,7 +14,6 @@
 mg_quest_init()
 {
     level.mg_state = "locked";
-    level.mg_souls = 0;
     level thread mg_bridge_gate();
 }
 
@@ -89,13 +88,24 @@ mg_has_blundergat( player )
     if ( !isdefined( player ) || !is_player_valid( player ) )
         return undefined;
 
-    foreach ( weapon in array( "blundergat_zm", "blundergat_upgraded_zm", "blundersplat_zm", "blundersplat_upgraded_zm" ) )
+    foreach ( weapon in mg_blundergats() )
     {
         if ( player hasweapon( weapon ) )
             return weapon;
     }
 
     return undefined;
+}
+
+// The four Blundergat variants the fireplace and the forge take.
+mg_blundergats()
+{
+    return array( "blundergat_zm", "blundergat_upgraded_zm", "blundersplat_zm", "blundersplat_upgraded_zm" );
+}
+
+mg_is_blundergat( weapon )
+{
+    return isdefined( weapon ) && isinarray( mg_blundergats(), weapon );
 }
 
 // The vanilla rule for "take a quest weapon" (zm_alcatraz_utility.gsc:264): the weapon in hand may be replaced only

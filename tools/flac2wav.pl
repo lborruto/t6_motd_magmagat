@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# flac2wav.pl <in.flac> <out.wav> [target_rate]
+# flac2wav.pl <in.flac> <out.wav>   (the output keeps the input rate)
 # Pure-Perl FLAC decoder (core modules only) -> PCM16 WAV with a canonical 44-byte header
 # (exactly what OpenAssetTools' T6 SoundBankWriter::LoadWavFile expects for "loaded" sounds).
 # Supports: CONSTANT / VERBATIM / FIXED / LPC subframes, rice + rice2 residuals (incl. escape),

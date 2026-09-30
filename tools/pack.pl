@@ -43,7 +43,7 @@ my @ORDER = qw(
 }
 
 my $STRING_LIMIT = 62000;   # engine limit 65535, minus a margin for what the estimate cannot see
-my $GSC_TOOL = 'C:/Games/t6/gsc-tools/gsc-tool.exe';
+my $GSC_TOOL = $ENV{MG_GSC_TOOL} // 'C:/Games/t6/gsc-tools/gsc-tool.exe';
 
 my $out = "$repo/release/zm_prison_magmagat.gsc";
 my $parts = 1;
@@ -263,6 +263,14 @@ sub strip_comments {
         while ( $i < length $line ) {
             my $c = substr $line, $i, 1;
             last if !$in_str && substr( $line, $i, 2 ) eq '//';
+
+            # an escaped character inside a string (\" or \\) is kept whole: it neither ends the string nor starts one
+            if ( $in_str && $c eq "\x5c" && $i + 1 < length $line ) {
+                $code .= substr $line, $i, 2;
+                $i += 2;
+                next;
+            }
+
             $in_str = !$in_str if $c eq '"';
             $code .= $c;
             $i++;

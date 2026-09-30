@@ -4,8 +4,9 @@
 > says it best: our advice is to discover it yourself first. Come back here only if you are stuck. Each
 > section below is folded; open only the one you need.
 
-The quest follows the BO3 remaster "MOB OF THE DEAD" by copforthat, step by step: the same counts and timers, on
-Mob of the Dead. The Magmagat itself is Black Ops 4's gun.
+The quest follows the BO3 remaster "MOB OF THE DEAD" by copforthat, step by step, on Mob of the Dead, with two
+changes of our own: the souls drop as essences you walk over, as in Black Ops 4, and the tempered gun waits for you to
+deposit them in the fire before you can take it. The Magmagat itself is Black Ops 4's gun.
 
 <details>
 <summary>Requirements</summary>
@@ -32,27 +33,36 @@ office is outlined in light: it is locked down. Nobody can walk through its door
 <details>
 <summary>The souls</summary>
 
-Every regular zombie that dies **inside the Warden's Office** releases a soul, whoever killed it and from wherever.
-The soul, a blue streak of lightning, rises over the body, and half a second after the kill it counts by itself: there
-is nothing to pick up. Brutus gives none, and neither does a zombie that dies outside. You need **15 souls**: the
-three skulls on the mantle light up blue at **5**, **10** and **15**.
+Every regular zombie that dies **inside the Warden's Office** drops an essence, whoever killed it and from wherever:
+a blue streak of lightning humming just over the body. It does not count yet. Walk over it (any player can) and it
+streaks into a skull on the mantle, and counts when it gets there. An essence waits until someone takes it or the
+lockdown ends. Brutus drops none, and neither does a zombie that dies outside. There are never more essences on the
+floor than souls still missing: once enough lie waiting, more kills drop nothing until you take some.
+
+You need **15 souls**: the three skulls on the mantle light up with a blue flame at **5**, **10** and **15**.
 
 The lockdown fails only if the player who placed the gun goes down (last stand or Afterlife). The skulls go dark, the
 fire lets go a couple of seconds later, and the gun is lost: place a new one. Other players going down changes nothing.
 There is no time limit.
 
-A second after the 15th soul the laugh plays again, and two seconds later the lockdown ends.
+A second after the 15th soul reaches its skull the laugh plays again, and two seconds later the lockdown ends.
+
+</details>
+
+<details>
+<summary>The deposit</summary>
+
+Now only the player who placed the gun can use the fireplace, and there is no time limit. First "Hold [use] to deposit
+the essence": the three skulls' souls streak into the fire, it bursts and burns blue, and it stays blue until the gun
+is taken. Then "Hold [use] to take the Tempered Blundergat". The skulls stay lit.
 
 </details>
 
 <details>
 <summary>The run</summary>
 
-Now only the player who placed the gun can take the tempered gun from the fireplace: "Hold [use] to take the Tempered
-Blundergat". There is no time limit. The skulls stay lit.
-
-The tempered gun carries a blue flame, and you have **15 seconds** before it burns out. Five drums burn blue along the
-route (the office exit, down the stairs, the Citadel, the tunnels, the docks): stepping up to the foot of one sets the
+The tempered gun carries a blue flame (its muzzle flash burns blue too), and you have **15 seconds** before it burns
+out. Five drums burn blue along the route (the office exit, down the stairs, the Citadel, the tunnels, the docks): stepping up to the foot of one sets the
 timer back to 15, but each drum works **once per run**. Firing the gun does not end the run. Switching to any other
 weapon does (your Blundergat, Sweeper or Acid Gat is fine). So does going down, or running out of time.
 
@@ -91,8 +101,8 @@ blob bursts, hurting the zombies around it. Brutus takes one heavy hit, and the 
 later. Zombies are drawn to the blob until it is gone.
 
 A blob that hits anything else lays a lava pool for **6 seconds**. A zombie that steps in burns and dies within a
-second; Brutus walks through it unharmed. Mind your feet: the pool hurts every player in it, you included (20 health
-every half second).
+second; Brutus walks through it unharmed. Mind your feet: the pool sets every player in it on fire, you included, and
+takes 20 health every half second.
 
 Once forged, the Magmagat is yours like any other weapon. Pack-a-Punch it and it comes out as the Magmus Operandi
 (two blobs a clip, 25 to start and 30 at most, a wider pool and a bigger lure). The Acid Gat kit takes it too: it goes

@@ -9,13 +9,16 @@
 
 // The fireplace, as the BO3 remaster plays it (_zm_weap_magmagat.gsc, the soul hook in zm_prison_cerberus_quest.gsc):
 // once the bridge's chair has been taken, a first press burns the boards; then a Blundergat laid in the fire locks the
-// Warden's Office down until 15 zombies have died in it (their souls light three skulls at 5 / 10 / 15). The placer
-// going down fails it and the gun is lost; a success leaves the gun for the placer to take, tempered, with no time limit.
+// Warden's Office down until 15 souls have reached the skulls (a kill in it drops an essence, BO4's way: stepped on, it
+// flies into its skull; the skulls light at 5 / 10 / 15). The placer going down fails it and the gun is lost; a
+// success leaves it to the placer, with no time limit: he deposits the essence (the fire burns blue), then takes it,
+// tempered.
 
 mg_hearth_init()
 {
     level.mg_souls = 0;
     level.mg_souls_taken = 0;
+    level.mg_essences = 0;
     level.mg_souls_on = 0;
     level.mg_skulls = [];
     level.mg_skull_fx = [];
@@ -40,7 +43,7 @@ mg_hearth_init()
 
 // The remaster's use trigger tr_magmagat_upgrade, as our polled prompt (mg_prompt, as the forge): within 96 units of
 // MG_HEARTH_USE. Ready: no hint before the boards have burnt (the remaster's first press), then the place hint for
-// everyone; pickup: the take hint for the placer alone.
+// everyone; pickup: the deposit hint, then the take hint, for the placer alone.
 mg_hearth_prompt_loop()
 {
     level endon( "end_game" );
@@ -213,7 +216,8 @@ mg_lockdown( placer )
     wait 2;
     mg_lockdown_off();
 
-    if ( won )
+    // the placer may have left in those 2 s: nobody could take the gun
+    if ( won && isdefined( placer ) )
     {
         mg_state_set( "pickup" );
         level thread mg_hearth_owner_watch( placer, level.mg_hearth_session );
@@ -228,10 +232,8 @@ mg_hearth_owner_watch( placer, session )
     level endon( "end_game" );
     level endon( "mg_goto" );
 
-    if ( !isdefined( placer ) )
-        return;
-
-    placer waittill( "disconnect" );
+    if ( isdefined( placer ) )
+        placer waittill( "disconnect" );
 
     if ( mg_state_is( "pickup" ) && level.mg_hearth_session == session )
     {
@@ -247,6 +249,7 @@ mg_lockdown_fail_watch( placer )
     level endon( "end_game" );
     level endon( "mg_goto" );
     level endon( "mg_lockdown_end" );
+    wait 0.05;    // mg_lockdown is waiting for the end before any fail is sent
 
     while ( true )
     {
@@ -291,7 +294,8 @@ mg_laugh_all()
 // (animname brutus_zombie) and other archetypes never count. The killer may stand anywhere.
 mg_hearth_zombie_died( zombie )
 {
-    if ( !is_true( level.mg_souls_on ) || level.mg_souls >= 15 )
+    // no more essences than souls still missing: each is a looping effect, a sound and a thread
+    if ( !is_true( level.mg_souls_on ) || level.mg_souls_taken + level.mg_essences >= 15 )
         return;
 
     if ( !isdefined( zombie ) || !isdefined( zombie.animname ) || zombie.animname != "zombie" )
@@ -319,13 +323,19 @@ mg_soul( pos, session )
 {
     level endon( "end_game" );
     playsoundatposition( "mg_soul_kill", pos );
+    level.mg_essences++;
     essence = mg_fx_loop( "soul_trail", pos + ( 0, 0, 14 ) );
 
     if ( !isdefined( essence ) )
+    {
+        level.mg_essences--;
         return;
+    }
 
     essence playloopsound( "mg_soul_loop" );
+    level thread mg_fx_keepalive( essence );
     taker = essence mg_essence_wait( session );
+    level.mg_essences--;
 
     if ( !isdefined( taker ) )
     {
@@ -382,6 +392,7 @@ mg_essence_wait( session )
 // self = an essence taken: a hop, then a fast streak into the skull (0.5 s), the remaster's lightning trailing it.
 mg_essence_fly( skull )
 {
+    self notify( "mg_moving" );
     up = self.origin + ( 0, 0, 24 );
     self moveto( up, 0.2, 0, 0.1 );
     wait 0.2;
@@ -432,19 +443,32 @@ mg_skulls_dark()
 // burns blue until the tempered Blundergat is taken. The skulls stay lit.
 mg_hearth_deposit( player )
 {
+    level endon( "mg_goto" );
+
     if ( !mg_state_is( "pickup" ) || !isdefined( level.mg_hearth_owner ) || player != level.mg_hearth_owner )
         return;
 
+    session = level.mg_hearth_session;
     hearth = mg_coord( "MG_HEARTH" ).origin;
 
     foreach ( skull in level.mg_skulls )
         level thread mg_hearth_soul_in( skull.origin, hearth );
 
     wait 0.6;
-    level.mg_hearth_charged = 1;
     playsoundatposition( "mg_flame_burst", hearth );
     mg_fx_once( "hearth_flare", hearth );
-    level.mg_hearth_blue = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 17 ) );
+    blue = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 17 ) );
+
+    // a reset (the placer gone, a goto) during those waits: the fire stays as it was
+    if ( !mg_state_is( "pickup" ) || level.mg_hearth_session != session )
+    {
+        mg_fx_stop( blue );
+        return;
+    }
+
+    level.mg_hearth_blue = blue;
+    level.mg_hearth_charged = 1;
+    level thread mg_fx_keepalive( blue );
 }
 
 // a soul leaving its skull for the fire
@@ -487,8 +511,8 @@ mg_hearth_take( player )
     tempered = mg_tempered_of( weapon );
     primaries = player getweaponslistprimaries();
 
-    // the vanilla rule (wait_for_player_to_take): with two primaries the weapon in hand makes room
-    if ( isdefined( primaries ) && primaries.size >= 2 )
+    // the vanilla rule (wait_for_player_to_take): with a full hand of primaries (two, three with Mule Kick) the weapon in hand makes room
+    if ( isdefined( primaries ) && primaries.size >= get_player_weapon_limit( player ) )
         player takeweapon( player getcurrentweapon() );
 
     player giveweapon( tempered );
@@ -525,7 +549,10 @@ mg_lockdown_wall( origin, angles )
     if ( gen != level.mg_lock_gen )
         mg_fx_stop( wall );
     else if ( isdefined( wall ) )
+    {
         level.mg_lock_fx[level.mg_lock_fx.size] = wall;
+        level thread mg_fx_keepalive( wall );
+    }
 }
 
 // T6's office has no wardens_playerclip: four player-only collision pillars (32 x 32 x 128, centred) stand where the

@@ -1,8 +1,8 @@
 name: Check the scripts
 
 # Every push and pull request: the lints, then a pack test (one file, else two, else three) to prove the quest
-# scripts still load. Nothing is published: the release carries the mod.ff, which is built from the games' own
-# files (tools/release.pl, run locally), and its zip is attached to a GitHub Release by hand.
+# scripts still load. Nothing is published here: the mod.ff and its sound bank are built from the games' own files on
+# the maintainer's PC and attached to a GitHub Release by tools/publish.pl; release.yml then builds the player zip.
 on:
   push:
   pull_request:
@@ -18,7 +18,7 @@ jobs:
       - name: Lint the sources
         # lint_includes: a source calling a vanilla helper without the utility includes fails at load
         # lint_sounds: a sound alias that no zm_prison bank carries is silent in game
-        # lint_calls: a call to a helper that does not exist in T6 fails at load (skips where the vanilla dump is absent)
+        # lint_calls: a call to a helper that does not exist in T6 fails at load (skips where the decompiled vanilla scripts are absent: MG_T6_SCRIPTS)
         run: perl tools/lint_includes.pl && perl tools/lint_sounds.pl && perl tools/lint_calls.pl
 
       - name: Check the cross-file calls

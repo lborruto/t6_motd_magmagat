@@ -10,9 +10,10 @@
 
 // The temper run, as the BO3 remaster (_zm_weap_magmagat.gsc function_2ca6799): 15 s of temper counted in whole
 // seconds; each of the five barrels resets it to 15 once per run (a flare, then it keeps burning until the run ends);
-// from 0.5 s on, any weapon in hand but the tempered gun or a Blundergat variant ends it (firing does not). It
-// succeeds when the carrier powers the Machine at the forge (mg_forge); on failure, silent, the carrier gets his gun
-// back, the skulls go out and 5 s later the fireplace takes a Blundergat again.
+// from 0.5 s on (once the tempered gun first reaches his hands, 3 s at most), any weapon in hand but the tempered gun
+// or a Blundergat variant ends it (firing does not). It succeeds when the carrier powers the Machine at the forge
+// (mg_forge); on failure, silent, the carrier gets his gun back, the skulls go out and 5 s later the fireplace takes a
+// Blundergat again.
 
 mg_run_init()
 {
@@ -98,11 +99,25 @@ mg_run_start( player, weapon )
     level.mg_run_weapon = weapon;
     level.mg_run_failing = 0;
     player.mg_temper_left = 15;
-    mg_barrels_set( 1 );
+    // the state first: lighting the barrels takes 0.75 s, and outside a run mg_tempered_watch takes the gun back
     mg_state_set( "run" );
     player thread mg_run_timer();
     player thread mg_run_loop( weapon );
     player thread mg_run_down_watch();
+    level thread mg_run_carrier_watch( player );
+    mg_barrels_set( 1 );
+}
+
+// The carrier leaving the game fails the run (his own threads die with him).
+mg_run_carrier_watch( player )
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    level endon( "mg_run_over" );
+    player waittill( "disconnect" );
+
+    if ( mg_state_is( "run" ) )
+        mg_run_fail( "the carrier left" );
 }
 
 // self = carrier. The remaster's function_7f32cc1f: a second off, a second's wait, out at 0 (15 s after the start or
@@ -177,29 +192,27 @@ mg_run_loop( weapon )
 // The run's gun, or any of the four Blundergat variants (the remaster lets the Blundergat and the Acid Gat swap).
 mg_run_weapon_ok( current, weapon )
 {
-    if ( !isdefined( current ) )
-        return 0;
-
-    if ( current == weapon || mg_is_tempered( current ) )
+    // "none" is T6's hands on a ladder or a mantle, not a switch
+    if ( !isdefined( current ) || current == "none" )
         return 1;
 
-    foreach ( w in array( "blundergat_zm", "blundergat_upgraded_zm", "blundersplat_zm", "blundersplat_upgraded_zm" ) )
-    {
-        if ( current == w )
-            return 1;
-    }
-
-    return 0;
+    return current == weapon || mg_is_tempered( current ) || mg_is_blundergat( current );
 }
 
-// The temper riding the gun. The remaster's flame is on the carrier's viewmodel only; T6 has no server-side viewmodel
-// fx, so the tempered gun's own model shows it in first person and this world flame shows it to the others.
+// The temper riding the gun. The remaster's flame is on the carrier's viewmodel muzzle only; T6 has no server-side
+// viewmodel fx, so the tempered gun's own model shows it in first person and this world flame, at the world gun's muzzle
+// (its hand when the gun has no tag_flash), shows it to the others.
 mg_run_flame_on( player )
 {
-    flame = mg_fx_loop( "gun_flame", player gettagorigin( "tag_weapon_right" ) );
+    tag = "tag_flash";
+
+    if ( !isdefined( player gettagorigin( tag ) ) )
+        tag = "tag_weapon_right";
+
+    flame = mg_fx_loop( "gun_flame", player gettagorigin( tag ) );
 
     if ( isdefined( flame ) )
-        flame linkto( player, "tag_weapon_right", ( 0, 0, 0 ), ( 0, 0, 0 ) );
+        flame linkto( player, tag, ( 0, 0, 0 ), ( 0, 0, 0 ) );
 
     return flame;
 }
@@ -230,7 +243,7 @@ mg_run_fail( reason )
 }
 
 // The remaster's failure: no sound, no fx, the lit skulls go out; 5 s later the fireplace takes a Blundergat again
-// and the whole step (place, 15 souls, take) is to redo. The state stays "run" meanwhile, with no carrier.
+// and the whole step (place, 15 souls, deposit, take) is to redo. The state stays "run" meanwhile, with no carrier.
 mg_run_fail_do( reason )
 {
     level endon( "mg_goto" );
@@ -239,6 +252,8 @@ mg_run_fail_do( reason )
     mg_run_give_back();
     mg_run_cleanup();
     mg_skulls_dark();
+    level.mg_souls = 0;
+    level.mg_souls_taken = 0;
     wait 5;
     level.mg_run_failing = 0;
     mg_state_set( "ready" );

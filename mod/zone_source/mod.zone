@@ -1,5 +1,6 @@
 // Magmagat mod fastfile (OpenAssetTools Linker, project "mod"). The blocks are written by their tools:
-// tools/import_all.pl (props) and tools/build_weapon.pl (weapon); do not edit them by hand.
+// tools/import_all.pl (props), tools/build_weapon.pl (weapon), tools/import_sounds.pl (sounds) and tools/bo3_fx.pl (fx);
+// do not edit them by hand.
 >game,T6
 
 // props (tools/import_all.pl)

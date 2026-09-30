@@ -1,11 +1,12 @@
 #!/usr/bin/perl
 # Builds the release: ONE folder the player drops into %LOCALAPPDATA%\Plutonium\storage\t6\mods\, plus its zip.
-#   release/zm_magmagat/mod.ff                                   props + Magmagat weapons (tools/build_mod.pl)
+#   release/zm_magmagat/mod.ff                                   props, Magmagat weapons, effects (tools/build_mod.pl)
 #   release/zm_magmagat/mod.json                                 name, author, description, version
 #   release/zm_magmagat/mod.all.sabl, mod.all.sabs              the sound bank (the BO3 remaster's sounds)
 #   release/zm_magmagat/scripts/zm/zm_prison/zm_prison_magmagat*.gsc   the quest (tools/pack.pl)
 #   release/zm_magmagat-<version>.zip
-# mod/props and mod/weapon must be built first (tools/import_all.pl, tools/build_weapon.pl).
+# mod/props, mod/weapon, mod/sound and mod/fx must be built first (tools/import_all.pl, tools/build_weapon.pl,
+# tools/import_sounds.pl, tools/bo3_fx.pl): tools/build_mod.pl links them.
 #
 #   perl tools/release.pl
 use strict;

@@ -32,11 +32,10 @@ Magmagat for Mob of the Dead $version (Plutonium T6).
 
 **Install**: download `zm_magmagat-$version.zip` below (it appears a minute after the release), unzip it and drop the
 `zm_magmagat` folder into `%localappdata%\\Plutonium\\storage\\t6\\mods\\`. In game: **Mods** -> **zm_magmagat**, then
-play Mob of the Dead. Updating from a version before the mod folder: delete the old `zm_prison_magmagat*.gsc` from
-`...\\t6\\scripts\\zm\\zm_prison\\` first.
+play Mob of the Dead.
 MD
 close $fh;
 my @cmd = ( 'gh', 'release', 'create', $tag, map( { "$repo/mod/out/$_" } qw(mod.ff mod.all.sabl mod.all.sabs) ), '--target', $head, '--title', "Magmagat $version", '--notes-file', $notes );
 push @cmd, '--draft' if $draft;
 system(@cmd) == 0 or die "publish.pl: gh release create failed\n";
-print "publish.pl: $tag published with mod.ff; the release workflow attaches zm_magmagat-$version.zip\n";
+print "publish.pl: $tag published with mod.ff and its sound bank (mod.all.sabl / .sabs); the release workflow attaches zm_magmagat-$version.zip\n";

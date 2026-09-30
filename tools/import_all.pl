@@ -1,5 +1,6 @@
 #!/usr/bin/perl
-# Rebuilds every BO3 prop the mod ships from the Greyhound export, then the zone's xmodel list:
+# Rebuilds every prop the mod ships (the BO3 remaster's models and BO4's p8_* ones it carries) from the Greyhound
+# export, then the zone's xmodel list:
 # mod/props is generated (from game files, so never committed) and never edited by hand.
 #
 #   perl tools/import_all.pl
@@ -15,9 +16,6 @@ my $xi = "$gh/exported_files/black_ops_3/ximages";
 my $repo = "$FindBin::Bin/..";
 my $raw = "$repo/mod/props";
 my $work = "$repo/mod/work";
-
-# BO3 layered materials to bake into one colour map ([ out png, tools/bake_layers.pl options ]); none today
-my @bakes = ();
 
 # BO3 paint tints to bake into the colour map ([ out png, source ximage, sRGB tint ]): the green drum's material
 # (mc/mtl_p7_barrel_metal_55gal_green_drk) tints its paint mask by linear (0.0352, 0.0467, 0.0325)
@@ -46,14 +44,9 @@ my @props = (
 system( 'perl', "$FindBin::Bin/dump_game.pl" ) == 0 or die "import_all.pl: the dump failed\n";    # the material template
 remove_tree($raw);
 make_path($work);
-for my $b (@bakes) {
-    my ( $out, @opt ) = @$b;
-    system( 'perl', "$FindBin::Bin/bake_layers.pl", @opt, '--out', $out ) == 0 or die "import_all.pl: bake $out failed\n";
-}
 for my $p (@paints) {
     my ( $out, $img, $tint ) = @$p;
-    system( 'perl', "$FindBin::Bin/paint_mask.pl", "$xi/$img.png", $out, '--tint', $tint ) == 0 or die "import_all.pl: paint $out failed
-";
+    system( 'perl', "$FindBin::Bin/paint_mask.pl", "$xi/$img.png", $out, '--tint', $tint ) == 0 or die "import_all.pl: paint $out failed\n";
 }
 
 # a model Greyhound exported empty (import_prop.pl exits 3) is left out; what uses it falls back on a vanilla one

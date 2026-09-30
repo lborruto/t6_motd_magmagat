@@ -111,7 +111,8 @@ my @weapons = (
         worldModel => 'mg_magmus_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights",
         %blob_only, clipSize => 2, maxAmmo => 30, startAmmo => 25 } ],
     [ 'mg_magma_bolt_zm', 'blundersplat_bullet_zm', { projectileModel => $blob, projTrailEffect => 'mg/fx_magmagat_trail_bolt',
-        projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm' } ],
+        projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm',
+        explosionInnerDamage => 0, explosionOuterDamage => 0 } ],    # no splash of its own (the dart's 10): it only leaves the blob
     [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => $blob,
         projExplosionEffect => 'mg/fx_magmagat_explode', fuseTime => 10,
         aifuseTime => 10, explosionTag => '' } ],

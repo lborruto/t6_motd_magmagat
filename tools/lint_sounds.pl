@@ -57,7 +57,7 @@ for my $f ( sort glob("$repo/mg_*.gsc") ) {
         next if $line =~ m{^\s*//};
         my @found;
         # direct calls
-        while ( $line =~ /\b(playsound|playsoundtoplayer|playsoundatposition|playloopsound|playlocalsound|play_sound_at_pos|playsoundwithnotify|mg_snd_near|mg_a1_tone_near|mg_vox_once|mg_maxis_vox|mg_rich_vox|mg_lamp_hum_set)\s*\(\s*(?:[a-z_.\[\]0-9]+\s*,\s*)?"([a-z0-9_]+)"/gi ) {
+        while ( $line =~ /\b(playsound|playsoundtoplayer|playsoundatposition|playloopsound|playlocalsound|play_sound_at_pos|playsoundwithnotify)\s*\(\s*(?:[a-z_.\[\]0-9]+\s*,\s*)?"([a-z0-9_]+)"/gi ) {
             push @found, $2;
         }
         # alias tables filled by assignment

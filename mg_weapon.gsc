@@ -6,13 +6,13 @@
 #include scripts\zm\zm_prison\mg_quest;
 
 // The Magmagat is its own weapon, magmagat_zm, shipped in our mod.ff (tools/build_weapon.pl: the Blundergat's rig
-// and animations, a lava skin); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. The remaster's
+// and animations, BO4's Magmagat model on it); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. The remaster's
 // Magmagat (_zm_weap_magmagat.gsc) is BO2's Acid Gat with fire, and so is ours: each shot fires one lava blob as T6's
 // Acid Gat fires its dart (_zm_weap_blundersplat.gsc), a real sticky projectile (mg_magma_bolt_zm, which leaves the
 // blob grenade mg_magma_blob_zm where it lands). Then, as the remaster:
 // - on a zombie: it burns in the Acid Gat's stun for 1 s and dies, whatever its health; the blob bursts 0.05 s later;
 // - on Brutus: 2500 burn damage (his own armour takes 90 % of it), the blob bursts 3 s later;
-// - anywhere else: a lava pool for 6 s (32 units across, the Magmus 64), the blob lying in it. A zombie in it takes a
+// - anywhere else: a lava pool for 6 s (a radius of 32, the Magmus 64), the blob lying in it. A zombie in it takes a
 //   quarter of its maximum health every 0.25 s; any player in it 20 every 0.5 s. Brutus walks through.
 // In all three the blob lures zombies (250 units, 5 of them; the Magmus 500 and 10). Magmagat damage pays no points per
 // hit (the kill still does). The Acid Gat kit takes the Magmagat as the Blundergat it was and makes the Acid Gat.
@@ -129,12 +129,14 @@ mg_tempered_give_back( tempered )
 {
     original = self.mg_tempered_from;
 
-    if ( !isdefined( original ) )
+    // without a record of the gun placed (or a record of another tier), the tier the tempered gun carries
+    if ( !isdefined( original ) || mg_tempered_of( original ) != tempered )
+    {
         original = "blundergat_zm";
-    else if ( mg_tempered_of( original ) != tempered && tempered == "mg_tempered_upgraded_zm" )
-        original = "blundergat_upgraded_zm";
-    else if ( mg_tempered_of( original ) != tempered )
-        original = "blundergat_zm";
+
+        if ( tempered == "mg_tempered_upgraded_zm" )
+            original = "blundergat_upgraded_zm";
+    }
 
     held = self getcurrentweapon() == tempered;
     self takeweapon( tempered );
@@ -203,7 +205,7 @@ mg_weapon_grant( weapon )
 
     if ( isdefined( weapon ) && self hasweapon( weapon ) )
         self takeweapon( weapon );
-    else if ( isdefined( primaries ) && primaries.size >= 2 && mg_can_replace_current( self ) )
+    else if ( isdefined( primaries ) && primaries.size >= get_player_weapon_limit( self ) && mg_can_replace_current( self ) )
         self takeweapon( current );
 
     self giveweapon( magma );
@@ -295,6 +297,14 @@ mg_blob_land( bolt, player, weapon )
     blob mg_blob_lure( weapon );
     host = mg_blob_host( blob );
 
+    // stuck to something that moves but is no living zombie (a teammate, the gondola, a corpse): no pool could follow
+    // it, so it bursts at once
+    if ( !isdefined( host ) && isdefined( blob getlinkedent() ) )
+    {
+        blob mg_blob_burst();
+        return;
+    }
+
     // the blob stands out of the surface it hit, a wall or a ceiling as the floor, and its pool with it. T6 keeps a
     // stuck grenade as it flew, so it hides and a copy of the blob stands in its place, turned to the surface
     if ( !isdefined( host ) )
@@ -325,7 +335,8 @@ mg_blob_normal( prev, last, blob )
     if ( lengthsquared( last - prev ) < 1 )
         dir = ( 0, 0, -1 );
 
-    trace = bullettrace( last - dir * 16, last + dir * 48, 0, blob );
+    // the bolt's last sample can be 150 units short of the surface (3000 u/s): trace on through the blob
+    trace = bullettrace( last - dir * 16, blob.origin + dir * 16, 0, blob );
 
     if ( trace["fraction"] >= 1 )
         return ( 0, 0, 1 );
@@ -381,7 +392,8 @@ mg_blob_host( blob )
 
         dz = blob.origin[2] - ai.origin[2];
 
-        if ( dz >= 0 && dz <= 72 )
+        // above its shins: a blob on the floor at its feet is a miss
+        if ( dz >= 12 && dz <= 72 )
         {
             blob linkto( ai );
             return ai;
@@ -465,7 +477,7 @@ mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
     return mg_is_magma_damage( self.damageweapon );
 }
 
-// The lava pool (the remaster's trigger magmagat_lava_pool): a trigger 32 units across (the Magmus 64) and 32 high at
+// The lava pool (the remaster's trigger magmagat_lava_pool): a trigger of radius 32 (the Magmus 64) and 32 high at
 // the blob, wherever it stuck, 6 s, and its fire played the blob's way up (the remaster plays it on the blob). No
 // cap as in the remaster, but 8 at once at most for T6's entity budget (the oldest goes).
 mg_pool( blob, player, weapon, shown )
@@ -481,11 +493,13 @@ mg_pool( blob, player, weapon, shown )
     pool.owner = player;
     pool.weapon = weapon;
 
+    fire = mg_fx_loop( "patch_fire", pool.origin, shown.angles );
+
+    // counted once its fire is up: the oldest may still be in that wait and miss the notify
     if ( level.mg_pools.size >= 8 )
         level.mg_pools[0] notify( "mg_pool_end" );
 
     level.mg_pools[level.mg_pools.size] = pool;
-    fire = mg_fx_loop( "patch_fire", pool.origin, shown.angles );
     pool waittill_any_timeout( 6, "mg_pool_end" );
     arrayremovevalue( level.mg_pools, pool );
     pool delete();
@@ -504,7 +518,8 @@ mg_pool_touched( ent )
 {
     foreach ( pool in level.mg_pools )
     {
-        if ( isdefined( pool ) && ent istouching( pool ) )
+        // 64 covers the Magmus radius and a body's width before the exact test
+        if ( isdefined( pool ) && distancesquared( ent.origin, pool.origin ) < 128 * 128 && ent istouching( pool ) )
             return pool;
     }
 
@@ -516,9 +531,17 @@ mg_pool_damage_loop()
 {
     level endon( "end_game" );
 
+    was_active = 0;
+
     while ( true )
     {
         wait 0.05;
+
+        // no pool: one last pass lets whoever stood in one step out (sound off, burn fading), then nothing
+        if ( level.mg_pools.size == 0 && !was_active )
+            continue;
+
+        was_active = level.mg_pools.size > 0;
 
         foreach ( ai in getaiarray( level.zombie_team ) )
         {
@@ -588,6 +611,7 @@ mg_pool_player()
         return;
 
     self.mg_pool_next = gettime() + 500;
+    self setburn( 1 );    // on fire, screen and body, as vanilla's fire trap (the remaster's burnplayer)
     self dodamage( 20, pool.origin );
 }
 
@@ -625,7 +649,7 @@ mg_burn_fx()
     if ( isdefined( fx ) && isdefined( self ) && isalive( self ) )
     {
         fx linkto( self, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
-        self waittill_any( "death", "mg_burn_fx_off" );
+        self waittill_any( "death", "mg_burn_fx_off", "zombie_delete" );    // vanilla deletes far zombies without a death
     }
 
     mg_fx_stop( fx );
@@ -669,6 +693,11 @@ mg_acid_station_validation( player )
     }
 
     if ( !isdefined( self.targetname ) || self.targetname != "blundergat_upgrade" || !isdefined( player ) )
+        return 1;
+
+    // vanilla asks again at every press of the pickup (wait_for_player_to_take): the gun inserted is gone by then, so
+    // a Magmagat held beside it would be taken too
+    if ( is_true( player.is_pack_splatting ) )
         return 1;
 
     magma = mg_has_magma( player );

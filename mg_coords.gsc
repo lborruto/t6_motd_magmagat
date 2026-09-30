@@ -5,7 +5,7 @@
 
 // Anchors (origin + angles) and prop models. Defaults are placeholders around the vanilla free-Blundergat desk
 // struct sq_bg_reward (-767 8662.5 1370.5, tools/assets/zm_prison.d3dbsp.ents.txt) and the dock generator
-// generator_core (-449 6307 72). The owner records the real spots in game (cheats `!place` / `!spot KEY`) and
+// generator_core (-449 6307 72). The owner records the real spots in game (`!mg grab KEY`, `!mg spots`) and
 // pastes them into mg_apply_overrides below: an override always wins over a default.
 
 mg_models_init()
@@ -69,7 +69,7 @@ mg_coords_init()
     mg_coord_set( "MG_BARREL_4", ( -400, 6500, 72 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
     mg_coord_set( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ), mg_model( "barrel" ) ); // owner: five barrels on the route
 
-    // forge: the left generator of the Generator Room (existing map model, nothing spawned)
+    // forge: placeholders near the Generator Room (the override stands it where the remaster's is; mg_forge spawns the press)
     mg_coord_set( "MG_FORGE", ( -400, 6330, 72 ), ( 0, 190.7, 0 ), mg_model( "beacon" ) );
     mg_coord_set( "MG_FORGE_GUN", ( -449, 6307, 120 ), ( 0, 280, -90 ), mg_model( "gun_world" ) );
 

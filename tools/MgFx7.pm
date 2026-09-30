@@ -19,7 +19,6 @@ sub f2 { my ( $b, $o ) = @_; [ unpack 'f<2', substr( $b, $o, 8 ) ] }
 sub i2 { my ( $b, $o ) = @_; [ unpack 'l<2', substr( $b, $o, 8 ) ] }
 sub f3 { my ( $b, $o ) = @_; [ unpack 'f<3', substr( $b, $o, 12 ) ] }
 sub u8 { my ( $b, $o ) = @_; unpack 'C', substr( $b, $o, 1 ) }
-sub s8 { my ( $b, $o ) = @_; unpack 'c', substr( $b, $o, 1 ) }
 sub u16 { my ( $b, $o ) = @_; unpack 'v', substr( $b, $o, 2 ) }
 sub ptr { my ( $b, $o ) = @_; unpack 'Q<', substr( $b, $o, 8 ) }
 

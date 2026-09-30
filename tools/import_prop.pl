@@ -14,13 +14,13 @@
 #     --skip <regex>              drop the surfaces whose BO3 material matches (e.g. a transparent overlay shell)
 #     --skip-color <regex>        drop the surfaces whose BO3 colour texture matches (decals: BO3 blends them over the
 #                                 surface, T6's lit template would draw them opaque)
-#     --color <regex>=<png>       use this colour map for the matching material (e.g. one baked by tools/bake_layers.pl)
+#     --color <regex>=<png>       use this colour map for the matching material (e.g. one tinted by tools/paint_mask.pl)
 #     --bones <b,..> / --bones '!b,..'   keep only the triangles riding these bones / all but those (a part of a skinned
 #                                 model that script moves on its own, e.g. a press's ram)
 #     --material <name>          every surface uses this existing material (e.g. mc/mg_lava, built by tools/build_weapon.pl)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
-#   e.g. perl tools/import_prop.pl C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_3_sp/xmodels/p8_zm_esc_barrel_wood_01 mg_barrel
+#   e.g. perl tools/import_prop.pl --offset 0,0,-3.51 C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_3_sp/xmodels/p7_zm_zod_skull mg_skull
 # Env: MG_TEMPLATE_MTL (the template material json).
 use strict;
 use warnings;
@@ -42,7 +42,7 @@ my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
 my ( $src, $prop, $ximages ) = @ARGV;
-die "usage: import_prop.pl [--skip re] [--color re=png] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
+die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--material name] [--offset x,y,z] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
 our %mat;
 sub skipped {
     my $name = shift;
