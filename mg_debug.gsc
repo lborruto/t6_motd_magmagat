@@ -275,10 +275,21 @@ mg_debug_tour()
 
     // 3. a soul: the lightning streak rising over the body
     spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90;
-    self mg_tour_look( "3/7 A soul: it rises over the body and counts by itself", use + ( 0, 0, 10 ), spot + ( 0, 0, 60 ) );
+    self mg_tour_look( "3/7 A soul: the essence a kill drops; stepped on, it streaks into its skull", use + ( 0, 0, 10 ), spot );
     self playsoundtoplayer( "mg_soul_kill", self );
-    level thread mg_soul_rise( spot );
-    wait 2.5;
+    essence = mg_fx_loop( "soul_trail", spot + ( 0, 0, 14 ) );
+
+    if ( isdefined( essence ) )
+    {
+        essence playloopsound( "mg_soul_loop" );
+        wait 1.5;
+        self playsoundtoplayer( "evt_soulsuck_body", self );
+        essence mg_essence_fly( skull );
+        essence stoploopsound();
+        mg_fx_stop( essence );
+    }
+
+    wait 0.5;
 
     // 4. a skull lit (every 5 souls)
     self mg_tour_look( "4/7 A skull lit (5 souls): its blue flame", use, skull );

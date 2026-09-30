@@ -15,3 +15,5 @@ harry/magmagat/fx_magmagat_impact                           # the blob landing
 harry/magmagat/fx_magmagat_explode                          # the blob bursting
 harry/blundersplat/fx_blundersplat_muzzleflash                # the Magmagat's muzzle flash (the remaster's: Harry's fire-coloured Acid Gat flash)
 harry/blundersplat/fx_blundersplat_muzzleflash_3p             # the same, seen by others
+harry/blundersplat/fx_blundersplat_muzzleflash as=fx_mg_tempered_flash tint=0.3,0.6,1        # the tempered gun's muzzle flash: the same flash burning blue
+harry/blundersplat/fx_blundersplat_muzzleflash_3p as=fx_mg_tempered_flash_3p tint=0.3,0.6,1  # the same, seen by others

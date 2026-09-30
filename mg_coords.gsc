@@ -18,7 +18,7 @@ mg_models_init()
     level.mg_models["press_body"] = "mg_press_body"; // mod.ff: the remaster's press (p8_zm_esc_machinery_01) without its ram
     level.mg_models["press_ram"] = "mg_press_ram"; // its ram, which script brings down
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
-    level.mg_models["clip"] = "collision_clip_32x32x32"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none)
+    level.mg_models["clip"] = "collision_clip_32x32x128"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none), centred
     level.mg_models["player_clip"] = "collision_player_32x32x128"; // patch_zm, always loaded: blocks players only (the office door in the lockdown), centred
 }
 
@@ -80,7 +80,7 @@ mg_coords_init()
 // Owner spots go here, one line each: mg_coord_override( "KEY", ( x, y, z ), ( pitch, yaw, roll ) );
 mg_apply_overrides()
 {
-    mg_coord_override( "MG_HEARTH", ( -475, 8804, 1353 ), ( 0, 135, -90 ) ); // owner spot 2026-09-18 (yaw 495 = 135; roll -90 lays the gun flat as the vanilla desk gun)
+    mg_coord_override( "MG_HEARTH", ( -475.7, 8805.4, 1357 ), ( 0, 315, 0 ) ); // the remaster's gun spot in the fire (its struct pf93_auto2, BO3 -3966.34 3753.71 2709, yaw 315, by the office fit)
 
     // owner grab pass 2026-09-18 (evening)
     mg_coord_override( "MG_SKULL_1", ( -506, 8819, 1424 ), ( 0, 315, 0 ) );
@@ -101,12 +101,12 @@ mg_apply_overrides()
 
     mg_coord_override( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ) );
 
-    // the forge where the remaster stands it (its tr_forge and mg_upgrade_struct, BO3 -3329 1629 / -3311.26 1626.56 1480,
-    // brought onto BO2 by the office fit, good to 40 units at the docks' drums): the gun on the bed at the remaster's yaw,
-    // rolled flat as BO2's world gun lies, and mg_press_spawn stands the machine 90 degrees from it (BO3 yaw 190.7)
-    mg_coord_override( "MG_FORGE", ( 203, 6640, 84 ), ( 0, 190.7, 0 ) );
+    // the forge: the machine stands where the owner found the remaster's (136 6655 72, 2026-09-30; the office fit is 92
+    // units off at the docks), turned as the remaster's (190.7); the gun on its bed and the use trigger keep the remaster's
+    // offsets from it (mg_upgrade_struct -7.4 -8.0 44, tr_forge -25.5 -5.7), and mg_press_spawn stands the machine back
+    mg_coord_override( "MG_FORGE", ( 110.5, 6649.3, 72 ), ( 0, 190.7, 0 ) );
 
-    mg_coord_override( "MG_FORGE_GUN", ( 220.9, 6637.2, 128 ), ( 0, 100.7, -90 ) );
+    mg_coord_override( "MG_FORGE_GUN", ( 128.6, 6647, 116 ), ( 0, 100.7, 0 ) );
 }
 
 mg_coord_set( key, origin, angles, model )

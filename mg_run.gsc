@@ -26,8 +26,9 @@ mg_run_init()
         barrel.angles = c.angles;
         level.mg_barrels[i - 1] = barrel;
 
-        // players walk through a bare script_model: a collision clip stands inside the barrel (owner 2026-09-20)
-        clip = spawn( "script_model", barrel.origin + ( 0, 0, 16 ) );
+        // players walk through a bare script_model: a collision clip stands inside the barrel (owner 2026-09-20), 128
+        // high from its foot so nobody jumps onto it
+        clip = spawn( "script_model", mg_barrel_base( barrel ) + ( 0, 0, 64 ) );
         clip setmodel( mg_model( "clip" ) );
         barrel.mg_clip = clip;
     }
@@ -60,7 +61,7 @@ mg_barrel_spend( barrel )
 {
     barrel.mg_spent = 1;
     mg_fx_once( "barrel_flare", mg_barrel_flame( barrel ), 5 );
-    mg_snd_near( "mg_flame_burst", barrel.origin, 2500 );
+    barrel playsound( "mg_flame_burst" );
 }
 
 // The remaster plays its drum flame at the drum's foot (str_barrel_fire, where the drum stands; the flames rise inside
@@ -138,7 +139,7 @@ mg_run_loop( weapon )
 
     // the remaster starts checking the weapon 0.5 s after the start, with no grace after that. Its player keeps his
     // gun; ours was just handed the tempered one (mg_switch_to raises it), so until it first reaches his hands, for
-    // 1.5 s at most, the gun in hand is not a switch away.
+    // 3 s at most, the gun in hand is not a switch away.
     start = gettime();
     wait 0.5;
     in_hand = 0;
@@ -163,7 +164,7 @@ mg_run_loop( weapon )
             }
         }
 
-        if ( ( in_hand || gettime() - start > 1500 ) && !mg_run_weapon_ok( current, weapon ) )
+        if ( ( in_hand || gettime() - start > 3000 ) && !mg_run_weapon_ok( current, weapon ) )
         {
             mg_run_fail( "weapon switched away" );
             return;

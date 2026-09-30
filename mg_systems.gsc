@@ -35,6 +35,7 @@ mg_fx_table()
     t["lockdown"] = "mg/fx_alcatraz_lockdown_wardens"; // the remaster's lockdown: the office's door and walls outlined
     t["soul_trail"] = "mg/lightning_hands_muzzleflash_trail"; // the remaster's soul rising over the body
     t["soul_full"] = "mg/fx_alcatraz_blue_flame_skull"; // the remaster's lit skull
+    t["hearth_blue"] = "mg/fx_alcatraz_blue_flame_loop"; // the fireplace burning blue once the essence is deposited
     // the run: fire in the barrels, the temper riding the gun
     t["barrel_fire"] = "mg/fx_alcatraz_blue_flame_loop"; // the remaster's drum flame
     t["barrel_flare"] = "mg/fx_alcatraz_blue_flame_flare_up"; // the remaster's: a drum refilling the temper
@@ -417,21 +418,21 @@ mg_hud_disconnect_watch()
 
 // ---- weapons ----------------------------------------------------------------------------------------------
 
-// self = player. Puts weapon in his hands: T6 drops a switch asked in the same frame as the giveweapon, or while use
-// is still held (the taken gun stayed in the second slot), so it asks again every 0.05 s for up to a second.
+// self = player. Puts weapon in his hands, as the mystery box does. T6 drops a switch asked in the frame of the
+// giveweapon, and after a takeweapon of the gun in hand it first raises the other primary: the switch is asked again
+// every 0.2 s, even during that raise, for up to 3 s.
 mg_switch_to( weapon )
 {
     self endon( "disconnect" );
+    wait 0.05;
 
-    for ( i = 0; i < 20; i++ )
+    for ( i = 0; i < 15; i++ )
     {
         if ( !self hasweapon( weapon ) || self getcurrentweapon() == weapon )
             return;
 
-        if ( !self isswitchingweapons() )
-            self switchtoweapon( weapon );
-
-        wait 0.05;
+        self switchtoweapon( weapon );
+        wait 0.2;
     }
 }
 

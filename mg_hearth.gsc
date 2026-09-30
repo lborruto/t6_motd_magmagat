@@ -15,6 +15,7 @@
 mg_hearth_init()
 {
     level.mg_souls = 0;
+    level.mg_souls_taken = 0;
     level.mg_souls_on = 0;
     level.mg_skulls = [];
     level.mg_skull_fx = [];
@@ -101,7 +102,12 @@ mg_hearth_prompt_text( player )
     }
 
     if ( mg_state_is( "pickup" ) && isdefined( level.mg_hearth_owner ) && player == level.mg_hearth_owner )
+    {
+        if ( !is_true( level.mg_hearth_charged ) )
+            return "Hold ^3[{+activate}]^7 to deposit the essence";
+
         return "Hold ^3[{+activate}]^7 to take the Tempered Blundergat";
+    }
 
     return undefined;
 }
@@ -118,6 +124,8 @@ mg_hearth_press( player )
         mg_hearth_burn();
     else if ( mg_state_is( "ready" ) )
         mg_hearth_place( player );
+    else if ( mg_state_is( "pickup" ) && !is_true( level.mg_hearth_charged ) )
+        mg_hearth_deposit( player );
     else if ( mg_state_is( "pickup" ) )
         mg_hearth_take( player );
 
@@ -190,6 +198,7 @@ mg_lockdown( placer )
     }
 
     level.mg_souls = 0;
+    level.mg_souls_taken = 0;
     level.mg_souls_on = 1;
     mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
     level thread mg_lockdown_fail_watch( placer );
@@ -303,13 +312,35 @@ mg_hearth_zombie_died( zombie )
     level thread mg_soul( zombie.origin, level.mg_hearth_session );
 }
 
-// A soul counts by itself 0.5 s after the kill (CQ.gsc:271-275); nothing to pick up. Its skull lights at 5, 10, 15.
+// A soul as BO4 drops it (the owner's call over the remaster, whose souls count by themselves): the kill leaves an
+// essence low over the body, the remaster's blue lightning soul humming in place; a player stepping on it sends it fast
+// into the skull it fills, and it counts on arrival. Essences last until the lockdown ends. Its skull lights at 5, 10, 15.
 mg_soul( pos, session )
 {
     level endon( "end_game" );
     playsoundatposition( "mg_soul_kill", pos );
-    level thread mg_soul_rise( pos );
-    wait 0.5;
+    essence = mg_fx_loop( "soul_trail", pos + ( 0, 0, 14 ) );
+
+    if ( !isdefined( essence ) )
+        return;
+
+    essence playloopsound( "mg_soul_loop" );
+    taker = essence mg_essence_wait( session );
+
+    if ( !isdefined( taker ) )
+    {
+        essence stoploopsound();
+        mg_fx_stop( essence );
+        return;
+    }
+
+    // the skull this soul fills, reserved as it is taken (5 a skull)
+    level.mg_souls_taken++;
+    idx = int( ( level.mg_souls_taken - 1 ) / 5 );
+    taker playsoundtoplayer( "evt_soulsuck_body", taker );
+    essence mg_essence_fly( level.mg_skulls[idx].origin );
+    essence stoploopsound();
+    mg_fx_stop( essence );
 
     if ( !is_true( level.mg_souls_on ) || level.mg_hearth_session != session || level.mg_souls >= 15 )
         return;
@@ -325,25 +356,37 @@ mg_soul( pos, session )
         level thread mg_lockdown_won();
 }
 
-// The soul as the remaster draws it (MG.gsc:539-550): its lightning streak 40 units over the body, humming, rising
-// straight up 60 units in 2 s, then gone.
-mg_soul_rise( pos )
+// self = an essence. The player who steps on it (within 40 units, feet near it), or undefined when the lockdown ends
+// first or every soul is already on its way.
+mg_essence_wait( session )
 {
     level endon( "end_game" );
-    soul = mg_fx_loop( "soul_trail", pos + ( 0, 0, 40 ) );
 
-    if ( !isdefined( soul ) )
-        return;
+    while ( is_true( level.mg_souls_on ) && level.mg_hearth_session == session && level.mg_souls_taken < 15 )
+    {
+        foreach ( player in getplayers() )
+        {
+            if ( !is_player_valid( player ) || distance2dsquared( player.origin, self.origin ) > 40 * 40 )
+                continue;
 
-    soul playloopsound( "mg_soul_loop" );
-    soul movez( 60, 2 );
-    wait 2;
+            if ( abs( player.origin[2] - self.origin[2] ) < 72 )
+                return player;
+        }
 
-    if ( !isdefined( soul ) )
-        return;
+        wait 0.05;
+    }
 
-    soul stoploopsound();
-    mg_fx_stop( soul );
+    return undefined;
+}
+
+// self = an essence taken: a hop, then a fast streak into the skull (0.5 s), the remaster's lightning trailing it.
+mg_essence_fly( skull )
+{
+    up = self.origin + ( 0, 0, 24 );
+    self moveto( up, 0.2, 0, 0.1 );
+    wait 0.2;
+    self moveto( skull, 0.5, 0.2, 0 );
+    wait 0.5;
 }
 
 // Skull index 0..2 lights: the remaster's blue flame skull on it (MG.gsc:473-494, MG.csc:86-99); the skull model does
@@ -384,6 +427,47 @@ mg_skulls_dark()
     level.mg_skull_fx = [];
 }
 
+// The owner's deposit (over the remaster, which hands the gun at once): the placer pours the three skulls' souls into
+// the fire, each streaking from its skull into the gun, then the fireplace bursts into the remaster's blue flame and
+// burns blue until the tempered Blundergat is taken. The skulls stay lit.
+mg_hearth_deposit( player )
+{
+    if ( !mg_state_is( "pickup" ) || !isdefined( level.mg_hearth_owner ) || player != level.mg_hearth_owner )
+        return;
+
+    hearth = mg_coord( "MG_HEARTH" ).origin;
+
+    foreach ( skull in level.mg_skulls )
+        level thread mg_hearth_soul_in( skull.origin, hearth );
+
+    wait 0.6;
+    level.mg_hearth_charged = 1;
+    playsoundatposition( "mg_flame_burst", hearth );
+    mg_fx_once( "hearth_flare", hearth );
+    level.mg_hearth_blue = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 17 ) );
+}
+
+// a soul leaving its skull for the fire
+mg_hearth_soul_in( from, to )
+{
+    soul = mg_fx_loop( "soul_trail", from );
+
+    if ( !isdefined( soul ) )
+        return;
+
+    soul moveto( to, 0.45, 0.15, 0 );
+    wait 0.45;
+    mg_fx_stop( soul );
+}
+
+// The blue fire out (taken, or the step reset).
+mg_hearth_blue_off()
+{
+    mg_fx_stop( level.mg_hearth_blue );
+    level.mg_hearth_blue = undefined;
+    level.mg_hearth_charged = 0;
+}
+
 // pickup -> run (MG.gsc:735-766): only the placer, and not while drinking or holding a mine, equipment, the revive
 // tool or nothing (the press is ignored). He gets our tempered gun (T6 cannot draw the remaster's view-model flame);
 // the run gives the placed variant back when it ends.
@@ -417,6 +501,7 @@ mg_hearth_take( player )
     level.mg_hearth_gun = undefined;
     level.mg_hearth_weapon = undefined;
     level.mg_hearth_owner = undefined;
+    mg_hearth_blue_off();
     mg_run_start( player, tempered );
 }
 
@@ -480,12 +565,14 @@ mg_hearth_reset()
     mg_death_listen_remove( "mg_hearth" );
     level.mg_souls_on = 0;
     level.mg_souls = 0;
+    level.mg_souls_taken = 0;
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun delete();
 
     level.mg_hearth_gun = undefined;
     mg_skulls_dark();
+    mg_hearth_blue_off();
     level.mg_hearth_weapon = undefined;
     level.mg_hearth_owner = undefined;
 
@@ -507,6 +594,7 @@ mg_hearth_fabricate( state )
     mg_lockdown_off();
     level.mg_souls_on = 0;
     level.mg_souls = 0;
+    level.mg_souls_taken = 0;
 
     if ( isdefined( level.mg_hearth_gun ) )
         level.mg_hearth_gun delete();
@@ -515,6 +603,7 @@ mg_hearth_fabricate( state )
     level.mg_hearth_weapon = undefined;
     level.mg_hearth_owner = undefined;
     mg_skulls_dark();
+    mg_hearth_blue_off();
     level.mg_hearth_burnt = 1;
 
     if ( state == "locked" )
@@ -537,6 +626,7 @@ mg_hearth_fabricate( state )
     if ( state == "pickup" || state == "run" || state == "forge" || state == "done" )
     {
         level.mg_souls = 15;
+        level.mg_souls_taken = 15;
 
         for ( i = 0; i < 3; i++ )
             level thread mg_skull_light( i );

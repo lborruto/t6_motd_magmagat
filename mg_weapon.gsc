@@ -295,11 +295,15 @@ mg_blob_land( bolt, player, weapon )
     blob mg_blob_lure( weapon );
     host = mg_blob_host( blob );
 
-    // the blob stands out of the surface it hit, a wall or a ceiling as the floor, and its pool with it
+    // the blob stands out of the surface it hit, a wall or a ceiling as the floor, and its pool with it. T6 keeps a
+    // stuck grenade as it flew, so it hides and a copy of the blob stands in its place, turned to the surface
     if ( !isdefined( host ) )
     {
-        blob.angles = mg_up_angles( mg_blob_normal( prev, last, blob ) );
-        level thread mg_pool( blob, player, weapon );
+        shown = spawn( "script_model", blob.origin );
+        shown.angles = mg_up_angles( mg_blob_normal( prev, last, blob ) );
+        shown setmodel( mg_model( "ball" ) );
+        blob hide();
+        level thread mg_pool( blob, player, weapon, shown );
     }
     else if ( mg_is_brutus( host ) )
         blob thread mg_blob_on_brutus( host, player, weapon );
@@ -366,6 +370,22 @@ mg_blob_host( blob )
     {
         if ( isdefined( ai ) && isalive( ai ) && blob islinkedto( ai ) )
             return ai;
+    }
+
+    // T6's projectile can pass through a moving zombie and land behind it: a blob ending inside a zombie's body (20
+    // units from its axis, between its feet and its head) sticks to it
+    foreach ( ai in getaiarray( level.zombie_team ) )
+    {
+        if ( !isdefined( ai ) || !isalive( ai ) || distance2dsquared( ai.origin, blob.origin ) > 20 * 20 )
+            continue;
+
+        dz = blob.origin[2] - ai.origin[2];
+
+        if ( dz >= 0 && dz <= 72 )
+        {
+            blob linkto( ai );
+            return ai;
+        }
     }
 
     return undefined;
@@ -448,7 +468,7 @@ mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
 // The lava pool (the remaster's trigger magmagat_lava_pool): a trigger 32 units across (the Magmus 64) and 32 high at
 // the blob, wherever it stuck, 6 s, and its fire played the blob's way up (the remaster plays it on the blob). No
 // cap as in the remaster, but 8 at once at most for T6's entity budget (the oldest goes).
-mg_pool( blob, player, weapon )
+mg_pool( blob, player, weapon, shown )
 {
     level endon( "end_game" );
     radius = 32;
@@ -465,11 +485,12 @@ mg_pool( blob, player, weapon )
         level.mg_pools[0] notify( "mg_pool_end" );
 
     level.mg_pools[level.mg_pools.size] = pool;
-    fire = mg_fx_loop( "patch_fire", pool.origin, blob.angles );
+    fire = mg_fx_loop( "patch_fire", pool.origin, shown.angles );
     pool waittill_any_timeout( 6, "mg_pool_end" );
     arrayremovevalue( level.mg_pools, pool );
     pool delete();
     mg_fx_stop( fire );
+    shown delete();
 
     if ( isdefined( blob ) )
     {

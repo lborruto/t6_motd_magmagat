@@ -55,17 +55,23 @@ my %tj = map { $_ => decode_json( slurp("$tdump/materials/$tmpl{$_}.json") ) } k
 my @roots;
 open my $lh, '<', "$FindBin::Bin/assets/bo3_fx.tsv" or die "bo3_fx.pl: no tools/assets/bo3_fx.tsv\n";
 # a line: the BO3 effect, then options: scale=x,y stretches its element origins (an effect laid out in one of the
-# remaster's slightly smaller rooms, fitted to BO2's)
-my %scale;
+# remaster's slightly smaller rooms, fitted to BO2's); as=<name> tint=r,g,b ships a recoloured copy instead, mg/<name>,
+# each colour its brightness times the tint (the tempered gun's blue muzzle flash)
+my ( %scale, @copies );
 while (<$lh>) {
     s/\s*#.*//;
     my ( $n, @opt ) = split;
     next unless defined $n;
-    push @roots, $n;
+    my %o;
     for (@opt) {
-        die "bo3_fx.pl: bad option $_ for $n\n" unless /^scale=([\d.]+),([\d.]+)$/;
-        $scale{$n} = [ $1, $2 ];
+        if    (/^scale=([\d.]+),([\d.]+)$/)         { $scale{$n} = [ $1, $2 ] }
+        elsif (/^as=(\w+)$/)                        { $o{as} = $1 }
+        elsif (/^tint=([\d.]+),([\d.]+),([\d.]+)$/) { $o{tint} = [ $1, $2, $3 ] }
+        else                                        { die "bo3_fx.pl: bad option $_ for $n\n" }
     }
+    die "bo3_fx.pl: as= and tint= go together ($n)\n" if !!$o{as} != !!$o{tint};
+    if   ( $o{as} ) { push @copies, [ $n, "mg/$o{as}", $o{tint} ] }
+    else            { push @roots, $n }
 }
 close $lh;
 
@@ -90,7 +96,7 @@ sub t6fx { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; "mg/$b" }
 # and draws additive, so it glows; one at or below keeps its colours and BO3's alpha blend. A snapshot without the
 # material constants gives 1 (no change). Tune HDR_WHITE in game if the remaster's effects look too hot or too dim.
 use constant HDR_WHITE => 64;
-use List::Util qw(min);
+use List::Util qw(min max);
 sub hdr_gain {
     my $p = shift;
     my $m = defined $p ? $c->material($p) : undef;
@@ -100,9 +106,10 @@ sub hdr_gain {
 sub t6mat { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; $b =~ s/\|.*//; "mg_$b" }
 
 my ( %done, %by_t6, %mats, @todo, $warn );
-@todo = @roots;
-while ( my $n = shift @todo ) {
-    next if $done{$n}++;
+@todo = ( ( map { [ $_, t6fx($_) ] } @roots ), @copies );
+while ( my $job = shift @todo ) {
+    my ( $n, $t6, $tint ) = @$job;
+    next if $done{$t6}++;
     my ( $fx, $need, $notes ) = $c->convert($n);
     # a BO3 heat distortion draws with vanilla's own (a copy of its material crashed the game when drawn)
     my %as;
@@ -110,7 +117,6 @@ while ( my $n = shift @todo ) {
         my $m = $c->material( $need->{materials}{$mn} );
         $as{$mn} = 'gfx_distortion_heat' if $m && $m->{techset} =~ /distort/;
     }
-    my $t6 = t6fx($n);
     die "bo3_fx.pl: $n and $by_t6{$t6} both become $t6\n" if $by_t6{$t6} && $by_t6{$t6} ne $n;
     $by_t6{$t6} = $n;
     print "bo3_fx.pl: $n: $_\n" for @$notes;
@@ -120,6 +126,12 @@ while ( my $n = shift @todo ) {
             my ($g) = sort { $b <=> $a } map { hdr_gain( $need->{materials}{$_} ) } grep {defined} @{ $e->{visuals} };
             if ( $g && $g > 1 ) {
                 for my $v ( map { @$_{qw(base amplitude)} } @{ $e->{visSamples} } ) { $_ = min( 255, $_ * $g ) for @{ $v->{color} }[ 0 .. 2 ] }
+            }
+        }
+        if ($tint) {
+            for my $v ( map { @$_{qw(base amplitude)} } @{ $e->{visSamples} } ) {
+                my $l = max( @{ $v->{color} }[ 0 .. 2 ] );
+                @{ $v->{color} }[ 0 .. 2 ] = map { min( 255, $l * $_ ) } @$tint;
             }
         }
         $e->{$_} = defined $e->{$_} ? t6fx( $e->{$_} ) : undef for qw(effectOnImpact effectOnDeath effectEmitted effectAttached);
@@ -134,7 +146,7 @@ while ( my $n = shift @todo ) {
     $fx->{totalSize} = MgFx7::total_size( $t6, $fx );
     spit( "$raw/fx/$t6.json", $json->encode($fx) );
     $mats{$_} //= $need->{materials}{$_} for grep { !$as{$_} } keys %{ $need->{materials} };
-    push @todo, keys %{ $need->{effects} };
+    push @todo, map { [ $_, t6fx($_) ] } keys %{ $need->{effects} };
 }
 
 # materials

@@ -101,6 +101,8 @@ my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0
 # mg_coords.gsc. Export it from Greyhound after the Magmagat fired in BO3: before, BO3 has not streamed its mesh in and
 # the export is empty
 my $blob = 'mg_magma_blob';
+# the tempered gun's muzzle flash burns blue (the remaster's flash recoloured, tools/assets/bo3_fx.tsv)
+my %tempered_flash = ( viewFlashEffect => 'mg/fx_mg_tempered_flash', worldFlashEffect => 'mg/fx_mg_tempered_flash_3p' );
 my @weapons = (
     [ 'magmagat_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MAGMAGAT', gunModel => 'mg_magmagat_view',
         worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, fireSound => 'wpn_blundersplat_fire_exp_npc',
@@ -115,10 +117,10 @@ my @weapons = (
         aifuseTime => 10, explosionTag => '' } ],
     # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still
     [ 'mg_tempered_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MG_TEMPERED', gunModel => 'mg_tempered_view', worldModel => 'mg_tempered_world',
-        hideTags => $tank_tags } ],
+        hideTags => $tank_tags, %tempered_flash } ],
     [ 'mg_tempered_upgraded_zm', 'blundergat_upgraded_zm', { displayName => 'ZMWEAPON_MG_TEMPERED_UPGRADED', gunModel => 'mg_tempered_up_view',
         worldModel => 'mg_tempered_up_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags
-tag_sights" } ],
+tag_sights", %tempered_flash } ],
 );
 for my $w (@weapons) {
     my ( $ours, $src, $set ) = @$w;
