@@ -90,9 +90,9 @@ my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_worl
 #    mg_magma_bolt_zm, as _zm_weap_blundersplat.gsc fires its dart). Flashes and fire sounds as the remaster's own
 #    t8_magmagat_zm / t8_magmagat_upgraded_zm (read from BO3's weapon pool): Harry's fire-coloured flash on the Magmagat
 #    and his _ug one on the Magmus (mod.ff's mg/fx_blundersplat_muzzleflash*), the plain Blundergat's shot on both. The
-#    ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob grenade bursts with the Acid Gat dart's own explosion (1000 to 500 over 300
-#    units, and the Acid Gat's sound), which hurts players near it as the remaster's does; its 10 s fuse outlasts the
-#    6 s pool.
+#    ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob grenade bursts with the Acid Gat dart's own
+#    explosion (1000 to 500 over 300 units), which hurts players near it as the remaster's does, and with the
+#    remaster's Magmagat flame burst for its sound (mg_flame_burst); its 10 s fuse outlasts the 6 s pool.
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
     fireSound => 'wpn_blundergat_fire_npc', fireSoundPlayer => 'wpn_blundergat_fire_plr' );
@@ -114,7 +114,7 @@ my @weapons = (
         projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm',
         explosionInnerDamage => 0, explosionOuterDamage => 0 } ],    # no splash of its own (the dart's 10): it only leaves the blob
     [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => $blob,
-        projExplosionEffect => 'mg/fx_magmagat_explode', fuseTime => 10,
+        projExplosionEffect => 'mg/fx_magmagat_explode', projExplosionSound => 'mg_flame_burst', fuseTime => 10,
         aifuseTime => 10, explosionTag => '' } ],
     # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still
     [ 'mg_tempered_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MG_TEMPERED', gunModel => 'mg_tempered_view', worldModel => 'mg_tempered_world',

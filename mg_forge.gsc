@@ -138,6 +138,9 @@ mg_forge_prompt_text( player )
     if ( !is_true( level.mg_forge_open ) )
         return "Hold ^3[{+activate}]^7 to power the Machine";
 
+    if ( isdefined( player.mg_forge_hint_until ) && gettime() < player.mg_forge_hint_until )
+        return "Hold the Tempered Blundergat in your hands";
+
     return "Hold ^3[{+activate}]^7 to place the Tempered Blundergat";
 }
 
@@ -168,6 +171,13 @@ mg_forge_press( player )
 
     if ( !isdefined( weapon ) || !player hasweapon( weapon ) )
         return;
+
+    // the owner's rule: laid on the bed from the hands
+    if ( player getcurrentweapon() != weapon )
+    {
+        player.mg_forge_hint_until = gettime() + 2000;
+        return;
+    }
 
     // the run won: the skulls go out and the fireplace takes a Blundergat again, for the next Magmagat
     mg_run_end_ok();
@@ -218,21 +228,38 @@ mg_forge_place( player, weapon )
     level.mg_forge_place_ents = [];
     level.mg_forge_place_ents[0] = gun;
 
+    // the owner's wish over the remaster's single fire: the temper flares up as the gun is laid down, the ram strikes
+    // in sparks, the fire roars through the press, the Magmagat comes out in a burst
+    body = level.mg_press["press_body"];
+    mg_fx_once( "barrel_flare", c.origin, 3 );
+    body playsound( "mg_flame_burst" );
+
     // t 0.5: the start anim (the ram comes down 0.3 s in); t 0.55: the press sound at the machine
     wait 0.5;
     level thread mg_press_down();
     wait 0.05;
-    level.mg_press["press_body"] playsound( "mg_press" );
+    body playsound( "mg_press" );
+    body playloopsound( "zmb_fire_loop", 0.5 );
+
+    // t 0.85: the ram strikes the gun
+    wait 0.3;
+    mg_fx_once( "sparks", c.origin, undefined, body.angles );
+    body playsound( "zmb_hellbox_slam_shake" );
 
     // t 1.35, the start anim over: the press fire once at the machine, the gun under the ram gone
-    wait 0.8;
-    mg_fx_once( "forge_rise", level.mg_press_rest, 6, level.mg_press["press_body"].angles );
+    wait 0.5;
+    mg_fx_once( "forge_rise", level.mg_press_rest, 6, body.angles );
+    body playsound( "mg_flame_burst" );
     gun delete();
 
-    // t 4.35: the Magmagat lies on the bed as the end anim lifts the ram; ready 0.8 + 0.5 s later
+    // t 4.35: the Magmagat lies on the bed in a burst as the end anim lifts the ram; ready 0.8 + 0.5 s later
     wait 3;
     gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin, c.angles );
     level.mg_forge_place_ents[0] = gun;
+    mg_fx_once( "explo", c.origin );
+    body stoploopsound( 0.5 );
+    body playsound( "mg_flame_burst" );
+    body playsound( "zmb_buildable_complete" );
     level thread mg_press_up();
     wait 1.3;
     level.mg_forge_ready_gun = gun;

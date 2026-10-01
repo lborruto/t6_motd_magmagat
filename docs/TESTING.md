@@ -58,7 +58,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       about 4 s; a second later "Hold [use] to place Blundergat" shows for every player near the hearth. This happens
       once per game (`!mg goto locked` resets it).
 - [ ] Press without a Blundergat, Sweeper, Acid Gat or Vitriolic Withering: "Missing Blundergat" for 2 s, then the
-      place hint again.
+      place hint again. With one but another weapon in hand: "Hold the Blundergat in your hands" for 2 s, nothing taken.
 
 ## 2. The souls and the lockdown
 
@@ -75,8 +75,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Kill regular zombies in the zone (the killer inside or outside, any weapon): the soul-kill sound at the body, and
       an essence (the remaster's blue lightning soul) waits about 14 units over the body, humming. It does not count yet:
       `!mg status` shows no change. No blood.
-- [ ] Step on an essence (within 40 units, any player): the soul-suck sound for you, it hops and streaks into its skull
-      in about 0.7 s, and the count goes up when it arrives. An essence nobody takes stays until the lockdown ends.
+- [ ] Step on an essence (within 40 units, any player): the soul-suck and wolf-head soul sounds where you stand, it
+      hops and streaks into its skull in about 0.7 s (silent there), and the count goes up when it arrives. An essence
+      nobody takes fades after 20 s.
 - [ ] Kill more zombies than souls still missing without taking any: no more essences drop than souls still missing
       (15 lying = no new one); once some are taken, kills drop again.
 - [ ] Brutus dying in the office, and a zombie dying outside it, give no soul.
@@ -95,7 +96,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] At 15 souls, only the placer sees "Hold [use] to deposit the essence" at the hearth; another player sees no prompt and his press does nothing. There is no time limit. (`!mg goto pickup`
       fabricates this with you as the placer.)
-- [ ] Deposit: the three souls streak from the skulls into the fire (about 0.5 s), then the flame-burst sound, a flare
+- [ ] Deposit: three souls streak from you into the gun in the fire (about 0.75 s), then the flame-burst sound, a flare
       and the fire burns blue. The skulls stay lit.
 - [ ] The fire stays blue while nobody takes the gun (wait a minute), and the hint is now "Hold [use] to take the
       Tempered Blundergat", for the placer only.
@@ -134,12 +135,14 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       your hands. A second later the Warden's line plays to that player only. (`!mg goto forge` fabricates a Magmagat
       waiting for you.)
 - [ ] Then "Hold [use] to place the Tempered Blundergat", for the carrier only: nobody else, and no plain Blundergat,
-      gets a prompt. Letting the temper run out before placing it fails the run as anywhere else.
+      gets a prompt. Letting the temper run out before placing it fails the run as anywhere else. Pressing with another
+      weapon in hand: "Hold the Tempered Blundergat in your hands" for 2 s, nothing happens.
 - [ ] The Machine has collision: you cannot walk through it.
-- [ ] Place it: the run ends, the skulls go out and the fireplace takes a Blundergat again. The gun lies on the bed,
-      the ram comes down at about 0.8-1.1 s, the press sound starts at 0.55 s (it plays from the Machine: walk around it
-      and it stays there), the press fire plays once at about 1.35 s and the gun disappears. At about 4.35 s the
-      Magmagat lies still on the bed and the ram lifts. No smoke, no extra sounds or effects at the press.
+- [ ] Place it: the run ends, the skulls go out and the fireplace takes a Blundergat again. The gun lies on the bed
+      with a blue flare and a flame burst; the ram comes down at about 0.8-1.1 s and strikes in sparks with a slam, the
+      press sound starts at 0.55 s and a fire loop roars until the end (all from the Machine), the press fire plays at
+      about 1.35 s with a flame burst and the gun disappears. At about 4.35 s the Magmagat lies on the bed in a burst of
+      flame, with the "build complete" chime, and the ram lifts.
 - [ ] At about 5.65 s "Hold [use] to take the Magmagat" shows, for the placer only.
 - [ ] Taking it: a Brutus spawns in the Generator Room about 1 s later.
 - [ ] Every forge hint (power the Machine, place the Tempered Blundergat, take the Magmagat) and every fireplace hint shows the

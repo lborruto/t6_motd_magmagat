@@ -83,10 +83,10 @@ mg_barrel_touch( player, barrel )
     return dz >= -24 && dz <= 64;
 }
 
-// The flame's origin, 8 below the foot: the remaster's flame at the foot showed its bottom over our drum's rim.
+// The flame's origin, 12 below the foot: the remaster's flame at the foot showed its bottom over our drum's rim.
 mg_barrel_flame( barrel )
 {
-    return mg_barrel_base( barrel ) - ( 0, 0, 8 );
+    return mg_barrel_base( barrel ) - ( 0, 0, 12 );
 }
 
 // pickup -> run

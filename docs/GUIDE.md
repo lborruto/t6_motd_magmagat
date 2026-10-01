@@ -22,8 +22,9 @@ many players are in the game.
 <summary>The fireplace</summary>
 
 Once the quest is open, go to the fireplace in the Warden's Office. The first time you use it (no gun needed), the
-fire bursts and burns the boards above it. A second later "Hold [use] to place Blundergat" shows for every player. Without
-one of the four guns, you read "Missing Blundergat" instead.
+fire bursts and burns the boards above it. A second later "Hold [use] to place Blundergat" shows for every player. The gun
+goes in from your hands: with one of the four guns put away you read "Hold the Blundergat in your hands", without one
+"Missing Blundergat".
 
 Hold use with the gun (in hand or not) and it goes into the fire. A laugh answers, a tense music starts, and the
 office is outlined in light: it is locked down. Nobody can walk through its door until the lockdown ends.
@@ -34,9 +35,9 @@ office is outlined in light: it is locked down. Nobody can walk through its door
 <summary>The souls</summary>
 
 Every regular zombie that dies **inside the Warden's Office** drops an essence, whoever killed it and from wherever:
-a blue streak of lightning humming just over the body. It does not count yet. Walk over it (any player can) and it
-streaks into a skull on the mantle, and counts when it gets there. An essence waits until someone takes it or the
-lockdown ends. Brutus drops none, and neither does a zombie that dies outside. There are never more essences on the
+a blue flame and a streak of lightning humming just over the body. It does not count yet. Walk over it (any player
+can): you hear it taken, it streaks into a skull on the mantle and counts when it gets there. An essence nobody takes
+fades after **20 seconds**. There is no time limit on the whole step, as in the remaster and BO4. Brutus drops none, and neither does a zombie that dies outside. There are never more essences on the
 floor than souls still missing: once enough lie waiting, more kills drop nothing until you take some.
 
 You need **15 souls**: the three skulls on the mantle light up with a blue flame at **5**, **10** and **15**.

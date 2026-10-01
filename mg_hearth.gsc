@@ -97,9 +97,9 @@ mg_hearth_prompt_text( player )
         if ( !is_true( level.mg_hearth_burnt ) )
             return "";
 
-        // the remaster's ZM_PRISON_MISSING_BLUNDERGAT, 2 s after a press without a gun
+        // the remaster's ZM_PRISON_MISSING_BLUNDERGAT, 2 s after a press without a gun (or with it put away)
         if ( isdefined( player.mg_hearth_missing_until ) && gettime() < player.mg_hearth_missing_until )
-            return "Missing Blundergat";
+            return player.mg_hearth_missing_text;
 
         return "Hold ^3[{+activate}]^7 to place Blundergat";
     }
@@ -159,10 +159,16 @@ mg_hearth_boards_burn()
 // the lockdown starts. No gun: the "missing Blundergat" hint for 2 s.
 mg_hearth_place( player )
 {
-    weapon = mg_has_blundergat( player );
+    weapon = player getcurrentweapon();
 
-    if ( !isdefined( weapon ) )
+    // the owner's rule: the Blundergat goes in from the hands, not from the back
+    if ( !mg_is_blundergat( weapon ) )
     {
+        player.mg_hearth_missing_text = "Missing Blundergat";
+
+        if ( isdefined( mg_has_blundergat( player ) ) )
+            player.mg_hearth_missing_text = "Hold the Blundergat in your hands";
+
         player.mg_hearth_missing_until = gettime() + 2000;
         return;
     }
@@ -318,7 +324,7 @@ mg_hearth_zombie_died( zombie )
 
 // A soul as BO4 drops it (the owner's call over the remaster, whose souls count by themselves): the kill leaves an
 // essence low over the body, the remaster's blue lightning soul humming in place; a player stepping on it sends it fast
-// into the skull it fills, and it counts on arrival. Essences last until the lockdown ends. Its skull lights at 5, 10, 15.
+// into the skull it fills, and it counts on arrival. An essence nobody takes fades after 20 s. Its skull lights at 5, 10, 15.
 mg_soul( pos, session )
 {
     level endon( "end_game" );
@@ -348,7 +354,8 @@ mg_soul( pos, session )
     // the skull this soul fills, reserved as it is taken (5 a skull)
     level.mg_souls_taken++;
     idx = int( ( level.mg_souls_taken - 1 ) / 5 );
-    taker playsoundtoplayer( "evt_soulsuck_body", taker );
+    essence playsound( "evt_soulsuck_body" );
+    essence playsound( "evt_wolfhead_body_count" );    // the wolf heads' soul taken, heard where it is picked up
     essence mg_essence_fly( level.mg_skulls[idx].origin );
     essence stoploopsound();
     mg_fx_stop( essence );
@@ -367,13 +374,14 @@ mg_soul( pos, session )
         level thread mg_lockdown_won();
 }
 
-// self = an essence. The player who steps on it (within 40 units, feet near it), or undefined when the lockdown ends
-// first or every soul is already on its way.
+// self = an essence. The player who steps on it (within 40 units, feet near it), or undefined when nobody does within
+// 20 s, when the lockdown ends first or when every soul is already on its way.
 mg_essence_wait( session )
 {
     level endon( "end_game" );
+    expiry = gettime() + 20000;
 
-    while ( is_true( level.mg_souls_on ) && level.mg_hearth_session == session && level.mg_souls_taken < 15 )
+    while ( is_true( level.mg_souls_on ) && level.mg_hearth_session == session && level.mg_souls_taken < 15 && gettime() < expiry )
     {
         foreach ( player in getplayers() )
         {
@@ -439,8 +447,8 @@ mg_skulls_dark()
     level.mg_skull_fx = [];
 }
 
-// The owner's deposit (over the remaster, which hands the gun at once): the placer pours the three skulls' souls into
-// the fire, each streaking from its skull into the gun, then the fireplace bursts into the remaster's blue flame and
+// The owner's deposit (over the remaster, which hands the gun at once): the placer pours the essence into the fire,
+// three souls streaking from him into the gun, then the fireplace bursts into the remaster's blue flame and
 // burns blue until the tempered Blundergat is taken. The skulls stay lit.
 mg_hearth_deposit( player )
 {
@@ -452,10 +460,14 @@ mg_hearth_deposit( player )
     session = level.mg_hearth_session;
     hearth = mg_coord( "MG_HEARTH" ).origin;
 
-    foreach ( skull in level.mg_skulls )
-        level thread mg_hearth_soul_in( skull.origin, hearth );
+    // the three skulls' souls leave the placer for the gun in the fire, one after the other
+    for ( i = 0; i < 3; i++ )
+    {
+        level thread mg_hearth_soul_in( player geteye() - ( 0, 0, 12 ), hearth );
+        wait 0.15;
+    }
 
-    wait 0.6;
+    wait 0.3;
     playsoundatposition( "mg_flame_burst", hearth );
     mg_fx_once( "hearth_flare", hearth );
     blue = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 17 ) );
@@ -480,6 +492,7 @@ mg_hearth_soul_in( from, to )
     if ( !isdefined( soul ) )
         return;
 
+    mg_fx_add( soul, "soul_full" );
     soul moveto( to, 0.45, 0.15, 0 );
     wait 0.45;
     mg_fx_stop( soul );
