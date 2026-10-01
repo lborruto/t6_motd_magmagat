@@ -38,12 +38,13 @@ my ( @skip, @skip_color, %color_for, $tints_file );
 my $offset = '0,0,0';
 my $use_material;
 my $bones_opt;
-GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file ) or die "import_prop.pl: bad options\n";
+my $size = 1;    # --scale: the mesh scaled about its pivot (the Magmagat's blob a little smaller than BO4's)
+GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size ) or die "import_prop.pl: bad options\n";
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
 my ( $src, $prop, $ximages ) = @ARGV;
-die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--material name] [--offset x,y,z] [--tints tsv] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
+die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--material name] [--offset x,y,z] [--tints tsv] [--scale f] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
 our %mat;
 sub skipped {
     my $name = shift;
@@ -275,7 +276,7 @@ for my $k ( 0 .. $#lods ) {
     my %seen;
     for my $mesh ( @{ $g->{meshes} } ) {
         for my $p ( @{ $mesh->{primitives} } ) {
-            for my $attr ( [ POSITION => 1 / 2.54 ], [ NORMAL => 1 ] ) {
+            for my $attr ( [ POSITION => $size / 2.54 ], [ NORMAL => 1 ] ) {
                 my ( $name, $scale ) = @$attr;
                 my $ai = $p->{attributes}{$name};
                 next if !defined $ai || $seen{$ai}++;
@@ -310,8 +311,8 @@ while ( $lod0 =~ /^OFFSET (-?[\d.e+-]+), (-?[\d.e+-]+), (-?[\d.e+-]+)/mg ) {
     my @v = ( $1, $2, $3 );
     for my $i ( 0 .. 2 ) { $mn[$i] = $v[$i] if $v[$i] < $mn[$i]; $mx[$i] = $v[$i] if $v[$i] > $mx[$i] }
 }
-my @ctr = map { ( $mn[$_] + $mx[$_] ) / 2 + $off[$_] } 0 .. 2;
-my $range = sqrt( ( $mx[0] - $mn[0] )**2 + ( $mx[1] - $mn[1] )**2 + ( $mx[2] - $mn[2] )**2 ) / 2;
+my @ctr = map { ( $mn[$_] + $mx[$_] ) / 2 * $size + $off[$_] } 0 .. 2;
+my $range = sqrt( ( $mx[0] - $mn[0] )**2 + ( $mx[1] - $mn[1] )**2 + ( $mx[2] - $mn[2] )**2 ) / 2 * $size;
 my $xm = { '$schema' => 'http://openassettools.dev/schema/xmodel.v1.json', _game => 't6', _type => 'xmodel', _version => 2,
     collLod => -1, flags => 0, lods => \@lodjson, type => 'rigid',
     lightingOriginOffset => { x => 0 + sprintf( '%.3f', $ctr[0] ), y => 0 + sprintf( '%.3f', $ctr[1] ), z => 0 + sprintf( '%.3f', $ctr[2] ) },

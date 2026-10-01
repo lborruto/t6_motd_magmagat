@@ -97,9 +97,9 @@ mg_hearth_prompt_text( player )
         if ( !is_true( level.mg_hearth_burnt ) )
             return "";
 
-        // the remaster's ZM_PRISON_MISSING_BLUNDERGAT, 2 s after a press without a gun (or with it put away)
-        if ( isdefined( player.mg_hearth_missing_until ) && gettime() < player.mg_hearth_missing_until )
-            return player.mg_hearth_missing_text;
+        // the owner's rule: offered only with a Blundergat in hand (no hint otherwise)
+        if ( !mg_is_blundergat( player getcurrentweapon() ) )
+            return undefined;
 
         return "Hold ^3[{+activate}]^7 to place Blundergat";
     }
@@ -163,15 +163,7 @@ mg_hearth_place( player )
 
     // the owner's rule: the Blundergat goes in from the hands, not from the back
     if ( !mg_is_blundergat( weapon ) )
-    {
-        player.mg_hearth_missing_text = "Missing Blundergat";
-
-        if ( isdefined( mg_has_blundergat( player ) ) )
-            player.mg_hearth_missing_text = "Hold the Blundergat in your hands";
-
-        player.mg_hearth_missing_until = gettime() + 2000;
         return;
-    }
 
     player takeweapon( weapon );
     primaries = player getweaponslistprimaries();
@@ -463,7 +455,7 @@ mg_hearth_deposit( player )
     // the three skulls' souls leave the placer for the gun in the fire, one after the other
     for ( i = 0; i < 3; i++ )
     {
-        level thread mg_hearth_soul_in( player geteye() - ( 0, 0, 12 ), hearth );
+        level thread mg_hearth_soul_in( player geteye() - ( 0, 0, 12 ), hearth - ( 0, 0, 10 ) );
         wait 0.15;
     }
 
@@ -523,14 +515,7 @@ mg_hearth_take( player )
         weapon = "blundergat_zm";
 
     tempered = mg_tempered_of( weapon );
-    primaries = player getweaponslistprimaries();
-
-    // the vanilla rule (wait_for_player_to_take): with a full hand of primaries (two, three with Mule Kick) the weapon in hand makes room
-    if ( isdefined( primaries ) && primaries.size >= get_player_weapon_limit( player ) )
-        player takeweapon( player getcurrentweapon() );
-
-    player giveweapon( tempered );
-    player thread mg_switch_to( tempered );
+    player mg_give_weapon( tempered );    // the vanilla rule (wait_for_player_to_take): a full hand gives up the gun in it
     player.mg_tempered_from = weapon;
 
     if ( isdefined( level.mg_hearth_gun ) )

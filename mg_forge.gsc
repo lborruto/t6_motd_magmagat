@@ -138,8 +138,9 @@ mg_forge_prompt_text( player )
     if ( !is_true( level.mg_forge_open ) )
         return "Hold ^3[{+activate}]^7 to power the Machine";
 
-    if ( isdefined( player.mg_forge_hint_until ) && gettime() < player.mg_forge_hint_until )
-        return "Hold the Tempered Blundergat in your hands";
+    // the owner's rule: offered only with the tempered gun in hand
+    if ( player getcurrentweapon() != level.mg_run_weapon )
+        return undefined;
 
     return "Hold ^3[{+activate}]^7 to place the Tempered Blundergat";
 }
@@ -174,10 +175,7 @@ mg_forge_press( player )
 
     // the owner's rule: laid on the bed from the hands
     if ( player getcurrentweapon() != weapon )
-    {
-        player.mg_forge_hint_until = gettime() + 2000;
         return;
-    }
 
     // the run won: the skulls go out and the fireplace takes a Blundergat again, for the next Magmagat
     mg_run_end_ok();

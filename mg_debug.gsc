@@ -97,10 +97,7 @@ mg_debug_command( sub, arg, args )
             return 1;
 
         case "give":
-            if ( !self hasweapon( "blundergat_zm" ) )
-                self giveweapon( "blundergat_zm" );
-
-            self switchtoweapon( "blundergat_zm" );
+            self mg_give_weapon( "blundergat_zm" );
             self mg_out( "MG: Blundergat given" );
             return 1;
 

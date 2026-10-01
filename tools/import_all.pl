@@ -44,7 +44,7 @@ my @props = (
     # blob: their BO3 shader is procedural, so they take the mod's own lava (mc/mg_lava, the BO3 lava texture)
     [ 'mg_fx_magma_splat02_mesh', 'fx_magma_splat02_mesh', '--material', 'mc/mg_lava' ],
     [ 'mg_fx_magma_splat03_mesh', 'fx_magma_splat03_mesh', '--material', 'mc/mg_lava' ],
-    [ 'mg_magma_blob', 'p8_fxp_magma_blob', '--material', 'mc/mg_lava' ],
+    [ 'mg_magma_blob', 'p8_fxp_magma_blob', '--material', 'mc/mg_lava', '--scale', '0.8' ],    # 80 %: the owner's call
     # the remaster's press (p8_zm_esc_machinery_01) in two parts, so script plays its animations: the body and the ram
     # (j_press: 74.5 cm down onto the bed and back; the model has no mesh on its lever bone)
     [ 'mg_press_body', 'p8_zm_esc_machinery_01', '--bones', '!j_press,j_switch', @press_decals ],

@@ -261,20 +261,24 @@ mg_blob_fire( weapon )
     bolt = magicbullet( "mg_magma_bolt_zm", origin, trace["position"], self );
 
     if ( isdefined( bolt ) )
-        level thread mg_blob_land( bolt, self, weapon );
+    {
+        // a small fire rides the blob in flight (on its model's root bone), over Harry's trail
+        if ( isdefined( level._effect["mg_blob_fire"] ) )
+            playfxontag( level._effect["mg_blob_fire"], bolt, "p8_fxp_magma_blob" );
+
+        level thread mg_blob_land( bolt, self, weapon, origin );
+    }
 }
 
 // The bolt lands and leaves its blob (the grenade tools/build_weapon.pl gives it, stuck where it hit); the blob
 // then takes one of the remaster's three ways (_zm_weap_magmagat.gsc function_24eea6c5). player may leave meanwhile.
-mg_blob_land( bolt, player, weapon )
+mg_blob_land( bolt, player, weapon, from )
 {
     level endon( "end_game" );
     last = bolt.origin;
-    prev = last;
 
     while ( isdefined( bolt ) )
     {
-        prev = last;
         last = bolt.origin;
         wait 0.05;
     }
@@ -312,7 +316,7 @@ mg_blob_land( bolt, player, weapon )
     if ( !isdefined( host ) )
     {
         shown = spawn( "script_model", blob.origin );
-        shown.angles = mg_up_angles( mg_blob_normal( prev, last, blob ) );
+        shown.angles = mg_up_angles( mg_blob_normal( from, blob ) );
         shown setmodel( mg_model( "ball" ) );
         blob hide();
         level thread mg_pool( blob, player, weapon, shown );
@@ -329,16 +333,12 @@ mg_blob_land( bolt, player, weapon )
     }
 }
 
-// The normal of the surface the bolt hit, from its last two positions (straight up when nothing is found).
-mg_blob_normal( prev, last, blob )
+// The normal of the surface the blob stuck to, traced along the shot through it (straight up when nothing is found;
+// the bolt's own last positions are often one and the same, which gave no direction).
+mg_blob_normal( from, blob )
 {
-    dir = vectornormalize( last - prev );
-
-    if ( lengthsquared( last - prev ) < 1 )
-        dir = ( 0, 0, -1 );
-
-    // the bolt's last sample can be 150 units short of the surface (3000 u/s): trace on through the blob
-    trace = bullettrace( last - dir * 16, blob.origin + dir * 16, 0, blob );
+    dir = vectornormalize( blob.origin - from );
+    trace = bullettrace( blob.origin - dir * 24, blob.origin + dir * 24, 0, blob );
 
     if ( trace["fraction"] >= 1 )
         return ( 0, 0, 1 );
@@ -417,6 +417,9 @@ mg_blob_lure( weapon )
         self create_zombie_point_of_interest( 500, 10, 10000 );
     else
         self create_zombie_point_of_interest( 250, 5, 10000 );
+
+    // spots round it the zombies take at once, as vanilla's monkey bomb (they come to the blob, not on their next look)
+    self thread create_zombie_point_of_interest_attractor_positions( 4, 45 );
 }
 
 // self = zombie the blob stuck to (the remaster's function_876c11c9, BO2's _titus_target_animate_and_die): it burns in
@@ -461,6 +464,31 @@ mg_blob_burst()
 {
     self deactivate_zombie_point_of_interest();
     self resetmissiledetonationtime( 0.05 );
+    // the remaster's Magmagat flame burst, played here (a projExplosionSound of the mod's own bank stayed silent)
+    playsoundatposition( "mg_flame_burst", self.origin );
+    level thread mg_blob_burn_players( self.origin );
+}
+
+// The burst burns the players near it too, the shooter as his teammates, as BO3's does (vanilla zombies spares a
+// teammate's explosive and caps one's own): 75 at the blob to 25 at 150 units, and on fire. PhD Flopper takes
+// nothing, as from any explosion.
+mg_blob_burn_players( pos )
+{
+    wait 0.05;
+
+    foreach ( player in getplayers() )
+    {
+        if ( !is_player_valid( player ) || player hasperk( "specialty_flakjacket" ) )
+            continue;
+
+        d = distance( player.origin, pos );
+
+        if ( d > 150 )
+            continue;
+
+        player setburn( 1 );
+        player dodamage( int( 75 - 50 * d / 150 ), pos );
+    }
 }
 
 // Magmagat damage, credited to its player while he is still here.
@@ -492,6 +520,7 @@ mg_pool( blob, player, weapon, shown )
 
     pos = blob.origin;
     pool = spawn( "trigger_radius", pos, 0, radius, 32 );
+    pool.mg_fire_radius = radius * 2;    // the aoe fire is drawn about twice as wide as the remaster's trigger
     pool.owner = player;
     pool.weapon = weapon;
 
@@ -513,6 +542,24 @@ mg_pool( blob, player, weapon, shown )
         blob deactivate_zombie_point_of_interest();
         blob delete();
     }
+}
+
+// The pool whose fire a player stands in (its drawn width, about 48 units of height), or undefined: a player walking
+// into the flames burns, as in Tranzit's lava.
+mg_pool_in_fire( player )
+{
+    foreach ( pool in level.mg_pools )
+    {
+        if ( !isdefined( pool ) )
+            continue;
+
+        dz = player.origin[2] - pool.origin[2];
+
+        if ( distance2dsquared( player.origin, pool.origin ) < pool.mg_fire_radius * pool.mg_fire_radius && dz > -48 && dz < 48 )
+            return pool;
+    }
+
+    return undefined;
 }
 
 // The pool this entity stands in, or undefined.
@@ -590,7 +637,7 @@ mg_pool_player()
     pool = undefined;
 
     if ( is_player_valid( self ) )
-        pool = mg_pool_touched( self );
+        pool = mg_pool_in_fire( self );
 
     if ( !isdefined( pool ) )
     {

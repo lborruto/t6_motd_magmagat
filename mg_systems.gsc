@@ -46,6 +46,7 @@ mg_fx_table()
     // the weapon (its bolt's trail, impact and burst are in the weapon files, tools/build_weapon.pl)
     t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso"; // a zombie the blob stuck to, burning
     t["patch_fire"] = "mg/fx_prison_magmagat_aoe"; // the remaster's lava pool
+    t["blob_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // a small fire riding the blob in flight
     t["explo"] = "mg/fx_magmagat_explode"; // the blob bursting (`!mg tour`; the weapon file plays it in the game)
     // the debug tools: a saved anchor, a previewed one
     t["blue_spark"] = "electrical/fx_elec_spark_bounce_blue_lg";
@@ -288,6 +289,31 @@ mg_switch_to( weapon )
         self switchtoweapon( weapon );
         wait 0.2;
     }
+}
+
+// self = player. Gives weapon as the mystery box does: with a full hand of primaries (two, three with Mule Kick) the
+// gun in hand makes room first (a gun given over the limit sits in no slot: it drops out of the hands). Then raises it.
+mg_give_weapon( weapon )
+{
+    if ( !self hasweapon( weapon ) )
+    {
+        primaries = self getweaponslistprimaries();
+
+        if ( isdefined( primaries ) && primaries.size >= get_player_weapon_limit( self ) )
+        {
+            current = self getcurrentweapon();
+
+            // equipment or the revive tool in hand: a primary makes room instead
+            if ( !isdefined( current ) || !isinarray( primaries, current ) )
+                current = primaries[0];
+
+            self takeweapon( current );
+        }
+
+        self giveweapon( weapon );
+    }
+
+    self thread mg_switch_to( weapon );
 }
 
 // ---- zombie deaths ------------------------------------------------------------------------------------------

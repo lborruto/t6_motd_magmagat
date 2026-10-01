@@ -100,6 +100,9 @@ my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0
 # mg_coords.gsc. Export it from Greyhound after the Magmagat fired in BO3: before, BO3 has not streamed its mesh in and
 # the export is empty
 my $blob = 'mg_magma_blob';
+# the Acid Gat's dart and grenade hit with impact types (bolt, grenade_explode) that Mob's impact table draws as its
+# green acid splash and smoke: ours draw only their own effects (the burst sound is scripted, mg_blob_burst)
+my %no_acid = ( impactType => 'none' );
 # the tempered gun's muzzle flash burns blue (the remaster's flash recoloured, tools/assets/bo3_fx.tsv)
 my %tempered_flash = ( viewFlashEffect => 'mg/fx_mg_tempered_flash', worldFlashEffect => 'mg/fx_mg_tempered_flash_3p' );
 my @weapons = (
@@ -112,9 +115,10 @@ my @weapons = (
         clipSize => 2, maxAmmo => 30, startAmmo => 25 } ],
     [ 'mg_magma_bolt_zm', 'blundersplat_bullet_zm', { projectileModel => $blob, projTrailEffect => 'mg/fx_magmagat_trail_bolt',
         projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm',
-        explosionInnerDamage => 0, explosionOuterDamage => 0 } ],    # no splash of its own (the dart's 10): it only leaves the blob
+        explosionInnerDamage => 0, explosionOuterDamage => 0,    # no splash of its own (the dart's 10): it only leaves the blob
+        %no_acid } ],
     [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => $blob,
-        projExplosionEffect => 'mg/fx_magmagat_explode', projExplosionSound => 'mg_flame_burst', fuseTime => 10,
+        projExplosionEffect => 'mg/fx_magmagat_explode', projExplosionSound => '', %no_acid, fuseTime => 10,
         aifuseTime => 10, explosionTag => '' } ],
     # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still
     [ 'mg_tempered_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MG_TEMPERED', gunModel => 'mg_tempered_view', worldModel => 'mg_tempered_world',

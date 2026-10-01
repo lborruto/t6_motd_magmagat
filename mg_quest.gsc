@@ -163,8 +163,7 @@ mg_goto( state )
     {
         if ( !isdefined( mg_has_blundergat( self ) ) && state != "souls" && state != "pickup" )
         {
-            self giveweapon( "blundergat_zm" );
-            self switchtoweapon( "blundergat_zm" );
+            self mg_give_weapon( "blundergat_zm" );
         }
     }
 

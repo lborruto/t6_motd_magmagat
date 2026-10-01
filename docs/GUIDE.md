@@ -22,9 +22,8 @@ many players are in the game.
 <summary>The fireplace</summary>
 
 Once the quest is open, go to the fireplace in the Warden's Office. The first time you use it (no gun needed), the
-fire bursts and burns the boards above it. A second later "Hold [use] to place Blundergat" shows for every player. The gun
-goes in from your hands: with one of the four guns put away you read "Hold the Blundergat in your hands", without one
-"Missing Blundergat".
+fire bursts and burns the boards above it. A second later "Hold [use] to place Blundergat" shows for every player who
+holds one of the four guns **in his hands**: the gun goes in from the hands, so with none in hand there is no prompt.
 
 Hold use with the gun (in hand or not) and it goes into the fire. A laugh answers, a tense music starts, and the
 office is outlined in light: it is locked down. Nobody can walk through its door until the lockdown ends.

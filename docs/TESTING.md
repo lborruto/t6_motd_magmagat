@@ -57,8 +57,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] The first press at the hearth (gun or not, no prompt yet): the flame-burst sound and a fire over the boards for
       about 4 s; a second later "Hold [use] to place Blundergat" shows for every player near the hearth. This happens
       once per game (`!mg goto locked` resets it).
-- [ ] Press without a Blundergat, Sweeper, Acid Gat or Vitriolic Withering: "Missing Blundergat" for 2 s, then the
-      place hint again. With one but another weapon in hand: "Hold the Blundergat in your hands" for 2 s, nothing taken.
+- [ ] No Blundergat, Sweeper, Acid Gat or Vitriolic Withering in your hands (none, or one put away): no prompt, and a
+      press does nothing; nothing is taken.
+- [ ] Two guns plus `!mg give`: the Blundergat replaces the gun in hand (never a third gun in no slot).
 
 ## 2. The souls and the lockdown
 
@@ -135,8 +136,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       your hands. A second later the Warden's line plays to that player only. (`!mg goto forge` fabricates a Magmagat
       waiting for you.)
 - [ ] Then "Hold [use] to place the Tempered Blundergat", for the carrier only: nobody else, and no plain Blundergat,
-      gets a prompt. Letting the temper run out before placing it fails the run as anywhere else. Pressing with another
-      weapon in hand: "Hold the Tempered Blundergat in your hands" for 2 s, nothing happens.
+      gets a prompt, and only while it is in his hands. Letting the temper run out before placing it fails the run as
+      anywhere else.
 - [ ] The Machine has collision: you cannot walk through it.
 - [ ] Place it: the run ends, the skulls go out and the fireplace takes a Blundergat again. The gun lies on the bed
       with a blue flare and a flame burst; the ram comes down at about 0.8-1.1 s and strikes in sparks with a slam, the
@@ -156,20 +157,20 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 6. The weapon (Magmagat / Magmus Operandi)
 
-- [ ] Fire it: one orange blob flies with a trail, the remaster's fire-coloured muzzle flash (not the Acid Gat's green), no
-      tracer streak, no bullet impact. The clip holds one (the Magmus two). The flash and the fire sound are the remaster's
-      own: Harry's fire-coloured Acid Gat flash and BO2's Acid Gat sounds (the remaster ships no other; the Magmus fires
-      with the Sweeper's Pack-a-Punched sound).
+- [ ] Fire it: one orange blob (a little smaller than BO4's) flies with a trail and a small fire riding it, the
+      remaster's fire-coloured muzzle flash (the Magmus: Harry's _ug one), no tracer streak, no bullet impact and no green
+      acid splash where it lands. The clip holds one (the Magmus two). Both fire with the plain Blundergat's shot, as
+      the remaster's own t8_magmagat_zm does.
 - [ ] **Hit a zombie**: the blob sticks, the zombie plays the Acid Gat stun and burns (torso fire and loop sound), and dies
-      after about 1 s at any round; the blob bursts about 0.05 s later (explosion effect and sound). Zombies within
-      about 300 units take heavy damage, and so do players near it (the Acid Gat dart's explosion, as the remaster's;
-      its sound is the Acid Gat's, the only one the remaster ships). Other zombies gather on the blob during that second.
+      after about 1 s at any round; the blob bursts about 0.05 s later, in flame with the remaster's Magmagat flame burst
+      (no green smoke). Zombies within about 300 units take heavy damage; every player within 150 units (you too)
+      catches fire and loses up to 75 (PhD Flopper: nothing). Other zombies gather on the blob during that second.
 - [ ] **Hit Brutus**: one hit of about 250-375; the blob stays on him and bursts 3 s later; zombies are lured to it.
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
       turned the same way, for 6 s, then vanishes (no
-      explosion). Zombies stepping in burn and die in about 0.75 s. Brutus walks through unharmed. Any player standing
-      in it (you too) is set on fire (the screen and body burn, as in vanilla's fire trap) and loses 20 health every
-      0.5 s with a sizzle loop. The Magmus pool is visibly wider (64).
+      explosion). Zombies come to it at once and burn and die in about 0.75 s stepping in. Brutus walks through
+      unharmed. Any player walking into the fire you see (you too) is set on fire (the screen and body burn, as in
+      Tranzit's lava) and loses 20 health every 0.5 s with a sizzle loop. The Magmus pool is visibly wider.
 - [ ] A zombie leaving a pool: the sound stops, the flames stay about 4 s, then go.
 - [ ] Spam 10 or more pools: never more than 8 at once, no entity overflow.
 - [ ] **Points**: hits and pool ticks give no +10; kills give the normal kill points.

@@ -314,8 +314,7 @@ mg_run_fabricate( state )
         if ( self hasweapon( weapon ) )
             self takeweapon( weapon );
 
-        self giveweapon( tempered );
-        self switchtoweapon( tempered );
+        self mg_give_weapon( tempered );
         self.mg_tempered_from = weapon;
         level thread mg_run_start_delayed( self, tempered );
     }
