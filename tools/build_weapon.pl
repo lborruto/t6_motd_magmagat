@@ -87,16 +87,15 @@ my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_worl
 # 5. weapon files: [ ours, the vanilla one it copies, field overrides ]. hideTags = the Acid Gat's: the plain shells and
 #    muzzle go, the lava set (the acid bones) shows. The remaster's Magmagat is the Acid Gat with fire, and ours fires as
 #    T6's Acid Gat does: a harmless hitscan shot with no tracer nor impact, the script fires the blob (magicbullet
-#    mg_magma_bolt_zm, as _zm_weap_blundersplat.gsc fires its dart). The muzzle flashes are the remaster's (Harry's
-#    fire-coloured Acid Gat flash, mod.ff's mg/fx_blundersplat_muzzleflash), the fire sound the Acid Gat's as the
-#    remaster's (its zone ships no other: the Magmus keeps the Sweeper's Pack-a-Punched one), the ammo BO4's (1 / 36 / 30,
-#    the Magmus 2 / 30 / 25). The blob grenade bursts with the Acid Gat dart's own explosion (1000 to 500 over 300
+#    mg_magma_bolt_zm, as _zm_weap_blundersplat.gsc fires its dart). Flashes and fire sounds as the remaster's own
+#    t8_magmagat_zm / t8_magmagat_upgraded_zm (read from BO3's weapon pool): Harry's fire-coloured flash on the Magmagat
+#    and his _ug one on the Magmus (mod.ff's mg/fx_blundersplat_muzzleflash*), the plain Blundergat's shot on both. The
+#    ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob grenade bursts with the Acid Gat dart's own explosion (1000 to 500 over 300
 #    units, and the Acid Gat's sound), which hurts players near it as the remaster's does; its 10 s fuse outlasts the
 #    6 s pool.
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
-    viewFlashEffect => 'mg/fx_blundersplat_muzzleflash',
-    worldFlashEffect => 'mg/fx_blundersplat_muzzleflash_3p' );
+    fireSound => 'wpn_blundergat_fire_npc', fireSoundPlayer => 'wpn_blundergat_fire_plr' );
 # the blob in flight and stuck: BO4's lava blob (p8_fxp_magma_blob, tools/import_all.pl), as mg_model( "ball" ) in
 # mg_coords.gsc. Export it from Greyhound after the Magmagat fired in BO3: before, BO3 has not streamed its mesh in and
 # the export is empty
@@ -105,11 +104,12 @@ my $blob = 'mg_magma_blob';
 my %tempered_flash = ( viewFlashEffect => 'mg/fx_mg_tempered_flash', worldFlashEffect => 'mg/fx_mg_tempered_flash_3p' );
 my @weapons = (
     [ 'magmagat_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MAGMAGAT', gunModel => 'mg_magmagat_view',
-        worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, fireSound => 'wpn_blundersplat_fire_exp_npc',
-        fireSoundPlayer => 'wpn_blundersplat_fire_exp_plr', clipSize => 1, maxAmmo => 36, startAmmo => 30 } ],
+        worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, viewFlashEffect => 'mg/fx_blundersplat_muzzleflash',
+        worldFlashEffect => 'mg/fx_blundersplat_muzzleflash_3p', clipSize => 1, maxAmmo => 36, startAmmo => 30 } ],
     [ 'magmagat_upgraded_zm', 'blundergat_upgraded_zm', { displayName => 'ZMWEAPON_MAGMAGAT_UPGRADED', gunModel => 'mg_magmus_view',
         worldModel => 'mg_magmus_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights",
-        %blob_only, clipSize => 2, maxAmmo => 30, startAmmo => 25 } ],
+        %blob_only, viewFlashEffect => 'mg/fx_blundersplat_muzzleflash_ug', worldFlashEffect => 'mg/fx_blundersplat_muzzleflash_ug_3p',
+        clipSize => 2, maxAmmo => 30, startAmmo => 25 } ],
     [ 'mg_magma_bolt_zm', 'blundersplat_bullet_zm', { projectileModel => $blob, projTrailEffect => 'mg/fx_magmagat_trail_bolt',
         projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm',
         explosionInnerDamage => 0, explosionOuterDamage => 0 } ],    # no splash of its own (the dart's 10): it only leaves the blob

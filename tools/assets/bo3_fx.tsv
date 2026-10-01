@@ -17,3 +17,5 @@ harry/blundersplat/fx_blundersplat_muzzleflash                # the Magmagat's m
 harry/blundersplat/fx_blundersplat_muzzleflash_3p             # the same, seen by others
 harry/blundersplat/fx_blundersplat_muzzleflash as=fx_mg_tempered_flash tint=0.3,0.6,1        # the tempered gun's muzzle flash: the same flash burning blue
 harry/blundersplat/fx_blundersplat_muzzleflash_3p as=fx_mg_tempered_flash_3p tint=0.3,0.6,1  # the same, seen by others
+harry/blundersplat/fx_blundersplat_muzzleflash_ug             # the Magmus Operandi's flash (the remaster's: Harry's _ug)
+harry/blundersplat/fx_blundersplat_muzzleflash_ug_3p          # the same, seen by others
