@@ -115,9 +115,8 @@ mg_forge_prompt_loop()
     }
 }
 
-// What the forge offers this player right now, or undefined: the remaster's tr_forge hints (the Acid Gat station's
-// ZM_PRISON_CONVERT_START / ZM_PRISON_MISSING_BLUNDERGAT and its own ZM_PRISON_MG_CONVERT_PICKUP) in plain text, as
-// the other polled prompts.
+// What the forge offers this player right now, or undefined: the remaster's tr_forge hints in plain text, as the other
+// polled prompts (power the Machine; lay the tempered gun on it, shown only while it is in his hands; take the Magmagat).
 mg_forge_prompt_text( player )
 {
     if ( is_true( level.mg_forge_busy ) )
@@ -219,10 +218,25 @@ mg_forge_place( player, weapon )
     if ( primaries.size > 0 )
         player switchtoweapon( primaries[0] );
 
-    c = mg_coord( "MG_FORGE_GUN" );
-    gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
     level.mg_forge_gun_weapon = weapon;
     level.mg_forge_placer = player;
+    gun = mg_press_show( weapon );
+    wait 1.3;
+    level.mg_forge_ready_gun = gun;
+    level.mg_forge_place_ents = [];
+    level.mg_forge_busy = 0;
+    level thread mg_forge_pickup_window( gun );
+}
+
+// The press at work on weapon, on the remaster's timeline (function_fb635f94; t from the use); the gun on the bed is
+// held in level.mg_forge_place_ents for a goto's cleanup. Returns the Magmagat lying on the bed at t 4.35, as the ram
+// lifts. Also played by `!mg tour`.
+mg_press_show( weapon )
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    c = mg_coord( "MG_FORGE_GUN" );
+    gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
     level.mg_forge_place_ents = [];
     level.mg_forge_place_ents[0] = gun;
 
@@ -259,11 +273,7 @@ mg_forge_place( player, weapon )
     body playsound( "mg_flame_burst" );
     body playsound( "zmb_buildable_complete" );
     level thread mg_press_up();
-    wait 1.3;
-    level.mg_forge_ready_gun = gun;
-    level.mg_forge_place_ents = [];
-    level.mg_forge_busy = 0;
-    level thread mg_forge_pickup_window( gun );
+    return gun;
 }
 
 // 15 s to take the Magmagat, or it is lost without a sign (the remaster's function_369019ca). The forge stays open.
@@ -308,13 +318,13 @@ mg_forge_take( player )
     mg_forge_rest();
 }
 
-// The Magmagat taken calls its guardian, as BO4: a Brutus in the Generator Room's zone (vanilla's own spawn, which
-// finds a Brutus spot there, even with the zone closed).
+// The Magmagat taken calls its guardian, as BO4: a Brutus, through vanilla's own spawning (brutus_spawning_logic picks
+// a zone and a spot near the players; a zone named by hand may have none and leave a removed entity behind).
 mg_forge_guardian()
 {
     level endon( "end_game" );
     wait 1;
-    maps\mp\zombies\_zm_ai_brutus::brutus_spawn_in_zone( "zone_studio", 1 );
+    level notify( "spawn_brutus", 1 );
 }
 
 mg_forge_ready_clear()

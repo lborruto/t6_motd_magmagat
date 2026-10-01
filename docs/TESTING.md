@@ -217,7 +217,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       barrels during `run`, and only one player at a time can be the temper carrier.
 - [ ] Either player's kills in the office count. Only the placer can take the tempered gun, and only the placer can
       take the Magmagat from the forge.
-- [ ] In `done`, either player can convert his own Blundergat at the open forge independently.
+- [ ] After a Magmagat, another player can temper his own: the fireplace takes a Blundergat again, and the powered
+      Machine takes only his Tempered Blundergat (no plain Blundergat).
 
 ## 9. Lints and syntax (before every deploy)
 

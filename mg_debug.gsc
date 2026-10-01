@@ -277,8 +277,10 @@ mg_debug_tour()
     if ( isdefined( essence ) )
     {
         essence playloopsound( "mg_soul_loop" );
+        mg_fx_add( essence, "soul_full" );
         wait 1.5;
-        self playsoundtoplayer( "evt_soulsuck_body", self );
+        playsoundatposition( "evt_soulsuck_body", essence.origin );
+        playsoundatposition( "evt_wolfhead_body_count", essence.origin );
         essence mg_essence_fly( skull );
         essence stoploopsound();
         mg_fx_stop( essence );
@@ -308,32 +310,25 @@ mg_debug_tour()
     // 6. the forge: powered, then a gun pressed into the Magmagat (the ram stays up while a real press runs)
     fc = mg_coord( "MG_FORGE_GUN" );
     angles = level.mg_press["press_body"].angles;
-    self mg_tour_look( "6/7 The forge: the Machine powered, a Blundergat pressed", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
+    self mg_tour_look( "6/7 The forge: the Machine powered, the Tempered Blundergat pressed", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
     mg_fx_once( "sparks", level.mg_press_rest, undefined, angles );
     self playsoundtoplayer( "zmb_powerpanel_activate", self );
     wait 1;
     self playsoundtoplayer( "mg_brutus_mgu", self );
     wait 2;
-    press = !is_true( level.mg_forge_busy ) && !isdefined( level.mg_forge_ready_gun );
-    gun = spawn_weapon_model( "blundergat_zm", undefined, fc.origin, fc.angles );
-    wait 0.5;
+    // the real press (mg_press_show), unless one is at work or a Magmagat waits on the bed
+    if ( !is_true( level.mg_forge_busy ) && !isdefined( level.mg_forge_ready_gun ) )
+    {
+        level.mg_forge_busy = 1;
+        gun = mg_press_show( "mg_tempered_zm" );
+        wait 3;
 
-    if ( press )
-        level thread mg_press_down();
+        if ( isdefined( gun ) )
+            gun delete();
 
-    wait 0.05;
-    self playsoundtoplayer( "mg_press", self );
-    wait 0.8;
-    mg_fx_once( "forge_rise", level.mg_press_rest, 6, angles );
-    gun delete();
-    wait 3;
-    gun = spawn_weapon_model( "magmagat_zm", undefined, fc.origin, fc.angles );
-
-    if ( press )
-        level thread mg_press_up();
-
-    wait 3;
-    gun delete();
+        level.mg_forge_place_ents = [];
+        level.mg_forge_busy = 0;
+    }
 
     // 7. the Magmagat's shot, fired for real at the floor ahead: the blob flies and lays its pool
     self setorigin( back );
@@ -350,9 +345,6 @@ mg_debug_tour()
         level thread mg_blob_land( bolt, self, "magmagat_zm", start );
 
     wait 7;
-    mg_fx_once( "explo", pos + ( 0, 0, 20 ) );
-    self playsoundtoplayer( "wpn_blundersplat_explode", self );
-    wait 1;
 
     self mg_out( "MG: tour done. Name a step (1-7) and what to change; any effect can be tried in place with `set mg_fx_<key> <fx>`" );
     self.mg_touring = 0;

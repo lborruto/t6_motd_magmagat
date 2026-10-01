@@ -200,16 +200,11 @@ mg_weapon_grant( weapon )
     }
 
     magma = mg_magma_of( weapon );
-    current = self getcurrentweapon();
-    primaries = self getweaponslistprimaries();
 
     if ( isdefined( weapon ) && self hasweapon( weapon ) )
         self takeweapon( weapon );
-    else if ( isdefined( primaries ) && primaries.size >= get_player_weapon_limit( self ) && mg_can_replace_current( self ) )
-        self takeweapon( current );
 
-    self giveweapon( magma );
-    self thread mg_switch_to( magma );
+    self mg_give_weapon( magma );
     self givemaxammo( magma );
     mg_debug_print( "MG: " + self.name + " holds a " + magma );
 }
@@ -248,7 +243,7 @@ mg_weapon_shot_loop()
         self waittill( "weapon_fired", weapon );
 
         if ( mg_is_magma( weapon ) )
-            self mg_blob_fire( weapon );
+            self thread mg_blob_fire( weapon );    // its own thread: one error must not end this player's loop
     }
 }
 
@@ -262,12 +257,20 @@ mg_blob_fire( weapon )
 
     if ( isdefined( bolt ) )
     {
-        // a small fire rides the blob in flight (on its model's root bone), over Harry's trail
-        if ( isdefined( level._effect["mg_blob_fire"] ) )
-            playfxontag( level._effect["mg_blob_fire"], bolt, "p8_fxp_magma_blob" );
-
+        bolt thread mg_blob_fire_fx();
         level thread mg_blob_land( bolt, self, weapon, origin );
     }
+}
+
+// self = a bolt in flight: a small fire rides it (on its model's root bone), over Harry's trail, from a frame after its
+// spawn (an effect played in the frame an entity appears is dropped by the clients).
+mg_blob_fire_fx()
+{
+    self endon( "death" );
+    wait 0.05;
+
+    if ( isdefined( level._effect["mg_blob_fire"] ) )
+        playfxontag( level._effect["mg_blob_fire"], self, "p8_fxp_magma_blob" );
 }
 
 // The bolt lands and leaves its blob (the grenade tools/build_weapon.pl gives it, stuck where it hit); the blob
@@ -590,7 +593,7 @@ mg_pool_touched( ent )
 {
     foreach ( pool in level.mg_pools )
     {
-        // 64 covers the Magmus radius and a body's width before the exact test
+        // 128 covers the Magmus radius and a body's width before the exact test
         if ( isdefined( pool ) && distancesquared( ent.origin, pool.origin ) < 128 * 128 && ent istouching( pool ) )
             return pool;
     }

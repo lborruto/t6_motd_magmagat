@@ -127,8 +127,8 @@ mg_hearth_press( player )
         mg_hearth_burn();
     else if ( mg_state_is( "ready" ) )
         mg_hearth_place( player );
-    else if ( mg_state_is( "pickup" ) && !is_true( level.mg_hearth_charged ) )
-        mg_hearth_deposit( player );
+    else if ( mg_state_is( "pickup" ) && !is_true( level.mg_hearth_charged ) && !is_true( level.mg_hearth_depositing ) )
+        level thread mg_hearth_deposit( player );    // its own thread: a goto ending it must not leave the fireplace busy
     else if ( mg_state_is( "pickup" ) )
         mg_hearth_take( player );
 
@@ -155,8 +155,8 @@ mg_hearth_boards_burn()
     mg_fx_once( "fire_sm", pos, 4 );
 }
 
-// ready -> souls (MG.gsc:128-153): the gun leaves the player (any of the four, held or not) and lies in the fire, and
-// the lockdown starts. No gun: the "missing Blundergat" hint for 2 s.
+// ready -> souls (MG.gsc:128-153): the gun in the player's hands (any of the four; the owner's rule, the prompt shows
+// only then) leaves him and lies in the fire, and the lockdown starts.
 mg_hearth_place( player )
 {
     weapon = player getcurrentweapon();
@@ -346,8 +346,8 @@ mg_soul( pos, session )
     // the skull this soul fills, reserved as it is taken (5 a skull)
     level.mg_souls_taken++;
     idx = int( ( level.mg_souls_taken - 1 ) / 5 );
-    essence playsound( "evt_soulsuck_body" );
-    essence playsound( "evt_wolfhead_body_count" );    // the wolf heads' soul taken, heard where it is picked up
+    playsoundatposition( "evt_soulsuck_body", essence.origin );
+    playsoundatposition( "evt_wolfhead_body_count", essence.origin );    // the wolf heads' soul taken, where it lay
     essence mg_essence_fly( level.mg_skulls[idx].origin );
     essence stoploopsound();
     mg_fx_stop( essence );
@@ -441,7 +441,7 @@ mg_skulls_dark()
 
 // The owner's deposit (over the remaster, which hands the gun at once): the placer pours the essence into the fire,
 // three souls streaking from him into the gun, then the fireplace bursts into the remaster's blue flame and
-// burns blue until the tempered Blundergat is taken. The skulls stay lit.
+// burns blue until the tempered Blundergat is taken. The skulls stay lit until it is pressed.
 mg_hearth_deposit( player )
 {
     level endon( "mg_goto" );
@@ -451,11 +451,16 @@ mg_hearth_deposit( player )
 
     session = level.mg_hearth_session;
     hearth = mg_coord( "MG_HEARTH" ).origin;
+    level.mg_hearth_depositing = 1;
+    from = player geteye() - ( 0, 0, 12 );
 
     // the three skulls' souls leave the placer for the gun in the fire, one after the other
     for ( i = 0; i < 3; i++ )
     {
-        level thread mg_hearth_soul_in( player geteye() - ( 0, 0, 12 ), hearth - ( 0, 0, 20 ) );
+        if ( isdefined( player ) )
+            from = player geteye() - ( 0, 0, 12 );
+
+        level thread mg_hearth_soul_in( from, hearth - ( 0, 0, 20 ) );
         wait 0.15;
     }
 
@@ -463,6 +468,7 @@ mg_hearth_deposit( player )
     playsoundatposition( "mg_flame_burst", hearth );
     mg_fx_once( "hearth_flare", hearth );
     blue = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 17 ) );
+    level.mg_hearth_depositing = 0;
 
     // a reset (the placer gone, a goto) during those waits: the fire stays as it was
     if ( !mg_state_is( "pickup" ) || level.mg_hearth_session != session )
@@ -493,6 +499,8 @@ mg_hearth_soul_in( from, to )
 // The blue fire out (taken, or the step reset).
 mg_hearth_blue_off()
 {
+    level.mg_hearth_depositing = 0;
+    level.mg_hearth_busy = 0;
     mg_fx_stop( level.mg_hearth_blue );
     level.mg_hearth_blue = undefined;
     level.mg_hearth_charged = 0;

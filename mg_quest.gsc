@@ -7,9 +7,9 @@
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_forge;
 
-// The quest state machine. States, in order: locked, ready, souls, pickup, run, forge, done. Play goes from run
-// straight to done when the carrier powers the Machine (the remaster's run ends there); "forge" is only reached by
-// `!mg goto forge`, which leaves a pressed Magmagat on the open forge for the player typing it.
+// The quest state machine. States, in order: locked, ready, souls, pickup, run, forge, done. Play goes from run back
+// to ready when the carrier lays the tempered gun on the powered Machine (the next player may temper his own); "forge"
+// and "done" are only reached by `!mg goto`: "forge" leaves a pressed Magmagat on the open forge for the player typing it.
 
 mg_quest_init()
 {

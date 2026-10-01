@@ -11,9 +11,9 @@
 // The temper run, as the BO3 remaster (_zm_weap_magmagat.gsc function_2ca6799): 15 s of temper counted in whole
 // seconds; each of the five barrels resets it to 15 once per run (a flare, then it keeps burning until the run ends);
 // from 0.5 s on (once the tempered gun first reaches his hands, 3 s at most), any weapon in hand but the tempered gun
-// or a Blundergat variant ends it (firing does not). It succeeds when the carrier powers the Machine at the forge
-// (mg_forge); on failure, silent, the carrier gets his gun back, the skulls go out and 5 s later the fireplace takes a
-// Blundergat again.
+// or a Blundergat variant ends it (firing does not). It succeeds when the carrier lays the tempered gun on the powered
+// Machine at the forge (mg_forge; powering it does not end it); on failure, silent, the carrier gets his gun back, the
+// skulls go out and 5 s later the fireplace takes a Blundergat again.
 
 mg_run_init()
 {
