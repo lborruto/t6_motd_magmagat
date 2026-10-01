@@ -217,13 +217,14 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
 ### The GitHub Actions
 
 - `.github/workflows/check.yml`, every push and pull request: `lint_includes`, `lint_calls`, `lint_sounds`,
-  `check_links`, then a pack test (one file, else two, else three) to prove the scripts still load.
+  `check_links`, then a pack test (one file, else two, else three) to prove the scripts still load. A push or pull
+  request that only touches `*.md`, `docs/` or `LICENSE` runs nothing, and neither does a tag push.
 - `.github/workflows/release.yml`, when a GitHub Release is published: the player zip. The mod.ff is built from the
   games' files, which never leave the maintainer's PC, so `perl tools/publish.pl` builds it and publishes the release
   `v<version>` (`level.mg_version`) with `mod.ff`, `mod.all.sabl` and `mod.all.sabs` attached, on the pushed commit
   (needs `gh auth login`). The workflow checks the tag against the version, lints, packs the scripts from the tagged
   sources, assembles `zm_magmagat/` (mod.ff, the sound bank, mod.json with the version, the packed scripts), attaches
-  `zm_magmagat-<version>.zip` and removes the bare mod.ff and sound bank. `workflow_dispatch` rebuilds the zip of an existing release. `tools/release.pl` builds the same folder and
+  `zm_magmagat-<version>.zip` and removes the bare mod.ff and sound bank. `workflow_dispatch` rebuilds the zip of an existing release (from the bare files, or from the ones inside its zip once they were removed). `tools/release.pl` builds the same folder and
   zip locally, to try a release before publishing it.
 
 ## The lints (run all four before every push)

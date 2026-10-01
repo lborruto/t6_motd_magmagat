@@ -3,9 +3,13 @@ name: Check the scripts
 # Every push and pull request: the lints, then a pack test (one file, else two, else three) to prove the quest
 # scripts still load. Nothing is published here: the mod.ff and its sound bank are built from the games' own files on
 # the maintainer's PC and attached to a GitHub Release by tools/publish.pl; release.yml then builds the player zip.
+# A change that touches only the docs (*.md, docs/, LICENSE) runs nothing.
 on:
   push:
+    branches: [ "**" ]    # not the tag tools/publish.pl creates: the release workflow checks that commit
+    paths-ignore: [ "**.md", "docs/**", "LICENSE" ]
   pull_request:
+    paths-ignore: [ "**.md", "docs/**", "LICENSE" ]
   workflow_dispatch:
 
 jobs:

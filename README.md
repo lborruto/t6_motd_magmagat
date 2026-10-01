@@ -14,6 +14,8 @@ into `scripts\zm\`.
 
 The Mods menu runs one mod at a time; loose scripts in `scripts\zm\` still load beside it.
 
+What each release brings is in [CHANGELOG.md](CHANGELOG.md).
+
 ## Play
 
 The Warden's Office remembers fire. Our advice: discover it. If you are stuck, `docs/GUIDE.md` has the

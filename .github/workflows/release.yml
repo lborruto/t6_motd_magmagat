@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to (re)build the zip for, e.g. v0.2.0 (its mod.ff must be attached)'
+        description: 'Release tag to (re)build the zip for, e.g. v1.0.0 (its mod.ff and sound bank attached, bare or in its zip)'
         required: true
 
 permissions:
@@ -41,11 +41,30 @@ jobs:
         run: perl tools/lint_includes.pl && perl tools/lint_sounds.pl && perl tools/lint_calls.pl && perl tools/check_links.pl .
 
       - name: Get the release's mod.ff and sound bank
+        # the bare files publish.pl attached; on a rebuild (workflow_dispatch) after they were removed, the ones inside
+        # the release's zm_magmagat-<version>.zip
+        id: assets
         run: |
           mkdir -p dl
+          BARE=1
           for f in mod.ff mod.all.sabl mod.all.sabs; do
-            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$f" --dir dl
+            gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$f" --dir dl || BARE=0
           done
+          if [ "$BARE" = 0 ]; then
+            ZIP="zm_magmagat-${{ steps.ver.outputs.version }}.zip"
+            echo "The bare mod.ff / sound bank are not all on $TAG: trying the files inside $ZIP"
+            rm -rf dl && mkdir -p dl
+            if gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ZIP" --dir dl; then
+              unzip -j -o "dl/$ZIP" zm_magmagat/mod.ff zm_magmagat/mod.all.sabl zm_magmagat/mod.all.sabs -d dl || true
+            fi
+          fi
+          for f in mod.ff mod.all.sabl mod.all.sabs; do
+            if [ ! -s "dl/$f" ]; then
+              echo "::error::Release $TAG has no $f: run perl tools/publish.pl (it builds mod.ff and its sound bank and attaches them)"
+              exit 1
+            fi
+          done
+          echo "bare=$BARE" >> "$GITHUB_OUTPUT"
           ls -la dl
 
       - name: Assemble the mod folder
@@ -60,11 +79,24 @@ jobs:
             || perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 3
           find "$D" -type f | xargs ls -la
 
+      - name: The folder is complete
+        run: |
+          D=release/zm_magmagat
+          for f in mod.ff mod.all.sabl mod.all.sabs mod.json; do
+            [ -s "$D/$f" ] || { echo "::error::$D/$f is missing or empty"; exit 1; }
+          done
+          grep -q "\"version\": *\"${{ steps.ver.outputs.version }}\"" "$D/mod.json" \
+            || { echo "::error::$D/mod.json does not carry version ${{ steps.ver.outputs.version }}"; exit 1; }
+          ls "$D"/scripts/zm/zm_prison/zm_prison_magmagat*.gsc > /dev/null 2>&1 \
+            || { echo "::error::no packed script in $D/scripts/zm/zm_prison (tools/pack.pl failed for 1, 2 and 3 parts)"; exit 1; }
+
       - name: Zip and attach it
         run: |
           ZIP="zm_magmagat-${{ steps.ver.outputs.version }}.zip"
           (cd release && zip -r -9 "../$ZIP" zm_magmagat)
           gh release upload "$TAG" "$ZIP" --repo "$GITHUB_REPOSITORY" --clobber
-          for f in mod.ff mod.all.sabl mod.all.sabs; do
-            gh release delete-asset "$TAG" "$f" --repo "$GITHUB_REPOSITORY" --yes
-          done
+          if [ "${{ steps.assets.outputs.bare }}" = 1 ]; then
+            for f in mod.ff mod.all.sabl mod.all.sabs; do
+              gh release delete-asset "$TAG" "$f" --repo "$GITHUB_REPOSITORY" --yes
+            done
+          fi
