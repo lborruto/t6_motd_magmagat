@@ -117,7 +117,8 @@ my @weapons = (
         projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm',
         explosionInnerDamage => 0, explosionOuterDamage => 0,    # no splash of its own (the dart's 10): it only leaves the blob
         %no_acid } ],
-    [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => $blob,
+    # the grenade invisible: the script shows a copy of the blob, turned to the surface it stuck to, from its first frame
+    [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => 'tag_origin',
         projExplosionEffect => 'mg/fx_magmagat_explode', projExplosionSound => '', %no_acid, fuseTime => 10,
         aifuseTime => 10, explosionTag => '' } ],
     # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still

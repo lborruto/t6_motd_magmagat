@@ -311,26 +311,50 @@ mg_blob_land( bolt, player, weapon, from )
         return;
     }
 
-    // the blob stands out of the surface it hit, a wall or a ceiling as the floor, and its pool with it. T6 keeps a
-    // stuck grenade as it flew, so it hides and a copy of the blob stands in its place, turned to the surface
+    // the grenade itself is invisible (tools/build_weapon.pl): a copy of the blob shows it. On a surface it stands out
+    // of it, a wall or a ceiling as the floor, its pool with it (T6 keeps a stuck grenade as it flew); on a zombie or
+    // Brutus it rides the grenade.
     if ( !isdefined( host ) )
     {
-        shown = spawn( "script_model", blob.origin );
-        shown.angles = mg_up_angles( mg_blob_normal( from, blob ) );
-        shown setmodel( mg_model( "ball" ) );
-        blob hide();
+        shown = blob mg_blob_show( mg_up_angles( mg_blob_normal( from, blob ) ), 0 );
         level thread mg_pool( blob, player, weapon, shown );
     }
     else if ( mg_is_brutus( host ) )
+    {
+        blob mg_blob_show( blob.angles, 1 );
         blob thread mg_blob_on_brutus( host, player, weapon );
+    }
     else
     {
+        blob mg_blob_show( blob.angles, 1 );
         blob thread mg_blob_on_zombie( host, player );
 
         // a second blob on the same zombie only bursts with it
         if ( !is_true( host.mg_magma_stuck ) )
             host thread mg_magma_stuck( player, weapon );
     }
+}
+
+// self = a blob grenade. Its visible copy, turned to angles, riding it when ride is set; gone with the grenade.
+mg_blob_show( angles, ride )
+{
+    shown = spawn( "script_model", self.origin );
+    shown.angles = angles;
+    shown setmodel( mg_model( "ball" ) );
+
+    if ( ride )
+        shown linkto( self );
+
+    shown thread mg_blob_show_end( self );
+    return shown;
+}
+
+// self = a blob's copy: it goes when its grenade does (a burst, the pool's end)
+mg_blob_show_end( blob )
+{
+    self endon( "death" );
+    blob waittill( "death" );
+    self delete();
 }
 
 // The normal of the surface the blob stuck to, traced along the shot through it (straight up when nothing is found;
@@ -361,7 +385,7 @@ mg_blob_find( pos )
 
     foreach ( g in getentarray( "grenade", "classname" ) )
     {
-        if ( !isdefined( g.model ) || g.model != mg_model( "ball" ) || is_true( g.mg_claimed ) )
+        if ( !isdefined( g.model ) || g.model != mg_model( "blob_grenade" ) || is_true( g.mg_claimed ) )
             continue;
 
         d = distancesquared( g.origin, pos );
@@ -417,9 +441,6 @@ mg_blob_lure( weapon )
         self create_zombie_point_of_interest( 500, 10, 10000 );
     else
         self create_zombie_point_of_interest( 250, 5, 10000 );
-
-    // spots round it the zombies take at once, as vanilla's monkey bomb (they come to the blob, not on their next look)
-    self thread create_zombie_point_of_interest_attractor_positions( 4, 45 );
 }
 
 // self = zombie the blob stuck to (the remaster's function_876c11c9, BO2's _titus_target_animate_and_die): it burns in
@@ -535,7 +556,9 @@ mg_pool( blob, player, weapon, shown )
     arrayremovevalue( level.mg_pools, pool );
     pool delete();
     mg_fx_stop( fire );
-    shown delete();
+
+    if ( isdefined( shown ) )
+        shown delete();
 
     if ( isdefined( blob ) )
     {

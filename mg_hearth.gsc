@@ -455,7 +455,7 @@ mg_hearth_deposit( player )
     // the three skulls' souls leave the placer for the gun in the fire, one after the other
     for ( i = 0; i < 3; i++ )
     {
-        level thread mg_hearth_soul_in( player geteye() - ( 0, 0, 12 ), hearth - ( 0, 0, 10 ) );
+        level thread mg_hearth_soul_in( player geteye() - ( 0, 0, 12 ), hearth - ( 0, 0, 20 ) );
         wait 0.15;
     }
 
