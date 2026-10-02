@@ -19,7 +19,7 @@ mg_models_init()
     level.mg_models["press_ram"] = "mg_press_ram"; // its ram, which script brings down
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
     level.mg_models["ghost"] = "c_zom_hero_ghost_fb"; // vanilla's Afterlife body (_zm_afterlife): the forge's ghosts
-    level.mg_models["press_clip"] = "collision_clip_64x64x128"; // common_zm: the forge machine's collision, centred
+    level.mg_models["press_clip"] = "collision_geo_64x64x128_standard"; // common_zm: the forge machine's collision, centred: players, zombies and bullets (a hit marks it)
     level.mg_models["clip"] = "collision_clip_32x32x128"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none), centred
     level.mg_models["player_clip"] = "collision_player_32x32x128"; // patch_zm, always loaded: blocks players only (the office door in the lockdown), centred
 }

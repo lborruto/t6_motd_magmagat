@@ -14,7 +14,7 @@
 // - on Brutus: 2500 burn damage (his own armour takes 90 % of it), the blob bursts 3 s later;
 // - anywhere else: a lava pool for 6 s (a radius of 32, the Magmus 64), the blob lying in it. A zombie in it takes a
 //   quarter of its maximum health every 0.25 s; any player in it 20 every 0.5 s. Brutus walks through.
-// In all three the blob lures zombies (250 units, 5 of them; the Magmus 500 and 10). Magmagat damage pays no points per
+// On a surface the blob lures every zombie near (250 units, the Magmus 500). Magmagat damage pays no points per
 // hit (the kill still does). The Acid Gat kit takes the Magmagat as the Blundergat it was and makes the Acid Gat.
 
 mg_weapon_init()
@@ -453,14 +453,15 @@ mg_is_brutus( ai )
     return isdefined( ai.animname ) && ai.animname == "brutus_zombie";
 }
 
-// self = blob. The lure, vanilla's point of interest (the Acid Gat's own numbers, which the remaster keeps), on a blob
-// on the floor or a wall only: as BO4's, one stuck on a zombie or on Brutus draws no one (the remaster's does).
+// self = blob. The lure, vanilla's point of interest over the remaster's reach (250 units, the Magmus 500), on a blob on
+// the floor or a wall only: as BO4's, one stuck on a zombie or on Brutus draws no one (the remaster's does), and every
+// zombie near draws in, as BO4's (24 places around it, the Magmus 48; the remaster's 5 and 10 left the rest chasing).
 mg_blob_lure( weapon )
 {
     if ( weapon == "magmagat_upgraded_zm" )
-        self create_zombie_point_of_interest( 500, 10, 10000 );
+        self create_zombie_point_of_interest( 500, 48, 10000 );
     else
-        self create_zombie_point_of_interest( 250, 5, 10000 );
+        self create_zombie_point_of_interest( 250, 24, 10000 );
 }
 
 // self = zombie the blob stuck to (the remaster's function_876c11c9, BO2's _titus_target_animate_and_die): it burns in
