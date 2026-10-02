@@ -542,11 +542,18 @@ mg_hearth_take( player )
 // The remaster's lockdown: one effect outlining the office's door and walls, where its exploder fx_mg_quest_lockdown
 // stands (BO3 -4432 3971 2720, no rotation), brought onto BO2's office by the fit of the two maps' office windows
 // (BO2 = BO3 x 1.015 / 1.019 + 3605 / 4976, the remaster's office being a little smaller; tools/assets/bo3_fx.tsv
-// stretches the effect the same way); and its wardens_playerclip across the office door.
+// stretches the effect the same way); and its wardens_playerclip across the office door. The dvars mg_lock_offset
+// ("x y z") and mg_lock_yaw move and turn it in game, to fit it on the door and windows.
 mg_lockdown_on()
 {
     mg_lockdown_off();
-    level thread mg_lockdown_wall( ( -951.4, 9027.4, 1368 ), ( 0, 0, 0 ) );
+    origin = ( -951.4, 9027.4, 1368 );
+    parts = strtok( getdvar( "mg_lock_offset" ), " " );
+
+    if ( parts.size == 3 )
+        origin = origin + ( float( parts[0] ), float( parts[1] ), float( parts[2] ) );
+
+    level thread mg_lockdown_wall( origin, ( 0, getdvarfloat( "mg_lock_yaw" ), 0 ) );
     mg_lockdown_clip_on();
 }
 
