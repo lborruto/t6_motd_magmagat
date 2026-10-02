@@ -148,11 +148,11 @@ mg_hearth_burn()
 
 mg_hearth_boards_burn()
 {
-    // the map's boards across the fireplace (where the remaster's mg_wood_barrier planks stood) flare up for the 4 s the
-    // remaster's take to dissolve: one small fire at their middle, inside the opening and under the map's own fire
-    // (a larger one spilled out of the fireplace over it)
+    // the remaster dissolves its planks (mg_wood_barrier); T6's boards are the map's own and stay. Over the map's own
+    // fire, any fire doubled it: a short blue flare instead, the fire the deposit will light, its burst at the bed
+    // (the flare draws 34 to 65 units over its origin)
     wait 0.05;
-    mg_fx_once( "boards_fire", ( -479, 8796, 1359 ), 4 );
+    mg_fx_once( "barrel_flare", ( -479, 8796, 1299 ), 4 );
 }
 
 // ready -> souls (MG.gsc:128-153): the gun in the player's hands (any of the four; the owner's rule, the prompt shows
@@ -547,7 +547,7 @@ mg_hearth_take( player )
 mg_lockdown_on()
 {
     mg_lockdown_off();
-    origin = ( -951.4, 9027.4, 1368 );
+    origin = ( -961.4, 9027.4, 1373 );    // the fit, then 10 west and 5 up onto BO2's office door (the owner's check in game)
     parts = strtok( getdvar( "mg_lock_offset" ), " " );
 
     if ( parts.size == 3 )
