@@ -292,7 +292,7 @@ mg_forge_pickup_window( gun )
 }
 
 // The placer takes the Magmagat (the Magmus Operandi when a Pack-a-Punched gun was pressed). One who already owns a
-// Magmagat only gets its ammo refilled, as the remaster.
+// Magmagat only gets its ammo refilled, as the remaster, or the Magmus for a plain one (mg_weapon_grant).
 mg_forge_take( player )
 {
     if ( !isdefined( level.mg_forge_ready_gun ) || !is_player_valid( player ) )
@@ -307,12 +307,7 @@ mg_forge_take( player )
 
     weapon = level.mg_forge_gun_weapon;
     mg_forge_ready_clear();
-    owned = mg_has_magma( player );
-
-    if ( isdefined( owned ) )
-        player givemaxammo( owned );
-    else
-        player mg_weapon_grant( weapon );
+    player mg_weapon_grant( weapon );
 
     level thread mg_forge_guardian();
     mg_forge_rest();

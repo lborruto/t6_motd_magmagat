@@ -81,7 +81,8 @@ Blundergat": the run ends in success.
 
 The press comes down on the gun and works it for about **5.65 seconds**, then the Magmagat lies on the bed. Only the player
 who placed the gun can take it ("Hold [use] to take the Magmagat"), and only within **15 seconds**: after that it is
-gone without a sound. If you already own a Magmagat, taking a new one only refills the ammo of the one you have.
+gone without a sound. If you already own a Magmagat, taking a new one only refills the ammo of the one you have, unless
+you pressed a Pack-a-Punched gun while owning a plain Magmagat: yours then becomes the Magmus Operandi.
 Taking it calls a **Brutus** into the Generator Room. The fireplace then takes a Blundergat again: every player can
 temper his own.
 

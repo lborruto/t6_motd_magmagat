@@ -152,7 +152,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       Withering) gives `magmagat_upgraded_zm` (Magmus Operandi).
 - [ ] **Failure path**: leave it 15 s: it disappears with no effect and no sound, and the forge offers placement again.
 - [ ] Only the placer can take it; another player sees no prompt and his press does nothing.
-- [ ] Place a second gun while you already own a Magmagat: taking it only refills the ammo of the one you own.
+- [ ] Place a second gun while you already own a Magmagat: taking it only refills the ammo of the one you own; a
+      Pack-a-Punched gun pressed while you own a plain Magmagat makes it the Magmus Operandi (never the reverse).
 - [ ] `!mg goto ready` in the middle of a press: the ram returns to rest and the entities are cleaned up.
 
 ## 6. The weapon (Magmagat / Magmus Operandi)
@@ -162,15 +163,17 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       acid splash where it lands. The clip holds one (the Magmus two). Both fire with the plain Blundergat's shot, as
       the remaster's own t8_magmagat_zm does.
 - [ ] **Hit a zombie**: the blob sticks, the zombie plays the Acid Gat stun and burns (torso fire and loop sound), and dies
-      after about 1 s at any round; the blob bursts about 0.05 s later, in flame with the remaster's Magmagat flame burst
-      (no green smoke). Zombies within about 300 units take heavy damage; every player within 150 units (you too)
-      catches fire and loses up to 75 (PhD Flopper: nothing). Other zombies gather on the blob during that second.
-- [ ] **Hit Brutus**: one hit of about 250-375; the blob stays on him and bursts 3 s later; zombies are lured to it.
+      after about 1 s at any round, bursting in gore; the blob bursts about 0.05 s later, in flame with the Acid Gat's
+      explosion sound (no green smoke). The zombies within about 150 units catch fire and die of it within 1-2 s,
+      falling dead (no gore); every player in the drawn fire's width (you too) catches fire and loses 20 (PhD Flopper:
+      nothing). Other zombies are not drawn to a blob on a zombie (BO4).
+- [ ] **Hit Brutus**: one hit of about 250-375; the blob stays on him and bursts 3 s later; zombies are not lured to it.
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
       turned the same way, for 6 s, then vanishes (no
       explosion). Zombies come to it at once and burn and die in about 0.75 s stepping in. Brutus walks through
-      unharmed. Any player walking into the fire you see (you too) is set on fire (the screen and body burn, as in
-      Tranzit's lava) and loses 20 health every 0.5 s with a sizzle loop. The Magmus pool is visibly wider.
+      unharmed. Any player touching the blob's fire area (32 units, the Magmus 64, as the remaster's; you too) is set
+      on fire (the screen and body burn, as in Tranzit's lava) and loses 20 health every 0.5 s with a sizzle loop. The
+      Magmus pool is visibly wider.
 - [ ] A zombie leaving a pool: the sound stops, the flames stay about 4 s, then go.
 - [ ] Spam 10 or more pools: never more than 8 at once, no entity overflow.
 - [ ] **Points**: hits and pool ticks give no +10; kills give the normal kill points.
@@ -184,7 +187,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       armour kit, a 2-blob clip, the bigger pool and lure.
 - [ ] **Acid Gat kit takes a Magmagat**: holding only a Magmagat, use the Acid Gat station: it goes in as a
       Blundergat and the Acid Gat comes out (a Magmus Operandi gives the Vitriolic Withering).
-- [ ] A plain Blundergat still upgrades at the Acid Gat station normally.
+- [ ] A plain Blundergat still upgrades at the Acid Gat station normally. With a Magmagat and an Acid Gat already,
+      the station keeps your Magmagat (no conversion).
+- [ ] **Back and forth**: Magmagat -> Acid Gat kit -> Acid Gat -> fireplace -> Magmagat again; the same with a
+      Magmus Operandi -> Vitriolic Withering -> Magmus Operandi. No step gives back a lower tier.
 - [ ] With a Magmagat in hand, a Brutus-locked craftable table still charges its unlock price and unlocks;
       other craftables (shield, plane parts) still craft normally.
 - [ ] Losing the Magmagat (box swap, wall buy replacing it, death without Tombstone) loses it like any weapon;

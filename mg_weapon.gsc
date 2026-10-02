@@ -188,19 +188,22 @@ mg_has_magma( player )
 }
 
 // self = player. Swaps the held Blundergat (or, at two primaries, the gun in hand) for its Magmagat. A player who
-// already owns a Magmagat only has its ammo refilled (the remaster's forge: function_704b802a, giveMaxAmmo).
+// already owns a Magmagat only has its ammo refilled (the remaster's forge: function_704b802a, giveMaxAmmo), unless a
+// Pack-a-Punched gun was pressed while he owns the plain one: that one becomes the Magmus Operandi, never the reverse.
 mg_weapon_grant( weapon )
 {
     owned = mg_has_magma( self );
+    magma = mg_magma_of( weapon );
 
-    if ( isdefined( owned ) )
+    if ( isdefined( owned ) && !( owned == "magmagat_zm" && magma == "magmagat_upgraded_zm" ) )
     {
         self givemaxammo( owned );
         mg_debug_print( "MG: " + self.name + " refills his " + owned );
         return;
     }
 
-    magma = mg_magma_of( weapon );
+    if ( isdefined( owned ) )
+        self takeweapon( owned );
 
     if ( isdefined( weapon ) && self hasweapon( weapon ) )
         self takeweapon( weapon );
@@ -321,7 +324,6 @@ mg_blob_land( bolt, player, weapon, from, fire )
     blob.mg_claimed = 1;
     blob.mg_owner = player;
     blob.mg_weapon = weapon;
-    blob mg_blob_lure( weapon );
     host = mg_blob_host( blob );
 
     // stuck to something that moves but is no living zombie (a teammate, a corpse, the gondola): no pool could follow
@@ -340,6 +342,7 @@ mg_blob_land( bolt, player, weapon, from, fire )
     if ( !isdefined( host ) )
     {
         shown = blob mg_blob_show( mg_up_angles( mg_blob_normal( from, blob ) ), 0 );
+        blob mg_blob_lure( weapon );
         level thread mg_pool( blob, player, weapon, shown );
     }
     else if ( mg_is_brutus( host ) )
@@ -473,7 +476,8 @@ mg_is_brutus( ai )
     return isdefined( ai.animname ) && ai.animname == "brutus_zombie";
 }
 
-// self = blob. The lure, vanilla's point of interest (the Acid Gat's own numbers, which the remaster keeps).
+// self = blob. The lure, vanilla's point of interest (the Acid Gat's own numbers, which the remaster keeps), on a blob
+// on the floor or a wall only: as BO4's, one stuck on a zombie or on Brutus draws no one (the remaster's does).
 mg_blob_lure( weapon )
 {
     if ( weapon == "magmagat_upgraded_zm" )
@@ -529,7 +533,10 @@ mg_blob_on_brutus( brutus, player, weapon )
 mg_blob_burst()
 {
     pos = self.origin;
-    self deactivate_zombie_point_of_interest();
+
+    if ( isdefined( self.script_noteworthy ) )
+        self deactivate_zombie_point_of_interest();
+
     self resetmissiledetonationtime( 0.05 );
     mg_fx_once( "explo", pos );
     mg_fx_once( "burst_fire", pos );
@@ -874,7 +881,12 @@ mg_acid_station_validation( player )
 
     magma = mg_has_magma( player );
 
+    // a Blundergat beside it goes in instead (vanilla's pick); with an Acid Gat already, vanilla would only refill it and
+    // the Magmagat would be lost: it stays
     if ( !isdefined( magma ) || player hasweapon( "blundergat_zm" ) || player hasweapon( "blundergat_upgraded_zm" ) )
+        return 1;
+
+    if ( player hasweapon( "blundersplat_zm" ) || player hasweapon( "blundersplat_upgraded_zm" ) )
         return 1;
 
     base = "blundergat_zm";
