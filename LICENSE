@@ -45,11 +45,12 @@ It does not cover:
     other people's work and keep their owners' terms. None of them is under
     the MIT licence:
       - Treyarch / Activision assets from Black Ops II, Black Ops III and
-        Black Ops 4, among them BO4's Magmagat and Tempered Blundergat
-        models, the p8_fxp_magma_blob lava blob and the
-        p8_zm_esc_machinery_01 press;
-      - assets from the BO3 Workshop map "MOB OF THE DEAD" by copforthat and
-        the map's team (its effects, sounds, lava, drums and skulls);
+        Black Ops 4: every model, texture and sound, among them BO4's
+        Magmagat and Tempered Blundergat models, the p8_fxp_magma_blob lava
+        blob, the p8_zm_esc_machinery_01 press, BO3's drums, skulls and lava,
+        and the quest's sounds;
+      - the effects of the BO3 Workshop map "MOB OF THE DEAD" by copforthat
+        and the map's team (_copforthat/_zm_prison/*);
       - Harry's effects that map ships (harry/magmagat/* and
         harry/blundersplat/*: the lava blob's trail, impact and burst, and
         the muzzle flashes).

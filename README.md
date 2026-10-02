@@ -24,13 +24,16 @@ walkthrough behind spoiler folds.
 ## Credits
 
 - The quest follows the BO3 Workshop map "MOB OF THE DEAD" by copforthat (with tupivere_, dobby, Xela, Hybs, Rayjiun,
-  robit, GCP, Booris and Kingslayer Kyle). The dark-green drums, the mantle skulls, the lava, the quest's effects (the
-  blue flames, the souls, the lockdown, the press fire, the lava pool) and its sounds (the flame bursts, the souls,
-  the press, the warden's lines) come from that map.
+  robit, GCP, Booris and Kingslayer Kyle). The quest's effects are that team's (`_copforthat/_zm_prison`: the blue
+  flames, the souls, the lockdown, the forge's power and press fire, the lava pool, the blob's scorch), and the mod
+  plays the sounds and props that map picked for the quest.
 - Harry's effects, as that map ships them (`harry/magmagat` and `harry/blundersplat`): the lava blob's trail, impact
   and burst, and the Magmagat's and the tempered gun's muzzle flashes.
-- Treyarch: the Black Ops 4 models of the Magmagat, the Tempered Blundergat, the lava blob (`p8_fxp_magma_blob`) and
-  the press (`p8_zm_esc_machinery_01`); Black Ops II's Mob of the Dead, whose Blundergat animations the gun plays.
+- Treyarch / Activision: every model, texture and sound the mod ships. From Black Ops 4: the Magmagat, the Tempered
+  Blundergat, the lava blob (`p8_fxp_magma_blob`), the press (`p8_zm_esc_machinery_01`) and, as far as we can tell,
+  the quest's sounds (the flame bursts, the souls, the press, the warden's line). From Black Ops III: the drums, the
+  mantle skulls, the lava and every texture inside the effects. From Black Ops II: Mob of the Dead itself and the
+  Blundergat animations the gun plays.
 - Tools: OpenAssetTools (Laupetin and contributors) builds the fastfile; Greyhound and HydraX (Scobalula) for the
   extraction from BO3; built on the Dead Frequency toolchain.
 

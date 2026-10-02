@@ -100,8 +100,9 @@ cannot play an effect on the view model).
   budget for hitting the zone's image/asset caps.
 
 ## Legal / etiquette note
-The Workshop map's own assets may be copforthat's team's original work, or may themselves be ported from
-BO4 (Blood of the Dead) or other titles — Workshop custom-map credits sections commonly acknowledge
+Of what the mod takes from the Workshop map, only the effect definitions are the team's own work
+(`_copforthat/_zm_prison/*`, and Harry's `harry/*`); the models, the textures inside the effects and, by their BO4
+names, the sounds are Treyarch's (BO3 `p7_`, BO4 `p8_`, `fxt_`/`fxt8_` images). Workshop custom-map credits sections commonly acknowledge
 third-party asset sources, and the wider BO3 modding community (Modme wiki, CabConModding,
 ZGC/DEVRAW asset sites) routinely shares and reuses ported assets between titles, but expects
 attribution. Standard etiquette in this scene: message the map author (copforthat) via the Steam
