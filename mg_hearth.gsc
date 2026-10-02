@@ -148,11 +148,14 @@ mg_hearth_burn()
 
 mg_hearth_boards_burn()
 {
-    // the middle of the map's boards across the fireplace (where the remaster's mg_wood_barrier planks stood)
+    // the map's boards across the fireplace (where the remaster's mg_wood_barrier planks stood) catch fire along their
+    // width for the 4 s the remaster's take to dissolve, from their middle and 14 units to each side
     pos = ( -479, 8796, 1359 );
+    side = anglestoright( mg_coord( "MG_HEARTH" ).angles ) * 14;
     wait 0.05;
-    mg_fx_once( "hearth_flare", pos );
-    mg_fx_once( "fire_sm", pos, 4 );
+
+    foreach ( p in array( pos - side, pos, pos + side ) )
+        mg_fx_once( "fire_sm", p, 4 );
 }
 
 // ready -> souls (MG.gsc:128-153): the gun in the player's hands (any of the four; the owner's rule, the prompt shows

@@ -30,14 +30,14 @@ mg_fx_table()
     // job (maps/mp/zm_prison_fx.gsc)
     t = [];
     // the fireplace: its boards burning at the first press, the lockdown, the souls and the lit skulls
-    t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the boards bursting into flame
+    t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the fire flaring as the souls go in
     t["fire_sm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the boards burning (4 s)
     t["lockdown"] = "mg/fx_alcatraz_lockdown_wardens"; // the remaster's lockdown: the office's door and walls outlined
     t["soul_trail"] = "mg/lightning_hands_muzzleflash_trail"; // the remaster's soul rising over the body
     t["soul_full"] = "mg/fx_alcatraz_blue_flame_skull"; // the remaster's lit skull
     t["hearth_blue"] = "mg/fx_alcatraz_blue_flame_loop"; // the fireplace burning blue once the essence is deposited
     // the run: fire in the barrels, the temper riding the gun
-    t["barrel_fire"] = "mg/fx_alcatraz_blue_flame_loop"; // the remaster's drum flame
+    t["barrel_fire"] = "mg/fx_mg_barrel_flame"; // the remaster's drum flame, held inside the rim (tools/assets/bo3_fx.tsv)
     t["barrel_flare"] = "mg/fx_alcatraz_blue_flame_flare_up"; // the remaster's: a drum refilling the temper
     t["gun_flame"] = "mg/fx_alcatraz_blue_flame_vm"; // the remaster's tempered-gun flame
     // the forge

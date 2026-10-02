@@ -599,18 +599,26 @@ mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
 }
 
 // The lava pool (the remaster's trigger magmagat_lava_pool): a trigger of radius 32 (the Magmus 64) and 32 high at
-// the blob, wherever it stuck, 6 s, and its fire played the blob's way up (the remaster plays it on the blob). No
-// cap as in the remaster, but 8 at once at most for T6's entity budget (the oldest goes).
+// the blob, wherever it stuck, 6 s, and its fire played the blob's way up (the remaster plays it on the blob). On a
+// wall or a ceiling (BO4's: it burns whoever comes close, as on the floor) the trigger stands out of the surface and
+// reaches 72 under the blob, so bodies beside or below it touch it. No cap as in the remaster, but 8 at once at most
+// for T6's entity budget (the oldest goes).
 mg_pool( blob, player, weapon, shown )
 {
     level endon( "end_game" );
     radius = mg_pool_radius( weapon );
     pos = blob.origin;
-    pool = spawn( "trigger_radius", pos, 0, radius, 32 );
+    n = anglestoup( shown.angles );
+
+    if ( n[2] < 0.7 )
+        pool = spawn( "trigger_radius", pos + n * 16 - ( 0, 0, 72 ), 0, radius, 104 );
+    else
+        pool = spawn( "trigger_radius", pos, 0, radius, 32 );
+
     pool.owner = player;
     pool.weapon = weapon;
 
-    fire = mg_fx_loop( "patch_fire", pool.origin, shown.angles );
+    fire = mg_fx_loop( "patch_fire", pos, shown.angles );
 
     // counted once its fire is up: the oldest may still be in that wait and miss the notify
     if ( level.mg_pools.size >= 8 )

@@ -1,6 +1,7 @@
 # The BO3 remaster's effects the mod ships (tools/bo3_fx.pl), each with every effect it runs. In game they are
 # mg/<file name>: mg/fx_alcatraz_blue_flame_loop and so on.
-_copforthat/_zm_prison/fx_alcatraz_blue_flame_loop          # the fireplace's and the drums' blue flame
+_copforthat/_zm_prison/fx_alcatraz_blue_flame_loop          # the fireplace's blue flame
+_copforthat/_zm_prison/fx_alcatraz_blue_flame_loop as=fx_mg_barrel_flame spread=0.5   # the drums' flame, held inside their rim (half its sideways spread)
 _copforthat/_zm_prison/fx_alcatraz_blue_flame_flare_up      # a drum refilling the temper
 _copforthat/_zm_prison/fx_alcatraz_blue_flame_skull         # a lit skull
 _copforthat/_zm_prison/fx_alcatraz_blue_flame_vm            # the tempered gun's flame
