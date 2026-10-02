@@ -90,11 +90,9 @@ my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_worl
 #    t8_magmagat_zm / t8_magmagat_upgraded_zm (read from BO3's weapon pool): Harry's fire-coloured flash on the Magmagat
 #    and his _ug one on the Magmus (mod.ff's mg/fx_blundersplat_muzzleflash*), the plain Blundergat's shot on both. The
 #    ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob is a grenade, so it falls (T6 flies a projectile
-#    weapon straight), lobbed by the script (mg_blob_launch); no hit damage of its own, and a burst of 20 over 300
-#    units, the remaster's (its t8_magmagat_zm, read from BO3's memory; the script kills the zombie it stuck to, sets
-#    the zombies around it alight as BO4's and burns Brutus). No explosion effect nor sound of its own:
-#    mg_weapon.gsc plays Harry's explosion and its sound and burns the players near it. Its 10 s fuse outlasts the 6 s
-#    pool.
+#    weapon straight), lobbed by the script (mg_blob_launch), with no damage of its own, hit nor explosion: the
+#    script does all of it as BO4's (mg_weapon.gsc) and deletes the blob, which never goes off unless it hit nothing
+#    (its 10 s fuse outlasts the 5 s pool).
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
     fireSound => 'wpn_blundergat_fire_npc', fireSoundPlayer => 'wpn_blundergat_fire_plr' );
@@ -118,7 +116,7 @@ my @weapons = (
     # the script hides it where it sticks and shows a copy, turned to the surface it stuck to
     [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => $blob, projTrailEffect => 'mg/fx_magmagat_trail_bolt',
         damage => 0, projExplosionEffect => '', projExplosionSound => '', %no_acid, fuseTime => 10, explosionRadius => 300,
-        explosionInnerDamage => 20, explosionOuterDamage => 20,
+        explosionInnerDamage => 0, explosionOuterDamage => 0,
         aifuseTime => 10, explosionTag => '' } ],
     # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still
     [ 'mg_tempered_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MG_TEMPERED', gunModel => 'mg_tempered_view', worldModel => 'mg_tempered_world',

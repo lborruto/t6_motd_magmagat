@@ -97,16 +97,16 @@ The Magmagat is the Black Ops 4 gun: its own model and name, with molten caniste
 like a Blundergat, but it fires a lava blob that sticks to what it hits, and the blob does all the damage. The clip
 holds one (you start with 30, 36 at most).
 
-A blob that sticks to a zombie sets it on fire: after about a second it burns to death, whatever its health, and the
-blob bursts, hurting the zombies around it. Brutus takes one heavy hit, and the blob stays on him and bursts 3 seconds
-later. Zombies are drawn to the blob until it is gone.
+It plays as in Black Ops 4. A blob that sticks to a zombie blows it apart half a second later; a tougher zombie burns,
+slowed, and dies 4 seconds later. When it dies the blob bursts, setting the zombies around it on fire. Brutus burns for
+a few seconds, then the blob is gone.
 
-A blob that hits anything else lays a lava pool for **6 seconds**. A zombie that steps in burns and dies within a
-second; Brutus walks through it unharmed. Mind your feet: the pool sets every player in it on fire, you included, and
-takes 20 health every half second.
+A blob that hits anything else lays a lava pool for **5 seconds** (three at most at once) and draws a few zombies in
+when it lies near the floor. A zombie that touches it catches fire and burns to death, quickly in early rounds, slower
+later. The pool only stings its owner, and barely.
 
 Once forged, the Magmagat is yours like any other weapon. Pack-a-Punch it and it comes out as the Magmus Operandi
-(two blobs a clip, 25 to start and 30 at most, a wider pool and a bigger lure). The Acid Gat kit takes it too: it goes
+(two blobs a clip, 25 to start and 30 at most, and a bigger lure). The Acid Gat kit takes it too: it goes
 in as the Blundergat it was, and comes out as the Acid Gat.
 
 </details>

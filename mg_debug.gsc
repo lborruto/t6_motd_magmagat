@@ -272,13 +272,13 @@ mg_debug_tour()
     spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90;
     self mg_tour_look( "3/7 A soul: the essence a kill drops; stepped on, it streaks into its skull", use + ( 0, 0, 10 ), spot );
     self playsoundtoplayer( "mg_soul_kill", self );
-    essence = mg_fx_loop( "soul_trail", spot + ( 0, 0, 14 ) );
+    essence = mg_fx_loop( "soul_full", spot + ( 0, 0, 4 ) );
 
     if ( isdefined( essence ) )
     {
         essence playloopsound( "mg_soul_loop" );
-        mg_fx_add( essence, "soul_full" );
-        wait 1.5;
+        essence moveto( essence.origin + ( 0, 0, 36 ), 2, 0, 1.2 );
+        wait 2.5;
         playsoundatposition( "evt_soulsuck_body", essence.origin );
         playsoundatposition( "evt_wolfhead_body_count", essence.origin );
         essence mg_essence_fly( skull );

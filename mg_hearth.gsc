@@ -318,14 +318,14 @@ mg_hearth_zombie_died( zombie )
 }
 
 // A soul as BO4 drops it (the owner's call over the remaster, whose souls count by themselves): the kill leaves an
-// essence low over the body, the remaster's blue lightning soul humming in place; a player stepping on it sends it fast
-// into the skull it fills, and it counts on arrival. An essence nobody takes fades after 20 s. Its skull lights at 5, 10, 15.
+// essence, the remaster's blue skull flame, that rises off the body over 2 s and hums in place; a player stepping on it
+// sends it fast into the skull it fills, and it counts on arrival. An essence nobody takes fades after 20 s. Its skull lights at 5, 10, 15.
 mg_soul( pos, session )
 {
     level endon( "end_game" );
     playsoundatposition( "mg_soul_kill", pos );
     level.mg_essences++;
-    essence = mg_fx_loop( "soul_trail", pos + ( 0, 0, 14 ) );
+    essence = mg_fx_loop( "soul_full", pos + ( 0, 0, 4 ) );
 
     if ( !isdefined( essence ) )
     {
@@ -334,7 +334,7 @@ mg_soul( pos, session )
     }
 
     essence playloopsound( "mg_soul_loop" );
-    mg_fx_add( essence, "soul_full" );    // the soul alone is a thin streak: a compact blue flame makes an orb to see
+    essence moveto( essence.origin + ( 0, 0, 36 ), 2, 0, 1.2 );
     level thread mg_fx_keepalive( essence );
     taker = essence mg_essence_wait( session );
     level.mg_essences--;
@@ -444,7 +444,8 @@ mg_skulls_dark()
 
 // The owner's deposit (over the remaster, which hands the gun at once): the placer pours the essence into the fire,
 // three souls streaking from him into the gun, then the fireplace bursts into the remaster's blue flame and
-// burns blue until the tempered Blundergat is taken. The skulls stay lit until it is pressed.
+// burns blue until the tempered Blundergat is taken, as BO4's turns blue; the skulls, their souls given, go out. The
+// map's own fire there is a client effect no server script can put out, so the blue one burns over it, on its spot.
 mg_hearth_deposit( player )
 {
     level endon( "mg_goto" );
@@ -468,10 +469,11 @@ mg_hearth_deposit( player )
     }
 
     wait 0.3;
-    // at the souls' end, on the gun: the remaster's blue flame draws 30 to 35 units over its origin
+    // over the map's fire (createfx fx_alcatraz_fire_sm at -466.08 8807.48 1333.03): the remaster's blue flame draws
+    // 30 to 35 units over its origin
     playsoundatposition( "mg_flame_burst", hearth );
     mg_fx_once( "hearth_flare", hearth - ( 0, 0, 20 ) );
-    blue = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 40 ) );
+    blue = mg_fx_loop( "hearth_blue", ( -466.08, 8807.48, 1303 ) );
     level.mg_hearth_depositing = 0;
 
     // a reset (the placer gone, a goto) during those waits: the fire stays as it was
@@ -483,18 +485,18 @@ mg_hearth_deposit( player )
 
     level.mg_hearth_blue = blue;
     level.mg_hearth_charged = 1;
+    mg_skulls_dark();
     level thread mg_fx_keepalive( blue );
 }
 
 // a soul leaving its skull for the fire
 mg_hearth_soul_in( from, to )
 {
-    soul = mg_fx_loop( "soul_trail", from );
+    soul = mg_fx_loop( "soul_full", from );
 
     if ( !isdefined( soul ) )
         return;
 
-    mg_fx_add( soul, "soul_full" );
     soul moveto( to, 0.45, 0.15, 0 );
     wait 0.45;
     mg_fx_stop( soul );

@@ -33,7 +33,6 @@ mg_fx_table()
     t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the fire flaring as the souls go in
     t["fire_sm"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the boards burning (4 s)
     t["lockdown"] = "mg/fx_alcatraz_lockdown_wardens"; // the remaster's lockdown: the office's door and walls outlined
-    t["soul_trail"] = "mg/lightning_hands_muzzleflash_trail"; // the remaster's soul rising over the body
     t["soul_full"] = "mg/fx_alcatraz_blue_flame_skull"; // the remaster's lit skull
     t["hearth_blue"] = "mg/fx_alcatraz_blue_flame_loop"; // the fireplace burning blue once the essence is deposited
     // the run: fire in the barrels, the temper riding the gun

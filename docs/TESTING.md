@@ -162,20 +162,18 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       remaster's fire-coloured muzzle flash (the Magmus: Harry's _ug one), no tracer streak, no bullet impact and no green
       acid splash where it lands. The clip holds one (the Magmus two). Both fire with the plain Blundergat's shot, as
       the remaster's own t8_magmagat_zm does.
-- [ ] **Hit a zombie**: the blob sticks, the zombie plays the Acid Gat stun and burns (torso fire and loop sound), and dies
-      after about 1 s at any round, bursting in gore; the blob bursts about 0.05 s later, in flame with the Acid Gat's
-      explosion sound (no green smoke). The zombies within about 100 units catch fire, burn 2 s unharmed, then die of it within 1-2 s,
-      falling dead (no gore); every player in the drawn fire's width (you too) catches fire and loses 20 (PhD Flopper:
-      nothing). Other zombies are not drawn to a blob on a zombie (BO4).
-- [ ] **Hit Brutus**: one hit of about 250-375; the blob stays on him and bursts 3 s later; zombies are not lured to it.
+- [ ] **Hit a zombie** (BO4's): 0.5 s later a zombie of 1000 health or less bursts in gore and dies; a tougher one
+      burns, walks, and dies 4 s later. When it dies the blob bursts in flame with the Acid Gat's explosion sound (no
+      green smoke): the zombies within 128 units catch fire, take 400 and burn to death, falling dead (no gore). No
+      player is hurt. Other zombies are not drawn to a blob on a zombie.
+- [ ] **Hit Brutus**: 100, then he burns 5 s (torso flames), then the blob is gone with no burst; zombies are not lured.
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
-      turned the same way, for 6 s, then vanishes (no
-      explosion). Zombies come to it at once and burn and die in about 0.75 s stepping in. Brutus walks through
-      unharmed. Any player touching the blob's fire area (32 units, the Magmus 64, as the remaster's; you too) is set
-      on fire (the screen and body burn, as in Tranzit's lava) and loses 20 health every 0.5 s with a sizzle loop. The
-      Magmus pool is visibly wider.
-- [ ] A zombie leaving a pool: the sound stops, the flames stay about 4 s, then go.
-- [ ] Spam 10 or more pools: never more than 8 at once, no entity overflow.
+      turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws 3 zombies (the Magmus 6);
+      high up a wall it draws none. A zombie touching its fire (64 units, 32 high) catches fire and burns to death
+      (in early rounds within about 2 s); Brutus loses a tenth of his health once. Only its owner is hurt touching it:
+      1 every 0.4 s.
+- [ ] A burning zombie: the flames and the loop sound stay on it until it dies or for 12 s.
+- [ ] Spam 5 or more pools: never more than 3 at once (the oldest goes).
 - [ ] **Points**: hits and pool ticks give no +10; kills give the normal kill points.
 - [ ] **Spoon**: stuck-blob kills in the showers count.
 - [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
