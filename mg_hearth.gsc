@@ -393,7 +393,7 @@ mg_essence_wait( session )
     return undefined;
 }
 
-// self = an essence taken: a hop, then a fast streak into the skull (0.5 s), the remaster's lightning trailing it.
+// self = an essence taken: a hop, then a fast streak into the skull (0.5 s).
 mg_essence_fly( skull )
 {
     self notify( "mg_moving" );

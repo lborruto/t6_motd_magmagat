@@ -34,7 +34,7 @@ office is outlined in light: it is locked down. Nobody can walk through its door
 <summary>The souls</summary>
 
 Every regular zombie that dies **inside the Warden's Office** drops an essence, whoever killed it and from wherever:
-a blue flame and a streak of lightning humming just over the body. It does not count yet. Walk over it (any player
+a blue flame that rises off the body and hums there. It does not count yet. Walk over it (any player
 can): you hear it taken, it streaks into a skull on the mantle and counts when it gets there. An essence nobody takes
 fades after **20 seconds**. There is no time limit on the whole step, as in the remaster and BO4. Brutus drops none, and neither does a zombie that dies outside. There are never more essences on the
 floor than souls still missing: once enough lie waiting, more kills drop nothing until you take some.
@@ -54,7 +54,7 @@ A second after the 15th soul reaches its skull the laugh plays again, and two se
 
 Now only the player who placed the gun can use the fireplace, and there is no time limit. First "Hold [use] to deposit
 the essence": the three skulls' souls streak into the fire, it bursts and burns blue, and it stays blue until the gun
-is taken. Then "Hold [use] to take the Tempered Blundergat". The skulls stay lit.
+is taken; the skulls, their souls given, go out. Then "Hold [use] to take the Tempered Blundergat".
 
 </details>
 

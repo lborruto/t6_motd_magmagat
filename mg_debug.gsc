@@ -268,7 +268,7 @@ mg_debug_tour()
     if ( lockdown && !mg_state_is( "souls" ) )
         mg_lockdown_off();
 
-    // 3. a soul: the lightning streak rising over the body
+    // 3. a soul: the essence rising off the body
     spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90;
     self mg_tour_look( "3/7 A soul: the essence a kill drops; stepped on, it streaks into its skull", use + ( 0, 0, 10 ), spot );
     self playsoundtoplayer( "mg_soul_kill", self );
@@ -337,7 +337,7 @@ mg_debug_tour()
     fwd = anglestoforward( ( 0, back_angles[1], 0 ) );
     trace = bullettrace( back + fwd * 300 + ( 0, 0, 40 ), back + fwd * 300 - ( 0, 0, 200 ), 0, undefined );
     pos = trace["position"];
-    self mg_tour_look( "7/7 The Magmagat's shot: the blob flies, a miss lays its pool (6 s), a zombie hit bursts", back, pos );
+    self mg_tour_look( "7/7 The Magmagat's shot: the blob flies, a miss lays its pool (5 s), a zombie hit bursts", back, pos );
     self mg_blob_launch( self geteye(), vectornormalize( pos - self geteye() ), "magmagat_zm" );
 
     wait 7;

@@ -74,7 +74,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] **Kill zone**: `!mg zone` marks its sides for 15 s (the remaster's soul catcher volume: x -1070 to -440, y 8493
       to 9187, the fireplace room and the office north of it up to that doorway). They must run along the blue walls.
 - [ ] Kill regular zombies in the zone (the killer inside or outside, any weapon): the soul-kill sound at the body, and
-      an essence (the remaster's blue lightning soul) waits about 14 units over the body, humming. It does not count yet:
+      an essence (the remaster's blue skull flame) rises off the body over 2 s and waits there, humming. It does not count yet:
       `!mg status` shows no change. No blood.
 - [ ] Step on an essence (within 40 units, any player): the soul-suck and wolf-head soul sounds where you stand, it
       hops and streaks into its skull in about 0.7 s (silent there), and the count goes up when it arrives. An essence
@@ -98,12 +98,12 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] At 15 souls, only the placer sees "Hold [use] to deposit the essence" at the hearth; another player sees no prompt and his press does nothing. There is no time limit. (`!mg goto pickup`
       fabricates this with you as the placer.)
 - [ ] Deposit: three souls streak from you into the gun in the fire (about 0.75 s), then the flame-burst sound, a flare
-      and the fire burns blue. The skulls stay lit.
+      and the fire burns blue, over the map's own fire. The three skull flames go out.
 - [ ] The fire stays blue while nobody takes the gun (wait a minute), and the hint is now "Hold [use] to take the
       Tempered Blundergat", for the placer only.
 - [ ] The take is refused while drinking a perk or holding a grenade, claymore or revive tool. With two primaries the
       weapon in hand is replaced.
-- [ ] Take it: state moves to `run`, you are the carrier, the skulls stay lit, the blue fire goes out.
+- [ ] Take it: state moves to `run`, you are the carrier, the blue fire goes out.
 - [ ] The placer disconnecting before the take (before or after the deposit): the gun is lost, the blue fire goes out,
       state back to `ready`.
 
@@ -194,8 +194,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Losing the Magmagat (box swap, wall buy replacing it, death without Tombstone) loses it like any weapon;
       the open forge converts a fresh gun again.
 - [ ] The Mystery Box never offers a Magmagat.
-- [ ] Watch the console for "missing fx key" and script errors, especially from the Acid Gat stun animation and
-      `resetmissiledetonationtime`.
+- [ ] Watch the console for "missing fx key" and script errors, especially from the burning zombies and the lure.
 
 ## 7. Debug tools
 
