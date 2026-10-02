@@ -100,7 +100,7 @@ It plays as in Black Ops 4. A blob that sticks to a zombie blows it apart half a
 slowed, and dies 4 seconds later. When it dies the blob bursts, setting the zombies around it on fire. Brutus burns for
 a few seconds, then the blob is gone.
 
-A blob that hits anything else lays a lava pool for **5 seconds** (three at most at once) and draws a few zombies in
+A blob that hits anything else lays a lava pool for **5 seconds** (two at most at once) and draws a few zombies in
 when it lies near the floor. A zombie that touches it catches fire and burns to death, quickly in early rounds, slower
 later. The pool only stings its owner, and barely.
 

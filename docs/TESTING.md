@@ -172,8 +172,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       high up a wall it draws none. A zombie touching its fire (64 units, 32 high) catches fire and burns to death
       (in early rounds within about 2 s); Brutus loses a tenth of his health once. Only its owner is hurt touching it:
       1 every 0.4 s.
-- [ ] A burning zombie: the flames and the loop sound stay on it until it dies or for 12 s.
-- [ ] Spam 5 or more pools: never more than 3 at once (the oldest goes).
+- [ ] A burning zombie: the flames and the loop sound stay on it until it dies or for 8 s.
+- [ ] Spam 5 or more pools: never more than 2 at once (the oldest goes).
 - [ ] **Points**: hits and pool ticks give no +10; kills give the normal kill points.
 - [ ] **Spoon**: stuck-blob kills in the showers count.
 - [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.

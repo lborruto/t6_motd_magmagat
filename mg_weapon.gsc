@@ -14,7 +14,7 @@
 // - on a zombie: 0.5 s on it bursts in gore (1000 health or less) or burns, slowed, 4 s and dies; when it dies the
 //   blob bursts: the zombies within 128 catch fire and take 400;
 // - on Brutus: 100, then 5 s of burning, and the blob goes;
-// - anywhere else: a lava pool for 5 s (radius 64, 32 high; 3 at once), the blob lying in it, luring 3 zombies over
+// - anywhere else: a lava pool for 5 s (radius 64, 32 high; 2 at once), the blob lying in it, luring 3 zombies over
 //   128 units (the Magmus 6 over 256) when the floor is near. A zombie touching it catches fire; its owner takes 1
 //   every 0.4 s.
 // A burning zombie takes a share of its maximum health each second for up to 12 s. Magmagat damage pays no points per
@@ -336,11 +336,19 @@ mg_blob_land( blob, player, weapon, fire )
     blob.mg_weapon = weapon;
     host = mg_blob_host( blob );
 
-    // stuck to something that moves but is no living zombie (a teammate, a corpse, the gondola): no pool could follow
-    // it, so it goes at once. A blob on the map itself reports the world as what it is linked to: that one pools.
+    // stuck to a teammate, it drops to the floor under him and pools there, as BO4's (function_482c54d5); stuck to
+    // something else that moves but is no living zombie (a corpse, the gondola), no pool could follow it, so it goes at
+    // once. A blob on the map itself reports the world as what it is linked to: that one pools.
     linked = blob getlinkedent();
 
-    if ( !isdefined( host ) && isdefined( linked ) && ( isplayer( linked ) || isai( linked ) || linked.classname == "script_brushmodel" ) )
+    if ( !isdefined( host ) && isdefined( linked ) && isplayer( linked ) )
+    {
+        floor = bullettrace( linked.origin + ( 0, 0, 40 ), linked.origin - ( 0, 0, 1000 ), 0, linked );
+        blob unlink();
+        blob.origin = floor["position"];
+        dir = ( 0, 0, -1 );
+    }
+    else if ( !isdefined( host ) && isdefined( linked ) && ( isai( linked ) || linked.classname == "script_brushmodel" ) )
     {
         blob delete();
         return;
@@ -561,7 +569,7 @@ mg_blob_burst( player, weapon )
 
         if ( mg_is_brutus( ai ) )
         {
-            mg_magma_dodamage( ai, 20, pos, player, "MOD_BURNED", weapon );
+            ai thread mg_brutus_scorch( player, weapon, 20 );
             continue;
         }
 
@@ -574,7 +582,7 @@ mg_blob_burst( player, weapon )
 
 // self = zombie. BO4's burning (function_ba9e077b, function_faa2e2e5): a first hit of hit (none when undefined), then
 // each second a share of its maximum health, smaller in later rounds (60 to 90 % before round 9, 30 to 50 % before
-// 16, 20 to 30 % before 29, then 15 to 20 %), for 12 s at most (vanilla's on_fire_timeout), credited to player. It
+// 16, 20 to 30 % before 29, then 15 to 20 %), for 8 s at most (BO4's on_fire_timeout), credited to player. It
 // counts as on fire, as vanilla's burning zombies: one killed meanwhile falls dead instead of bursting in gore
 // (_zm_spawner zombie_death_event). One fire at a time.
 mg_zombie_ignite( player, weapon, hit )
@@ -596,7 +604,7 @@ mg_zombie_ignite( player, weapon, hit )
 mg_zombie_burn( player, weapon )
 {
     self endon( "death" );
-    end = gettime() + 12000;
+    end = gettime() + 8000;
     wait 0.05;
 
     while ( gettime() < end )
@@ -619,6 +627,23 @@ mg_zombie_burn( player, weapon )
     self thread mg_burn_end( 0 );
 }
 
+// self = Brutus scorched by a pool or a burst (BO4's boss in function_ba9e077b): one hit, then 8 s of flames that do
+// no more (vanilla's damage_on_fire finds him not on fire), and nothing more while they burn.
+mg_brutus_scorch( player, weapon, hit )
+{
+    self endon( "death" );
+
+    if ( is_true( self.mg_burning ) )
+        return;
+
+    self.mg_burning = 1;
+    mg_magma_dodamage( self, int( hit ), self.origin, player, "MOD_BURNED", weapon );
+    self mg_burn_start();
+    wait 8;
+    self.mg_burning = undefined;
+    self thread mg_burn_end( 0 );
+}
+
 // Magmagat damage, credited to its player while he is still here.
 mg_magma_dodamage( victim, amount, pos, player, mod, weapon )
 {
@@ -636,7 +661,7 @@ mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
 }
 
 // The lava pool, BO4's (function_bf2a4486): a trigger of radius 64 and 32 high at the blob for both guns, wherever it
-// stuck (on a ceiling it hangs 32 lower), 5 s, its fire played the blob's way up; 3 at once at most (the oldest goes).
+// stuck (on a ceiling it hangs 32 lower), 5 s, its fire played the blob's way up; 2 at once at most (the oldest goes).
 // A zombie touching it catches fire (mg_pool_zombie); its owner touching it takes 1 every 0.4 s (mg_pool_player).
 mg_pool( blob, player, weapon, shown )
 {
@@ -654,7 +679,7 @@ mg_pool( blob, player, weapon, shown )
     lure = mg_blob_lure( blob, weapon );
 
     // counted once its fire is up: the oldest may still be in that wait and miss the notify
-    if ( level.mg_pools.size >= 3 )
+    if ( level.mg_pools.size >= 2 )
         level.mg_pools[0] notify( "mg_pool_end" );
 
     level.mg_pools[level.mg_pools.size] = pool;
@@ -713,7 +738,7 @@ mg_pool_damage_loop()
 }
 
 // self = zombie in a pool (BO4's function_c74dfed4): one not burning yet catches fire for a tenth of its health
-// (mg_zombie_ignite); Brutus takes that tenth, once per pool, and no fire.
+// (mg_zombie_ignite); Brutus is scorched for a tenth of his (mg_brutus_scorch).
 mg_pool_zombie()
 {
     pool = mg_pool_touched( self );
@@ -723,12 +748,7 @@ mg_pool_zombie()
 
     if ( mg_is_brutus( self ) )
     {
-        if ( !isdefined( self.mg_pool_hit ) || self.mg_pool_hit != pool )
-        {
-            self.mg_pool_hit = pool;
-            mg_magma_dodamage( self, int( self.health * 0.1 ), pool.origin, pool.owner, "MOD_BURNED", pool.weapon );
-        }
-
+        self thread mg_brutus_scorch( pool.owner, pool.weapon, self.health * 0.1 );
         return;
     }
 
