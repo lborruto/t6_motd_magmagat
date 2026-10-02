@@ -55,10 +55,15 @@ next player can forge his own. For every detail and edge case, see the [full wal
 | Clip / start / max ammo | 1 / 30 / 36 | 2 / 25 / 30 |
 | Lure (lava pool near the floor) | 3 zombies, 128 units | 6 zombies, 256 units |
 
-- **Blob on a zombie:** it blows the zombie apart (a tough one burns and dies a few seconds later), then bursts and
-  sets the zombies around it on fire.
-- **Blob on Brutus:** he burns for a few seconds.
-- **Missed shot:** a lava pool for 5 seconds that sets on fire every zombie that walks in. It only stings you, barely.
+It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
+
+- **On a zombie:** half a second later it blows apart (one with over 1000 health burns, slowed, and dies 4 seconds
+  later). Its death bursts the blob, setting every zombie within 128 units on fire.
+- **On Brutus:** he burns for 5 seconds.
+- **Missed shot:** a lava pool for 5 seconds (two at most at once) that sets on fire every zombie walking in. It only
+  stings you, barely.
+- **Burning zombies** take a share of their health every second (fast in early rounds, slower later) for up to 8
+  seconds, and fall dead.
 - **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, and the fireplace takes the Acid Gat again.
 
 ## Credits
