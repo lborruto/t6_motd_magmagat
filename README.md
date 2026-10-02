@@ -8,10 +8,6 @@ copforthat's BO3 port of MOTD.
 
 ---
 
-## About
-
-A port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same quest as copforthat's BO3 remaster .
-
 ## Install
 
 1. Download `zm_magmagat-<version>.zip` from the
