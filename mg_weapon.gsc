@@ -691,8 +691,11 @@ mg_pool_damage_loop()
     }
 }
 
-// self = zombie. In the pool: a quarter of its maximum health every 0.25 s (dead in about 0.75 s), credited to the
-// pool's owner, and it burns; out of it, the burn fades (mg_burn_end).
+// self = zombie. In the pool (the remaster's function_8879b47f: the pool does the damage, the flames on the body only
+// show it): a quarter of its maximum health every 0.25 s (dead in about 0.75 s), credited to the pool's owner, and it
+// burns; out of it, the burn fades (mg_burn_end). It counts as on fire, as vanilla's burning zombies: one killed by the
+// Magmus (an upgraded shotgun to vanilla) or by a blob's burst meanwhile falls dead instead of bursting in gore
+// (_zm_spawner zombie_death_event), as in BO3 and BO4.
 mg_pool_zombie()
 {
     pool = mg_pool_touched( self );
@@ -714,6 +717,7 @@ mg_pool_zombie()
         return;
 
     self.mg_pool_next = gettime() + 250;
+    self.is_on_fire = 1;
     self mg_burn_start();
     mg_magma_dodamage( self, int( self.maxhealth / 4 ), pool.origin, pool.owner, "MOD_BURNED", pool.weapon );
 }
@@ -752,8 +756,8 @@ mg_pool_player()
     self dodamage( 20, pool.origin );
 }
 
-// self = zombie. It burns: T6's fire loop (for the remaster's chr_burning_loop) and the torso flame, on 12 zombies at
-// most for T6's effect budget. A burnt corpse keeps vanilla's own flames (MOD_BURNED deaths, _zm_spawner).
+// self = zombie. It burns: T6's fire loop (for the remaster's chr_burning_loop) and its flames, on 12 zombies at most
+// for T6's effect budget.
 mg_burn_start()
 {
     self notify( "mg_burn_restart" );
@@ -778,18 +782,37 @@ mg_burn_start()
     self thread mg_burn_fx();
 }
 
-// self = zombie. The torso flame, until its death or mg_burn_end.
+// self = zombie. Its flames, laid out as vanilla's flame_death_fx lays a burning body's (zm_death): Mob's torso fire up
+// and down the spine and a small fire on an arm and a leg, until mg_burn_end, or 2 s after its death as it lies there.
 mg_burn_fx()
 {
-    fx = mg_fx_loop( "burn", self gettagorigin( "J_SpineUpper" ) );
+    tags = array( "J_SpineUpper", "J_SpineLower", random( array( "J_Elbow_LE", "J_Elbow_RI" ) ), random( array( "J_Knee_LE", "J_Knee_RI" ) ) );
+    keys = array( "burn", "burn", "blob_fire", "blob_fire" );
+    fx = [];
 
-    if ( isdefined( fx ) && isdefined( self ) && isalive( self ) )
+    for ( i = 0; i < tags.size; i++ )
     {
-        fx linkto( self, "J_SpineUpper", ( 0, 0, 0 ), ( 0, 0, 0 ) );
-        self waittill_any( "death", "mg_burn_fx_off", "zombie_delete" );    // vanilla deletes far zombies without a death
+        ent = spawn( "script_model", self gettagorigin( tags[i] ) );
+        ent setmodel( "tag_origin" );
+        ent linkto( self, tags[i], ( 0, 0, 0 ), ( 0, 0, 0 ) );
+        fx[i] = ent;
     }
 
-    mg_fx_stop( fx );
+    wait 0.05;    // an effect played in the frame its entity appears is dropped by the clients
+
+    if ( isdefined( self ) && isalive( self ) )
+    {
+        for ( i = 0; i < fx.size; i++ )
+            mg_fx_add( fx[i], keys[i] );
+
+        // vanilla deletes far zombies without a death
+        if ( self waittill_any_return( "death", "mg_burn_fx_off", "zombie_delete" ) == "death" )
+            wait 2;
+    }
+
+    foreach ( ent in fx )
+        mg_fx_stop( ent );
+
     level.mg_burn_fx_count--;
 
     if ( isdefined( self ) )
@@ -805,6 +828,7 @@ mg_burn_end( delay )
     self stoploopsound( 2 );
     self.mg_burn_loop = undefined;
     wait( delay );
+    self.is_on_fire = 0;
     self notify( "mg_burn_fx_off" );
 }
 
