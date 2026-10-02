@@ -161,7 +161,7 @@ perl tools/import_sounds.pl    # the BO3 remaster's quest sounds -> mod/sound (t
 perl tools/bo3_fx.pl           # the BO3 remaster's effects -> mod/fx (needs the BO3 snapshot, see PORTING_BO3_ASSETS.md)
 perl tools/build_mod.pl        # OpenAssetTools Linker -> mod/out/mod.ff + mod.all.sabl/.sabs + mod.json, installed into the mod folder
 perl tools/deploy.pl           # the scripts, beside it
-perl tools/release.pl          # release/zm_magmagat/ (the folder players drop into mods\) + its zip, to try it locally
+perl tools/release.pl          # release/mods/zm_magmagat/ (the folder players get in their t6\mods\) + its zip, to try it locally
 perl tools/publish.pl          # the GitHub Release: mod.ff and the sound bank up, the release workflow attaches the player zip
 ```
 

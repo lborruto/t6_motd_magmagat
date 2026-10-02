@@ -1,6 +1,6 @@
 name: Release the player zip
 
-# The player downloads ONE zip: the zm_magmagat folder for %LOCALAPPDATA%\Plutonium\storage\t6\mods\.
+# The player downloads ONE zip: mods\zm_magmagat, unzipped into %LOCALAPPDATA%\Plutonium\storage\t6\.
 # Its mod.ff is built from the games' own files, which never leave the maintainer's PC: tools/publish.pl builds it
 # and publishes the GitHub Release v<version> with mod.ff and its sound bank (mod.all.sabl / .sabs) attached. This workflow then does the rest from the tagged
 # sources: lints, packs the quest scripts, assembles the folder (mod.ff, the sound bank, mod.json with the version,
@@ -55,7 +55,7 @@ jobs:
             echo "The bare mod.ff / sound bank are not all on $TAG: trying the files inside $ZIP"
             rm -rf dl && mkdir -p dl
             if gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ZIP" --dir dl; then
-              unzip -j -o "dl/$ZIP" zm_magmagat/mod.ff zm_magmagat/mod.all.sabl zm_magmagat/mod.all.sabs -d dl || true
+              unzip -j -o "dl/$ZIP" mods/zm_magmagat/mod.ff mods/zm_magmagat/mod.all.sabl mods/zm_magmagat/mod.all.sabs -d dl || true
             fi
           fi
           for f in mod.ff mod.all.sabl mod.all.sabs; do
@@ -69,7 +69,7 @@ jobs:
 
       - name: Assemble the mod folder
         run: |
-          D=release/zm_magmagat
+          D=release/mods/zm_magmagat
           mkdir -p "$D/scripts/zm/zm_prison"
           cp dl/mod.ff dl/mod.all.sabl dl/mod.all.sabs "$D/"
           perl -pe 's/("version"\s*:\s*")[^"]*"/${1}${{ steps.ver.outputs.version }}"/' mod/mod.json > "$D/mod.json"
@@ -81,7 +81,7 @@ jobs:
 
       - name: The folder is complete
         run: |
-          D=release/zm_magmagat
+          D=release/mods/zm_magmagat
           for f in mod.ff mod.all.sabl mod.all.sabs mod.json; do
             [ -s "$D/$f" ] || { echo "::error::$D/$f is missing or empty"; exit 1; }
           done
@@ -93,7 +93,7 @@ jobs:
       - name: Zip and attach it
         run: |
           ZIP="zm_magmagat-${{ steps.ver.outputs.version }}.zip"
-          (cd release && zip -r -9 "../$ZIP" zm_magmagat)
+          (cd release && zip -r -9 "../$ZIP" mods)
           gh release upload "$TAG" "$ZIP" --repo "$GITHUB_REPOSITORY" --clobber
           if [ "${{ steps.assets.outputs.bare }}" = 1 ]; then
             for f in mod.ff mod.all.sabl mod.all.sabs; do

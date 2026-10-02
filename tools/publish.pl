@@ -47,8 +47,8 @@ my ( $fh, $notes ) = tempfile( SUFFIX => '.md', UNLINK => 1 );
 print $fh <<"MD";
 Magmagat for Mob of the Dead $version (Plutonium T6).
 
-**Install**: download `zm_magmagat-$version.zip` below (it appears a minute after the release), unzip it and drop the
-`zm_magmagat` folder into `%localappdata%\\Plutonium\\storage\\t6\\mods\\`. In game: **Mods** -> **zm_magmagat**, then
+**Install**: download `zm_magmagat-$version.zip` below (it appears a minute after the release) and unzip it into
+`%localappdata%\\Plutonium\\storage\\t6\\`: its `mods` folder merges with yours. In game: **Mods** -> **zm_magmagat**, then
 play Mob of the Dead.
 MD
 print $fh "\n$news\n" if length $news;

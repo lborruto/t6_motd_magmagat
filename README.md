@@ -4,8 +4,8 @@ A new wonder weapon and its quest for Black Ops II Zombies, Mob of the Dead, on 
 
 ## Install
 
-1. Download `zm_magmagat-<version>.zip` from the latest release and unzip it.
-2. Drop the `zm_magmagat` folder into `%localappdata%\Plutonium\storage\t6\mods\`, so you end up with
+1. Download `zm_magmagat-<version>.zip` from the latest release.
+2. Unzip it into `%localappdata%\Plutonium\storage\t6\`: its `mods` folder merges with yours, so you end up with
    `...\t6\mods\zm_magmagat\mod.ff`, `mod.all.sabl` and `mod.all.sabs` (the sound bank), `mod.json` and `scripts\`.
 3. In game: **Mods** → **zm_magmagat** → load it, then play Mob of the Dead.
 
@@ -24,7 +24,7 @@ walkthrough behind spoiler folds.
 ## Credits
 
 - The quest follows the BO3 Workshop map "MOB OF THE DEAD" by copforthat (with tupivere_, dobby, Xela, Hybs, Rayjiun,
-  robit, GCP, Booris and Kingslayer Kyle). The quest's effects are that team's (`_copforthat/_zm_prison`: the blue
+  robit, GCP, Booris and Kingslayer Kyle), released with copforthat's permission. The quest's effects are that team's (`_copforthat/_zm_prison`: the blue
   flames, the souls, the lockdown, the forge's power and press fire, the lava pool, the blob's scorch), and the mod
   plays the sounds and props that map picked for the quest.
 - Harry's effects, as that map ships them (`harry/magmagat` and `harry/blundersplat`): the lava blob's trail, impact
@@ -36,6 +36,14 @@ walkthrough behind spoiler folds.
   Blundergat animations the gun plays.
 - Tools: OpenAssetTools (Laupetin and contributors) builds the fastfile; Greyhound and HydraX (Scobalula) for the
   extraction from BO3; built on the Dead Frequency toolchain.
+
+## Assets and takedown
+
+A free, non-commercial fan project, not affiliated with or endorsed by Activision, Treyarch or Plutonium. Call of
+Duty and Black Ops are trademarks of Activision. The models, textures and sounds in mod.ff come from Call of Duty:
+Black Ops 4, Black Ops III and Black Ops II and remain the property of Activision / Treyarch; the effects from the
+Workshop map "MOB OF THE DEAD" are its team's, used with copforthat's permission. If you hold rights to any asset
+and want it removed, open an issue and it will be removed promptly.
 
 The mod's own code is MIT licensed; the patch in `tools/oat` is GPL-3.0, and the game assets in the release belong to
 their owners. See [LICENSE](LICENSE).

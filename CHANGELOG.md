@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 - 2026-10-01
+## 1.0.0 - 2026-10-02
 
 The first release: a new wonder weapon and its quest for Black Ops II Zombies, Mob of the Dead, on Plutonium. One
 mod folder, `zm_magmagat`: pick it in **Mods**, then play Mob of the Dead.
