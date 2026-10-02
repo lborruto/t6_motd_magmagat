@@ -305,10 +305,12 @@ my %lava = ( Emissiver_Amount => 16, Flicker_Min => 0.6, Flicker_Max => 1.45, He
     Heat_Direction => [ 0.05, 0.08 ], Ember_Direction => [ -0.03, -0.06 ] );
 my $lit_tmpl = decode_json( slurp("$dump/materials/mc/mtl_t6_wpn_zmb_blundergat.json") );
 my $glow_tmpl = decode_json( slurp("$dump/materials/mc/mtl_t6_wpn_zmb_blundergat_acid.json") );
-# Mob's Pack-a-Punch camo (the one vanilla puts on every Pack-a-Punched gun there, zm_prison's own images): the engine
-# swaps it in for a gun's material with the gun's normal and specular maps in its two code slots; ours are set here
-my $camo_tmpl = decode_json( slurp("$dump/materials/mc/mtl_weapon_camo_zmb_dlc2.json") );
-my %camo_slot = ( Weapon_Normal_Map => 'normalMap', Weapon_Specular_Map => 'specularMap' );
+# Mob's Pack-a-Punch camo (mtl_weapon_camo_zmb_dlc2, the one vanilla puts on every Pack-a-Punched gun there): a dark
+# cracked crust whose cracks glow and flicker as molten. Its own material draws only through T6's camo system (worn
+# by a model, it showed no texture), so the Magmus body wears it on the Acid Gat's emberglow shader instead, the same
+# glow as the camo's, with the camo's own images (zm_prison's, loaded by name) and the gun's normal map.
+my %camo = ( Diffuse_Map => '~-gcamo_zmb_dlc2_col', EmberGlow_Reveal_Map => 'camo_zmb_dlc2_reveal', Ember_Map => 'camo_zmb_dlc2_ember',
+    SpecularAndGloss => '~~-gcamo_zmb_dlc2_spc-rgb&~-r~471adc2c' );
 sub lit_images {    # BO4 lit material -> its colour, normal and specular maps, by the lit template's slot names
     my ( $c, $n ) = @{ $lit{ $_[0] } };
     ( my $short = $_[0] ) =~ s/^mtl_wpn_t8_zm_blundergat_?//;
@@ -323,9 +325,9 @@ my %used = map { $_->{mat} => 1 } @all_prims;
 for my $m ( sort keys %used ) {
     my $mat;
     if ( $m =~ /^(.+)_pap$/ && $lit{$1} ) {
-        my %img = lit_images($1);
-        $mat = decode_json( encode_json($camo_tmpl) );
-        for my $t ( @{ $mat->{textures} } ) { $t->{image} = $img{ $camo_slot{ $t->{name} } } if defined $t->{name} && $camo_slot{ $t->{name} } }
+        my %img = ( %camo, Normal_Map => { lit_images($1) }->{normalMap} );
+        $mat = decode_json( encode_json($glow_tmpl) );
+        for my $t ( @{ $mat->{textures} } ) { $t->{image} = $img{ $t->{name} } if defined $t->{name} && exists $img{ $t->{name} } }    # heat map, rim mask: vanilla
     }
     elsif ( $lit{$m} ) {
         my %img = lit_images($m);
