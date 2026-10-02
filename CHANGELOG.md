@@ -36,4 +36,4 @@ mod folder, `zm_magmagat`: pick it in **Mods**, then play Mob of the Dead.
   fire, the lava blob's trail and burst, the lava pool, the muzzle flashes), its dark-green drums and mantle
   skulls, and its sounds (the flame bursts, the souls, the press, the warden's lines).
 
-The full walkthrough, behind spoiler folds, is in [docs/GUIDE.md](docs/GUIDE.md).
+The full walkthrough is in [docs/GUIDE.md](docs/GUIDE.md).

@@ -1,111 +1,76 @@
 # Magmagat walkthrough
 
-Every stage of the quest in full detail: the rules, the timers and what fails it. The [README](../README.md) has the
-short step-by-step version. Each section below is folded: open the one you need.
+The quest follows copforthat's BO3 remaster "MOB OF THE DEAD", with two additions from Black Ops 4: the souls drop as
+essences you walk over, and you deposit them in the fire before taking the tempered gun. The Magmagat itself plays
+as in Black Ops 4.
 
-The quest follows the BO3 remaster "MOB OF THE DEAD" by copforthat, step by step, on Mob of the Dead, with two
-changes of our own: the souls drop as essences you walk over, as in Black Ops 4, and the tempered gun waits for you to
-deposit them in the fire before you can take it. The Magmagat itself is Black Ops 4's gun.
+## Before you start
 
-<details>
-<summary>Requirements</summary>
+- **A Blundergat in hand**: the Blundergat, the Sweeper, the Acid Gat or the Vitriolic Withering. A Pack-a-Punched
+  one gives the Magmus Operandi.
+- **The plane has flown once**: the quest opens when a player sits in the chair on the Golden Gate Bridge after the
+  first trip.
+- Any round, any number of players.
 
-You need a Blundergat, a Sweeper (its Pack-a-Punched form), an Acid Gat or a Vitriolic Withering (the Pack-a-Punched
-Acid Gat), and the plane must have flown at least once: the quest opens when a player sits in the chair on the Golden
-Gate Bridge after the first trip. Nothing else has to happen first: the quest does not care what round it is or how
-many players are in the game.
+## 1. The fireplace
 
-</details>
+1. In the Warden's Office, **use the fireplace** once (no gun needed).
+2. A second later, holding your Blundergat **in your hands**, **hold use** to place it in the fire.
 
-<details>
-<summary>The fireplace</summary>
+The office **locks down**: nobody can walk through its door until the lockdown ends.
 
-Once the quest is open, go to the fireplace in the Warden's Office. The first time you use it (no gun needed), the
-fire bursts and burns the boards above it. A second later "Hold [use] to place Blundergat" shows for every player who
-holds one of the four guns **in his hands**: the gun goes in from the hands, so with none in hand there is no prompt.
+## 2. The souls
 
-Hold use with the gun (in hand or not) and it goes into the fire. A laugh answers, a tense music starts, and the
-office is outlined in light: it is locked down. Nobody can walk through its door until the lockdown ends.
+- Every regular zombie that dies **inside the office** drops an **essence** over its body, whoever killed it.
+- **Walk over it** (any player) to send it into a skull on the mantle. It counts when it gets there.
+- You need **15 souls**: the three skulls light up at **5**, **10** and **15**.
+- An essence nobody takes **fades after 20 seconds**. Brutus drops none.
+- There is no time limit.
 
-</details>
+**It fails** only if the player who placed the gun **goes down** (last stand or Afterlife): the skulls go dark and the
+gun is lost. Place a new one to start again.
 
-<details>
-<summary>The souls</summary>
+The lockdown ends two seconds after the 15th soul.
 
-Every regular zombie that dies **inside the Warden's Office** drops an essence, whoever killed it and from wherever:
-a blue flame that rises off the body and hums there. It does not count yet. Walk over it (any player
-can): you hear it taken, it streaks into a skull on the mantle and counts when it gets there. An essence nobody takes
-fades after **20 seconds**. There is no time limit on the whole step, as in the remaster and BO4. Brutus drops none, and neither does a zombie that dies outside. There are never more essences on the
-floor than souls still missing: once enough lie waiting, more kills drop nothing until you take some.
+## 3. The deposit
 
-You need **15 souls**: the three skulls on the mantle light up with a blue flame at **5**, **10** and **15**.
+Only the player who placed the gun can use the fireplace now, with no time limit.
 
-The lockdown fails only if the player who placed the gun goes down (last stand or Afterlife). The skulls go dark, the
-fire lets go a couple of seconds later, and the gun is lost: place a new one. Other players going down changes nothing.
-There is no time limit.
+1. **Hold use** to deposit the essence: the fire turns blue and the skulls go out.
+2. **Hold use** again to take the **Tempered Blundergat**.
 
-A second after the 15th soul reaches its skull the laugh plays again, and two seconds later the lockdown ends.
+## 4. The run
 
-</details>
+- The tempered gun burns out in **15 seconds**.
+- Five **blue drums** on the way (the office exit, the stairs, the Citadel, the tunnels, the docks) reset it to 15
+  seconds when you walk up to one, **once each per run**.
+- Firing is fine. Switching to another weapon (except a Blundergat), going down or running out of time **fails the
+  run**: you get your gun back, and five seconds later the fireplace takes a gun again (back to step 1.2).
 
-<details>
-<summary>The deposit</summary>
+## 5. The forge
 
-Now only the player who placed the gun can use the fireplace, and there is no time limit. First "Hold [use] to deposit
-the essence": the three skulls' souls streak into the fire, it bursts and burns blue, and it stays blue until the gun
-is taken; the skulls, their souls given, go out. Then "Hold [use] to take the Tempered Blundergat".
+In the Generator Room by the docks, while the temper still burns:
 
-</details>
+1. **Hold use** to **power the Machine** (once per game; the run goes on).
+2. **Hold use** to **place the Tempered Blundergat** on it. The run is won.
+3. The press works the gun for about 6 seconds, then **take the Magmagat** within **15 seconds**, or it is lost.
 
-<details>
-<summary>The run</summary>
+Taking it calls a **Brutus** into the Generator Room. Already own a Magmagat? Taking one refills its ammo (a
+Pack-a-Punched gun turns a plain Magmagat into the Magmus Operandi). The fireplace then takes a new gun, so every
+player can forge his own.
 
-The tempered gun carries a blue flame (its muzzle flash burns blue too), and you have **15 seconds** before it burns
-out. Five drums burn blue along the route (the office exit, down the stairs, the Citadel, the tunnels, the docks): stepping up to the foot of one sets the
-timer back to 15, but each drum works **once per run**. Firing the gun does not end the run. Switching to any other
-weapon does (your Blundergat, Sweeper or Acid Gat is fine). So does going down, or running out of time.
+## The weapon
 
-When the run fails, the flame dies silently, you get your Blundergat back, the skulls go dark, and five seconds
-later the fireplace takes a gun again: the whole step is to redo.
+| | Magmagat | Magmus Operandi |
+|---|---|---|
+| Clip / start / max ammo | 1 / 30 / 36 | 2 / 25 / 30 |
+| Lure | 3 zombies, 128 units | 6 zombies, 256 units |
 
-</details>
-
-<details>
-<summary>The forge</summary>
-
-Carry the tempered gun to the forge in the Generator Room by the docks, **before its temper runs out**: only a Tempered
-Blundergat still burning goes on the Machine (a plain Blundergat is refused). The first time, "Hold [use] to power the
-Machine": it powers up for good and the run goes on, your gun still tempered. Then "Hold [use] to place the Tempered
-Blundergat": the run ends in success.
-
-The press comes down on the gun and works it for about **5.65 seconds**, then the Magmagat lies on the bed. Only the player
-who placed the gun can take it ("Hold [use] to take the Magmagat"), and only within **15 seconds**: after that it is
-gone without a sound. If you already own a Magmagat, taking a new one only refills the ammo of the one you have, unless
-you pressed a Pack-a-Punched gun while owning a plain Magmagat: yours then becomes the Magmus Operandi.
-Taking it calls a **Brutus** into the Generator Room. The fireplace then takes a Blundergat again: every player can
-temper his own.
-
-A Pack-a-Punched gun (a Sweeper or a Vitriolic Withering) comes out as the **Magmus Operandi**.
-
-</details>
-
-<details>
-<summary>The weapon</summary>
-
-The Magmagat is the Black Ops 4 gun: its own model and name, with molten canisters and barrels. It handles and reloads
-like a Blundergat, but it fires a lava blob that sticks to what it hits, and the blob does all the damage. The clip
-holds one (you start with 30, 36 at most).
-
-It plays as in Black Ops 4. A blob that sticks to a zombie blows it apart half a second later; a tougher zombie burns,
-slowed, and dies 4 seconds later. When it dies the blob bursts, setting the zombies around it on fire. Brutus burns for
-a few seconds, then the blob is gone.
-
-A blob that hits anything else lays a lava pool for **5 seconds** (two at most at once) and draws a few zombies in
-when it lies near the floor. A zombie that touches it catches fire and burns to death, quickly in early rounds, slower
-later. The pool only stings its owner, and barely.
-
-Once forged, the Magmagat is yours like any other weapon. Pack-a-Punch it and it comes out as the Magmus Operandi
-(two blobs a clip, 25 to start and 30 at most, and a bigger lure). The Acid Gat kit takes it too: it goes
-in as the Blundergat it was, and comes out as the Acid Gat.
-
-</details>
+- **On a zombie**: half a second later it blows apart (or, if tough, burns and dies 4 seconds later). Its death
+  bursts the blob, setting the zombies within 128 units on fire.
+- **On Brutus**: he burns for 5 seconds.
+- **Missed shot**: a lava pool for **5 seconds** (two at most). Zombies touching it catch fire; near the floor it
+  lures a few in. It only stings its owner, barely.
+- **Burning zombies** die fast in early rounds, slower later, and fall dead.
+- **Pack-a-Punch** turns it into the Magmus Operandi. The **Acid Gat kit** turns it back into an Acid Gat, and the
+  fireplace takes the Acid Gat again.

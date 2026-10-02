@@ -1,7 +1,7 @@
 # Contributing to Magmagat (developer documentation)
 
 This file is for people who want to read, build, test or change the mod. Players should read the
-[README](../README.md) and, for spoilers, [GUIDE.md](GUIDE.md). The owner's in-game test protocol is
+[README](../README.md) and the walkthrough, [GUIDE.md](GUIDE.md). The owner's in-game test protocol is
 [TESTING.md](TESTING.md).
 
 The mod is ONE folder, `mods\zm_magmagat\`: a `mod.ff` fastfile (the props, the Magmagat weapons and the effects),
