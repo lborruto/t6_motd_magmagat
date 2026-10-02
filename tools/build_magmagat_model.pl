@@ -28,9 +28,10 @@ die "usage: build_magmagat_model.pl <out raw dir> <zm_prison dump dir>\n" unless
 my $gh = $ENV{MG_GREYHOUND} // 'C:/Games/t6/Greyhound-1.49.4.0';
 my $xg = "$gh/exported_files/black_ops_3_sp/xmodels";
 my $xi = "$gh/exported_files/black_ops_3/ximages";
-# [ BO4 view model, our base gun, our Pack-a-Punched gun (the armour kit) ]: the Magmagat and the tempered Blundergat
-# the fireplace hands back (BO4's own, its canisters burning blue)
-my @models = ( [ 'wpn_t8_zm_magmagat_view', 'mg_magmagat', 'mg_magmus' ], [ 'wpn_t8_zm_blundergat_tempered_view', 'mg_tempered', 'mg_tempered_up' ] );
+# [ BO4 view model, our base gun, our Pack-a-Punched gun (the armour kit), its body in Mob's Pack-a-Punch camo ]: the
+# Magmagat (the Magmus wears the camo, as BO4 dresses it in its map's) and the tempered Blundergat the fireplace hands
+# back (BO4's own, its canisters burning blue; Pack-a-Punched, the Sweeper's armour only, as BO2's)
+my @models = ( [ 'wpn_t8_zm_magmagat_view', 'mg_magmagat', 'mg_magmus', 1 ], [ 'wpn_t8_zm_blundergat_tempered_view', 'mg_tempered', 'mg_tempered_up', 0 ] );
 
 sub slurp { my $f = shift; open my $h, '<:raw', $f or die "$f: $!\n"; local $/; my $s = <$h>; close $h; $s }
 sub spit { my ( $f, $s ) = @_; ( my $d = $f ) =~ s{/[^/]+$}{}; make_path($d); open my $h, '>:raw', $f or die "$f: $!\n"; print $h $s; close $h }
@@ -84,6 +85,14 @@ for my $side (qw(le ri)) {
 for my $n ( 1 .. 5 ) { $t6_of{"tag_chain_le_back_${n}_pba"} = "j_chain_le_ba_$n"; $t6_of{"tag_chain_le_front_${n}_pba"} = "j_chain_le_fr_$n" }
 my @armor_mats = qw(mtl_wpn_t8_zm_blundergat_armor mtl_wpn_t8_zm_blundergat_armor_ember_red mtl_wpn_t8_zm_blundergat_armor_ember_blue);
 my %is_armor = map { $_ => 1 } @armor_mats;
+my %lit = (    # BO4 material -> [ colour, normal ]  (lit: the Blundergat's own material)
+    mtl_wpn_t8_zm_blundergat_receiver => [ 'i_wpn_t8_zm_blundergat_receiver_c', 'i_wpn_t8_zm_blundergat_receiver_n' ],
+    mtl_wpn_t8_zm_blundergat_stock_details => [ 'i_wpn_t8_zm_blundergat_stock_details_c', 'i_wpn_t8_zm_blundergat_stock_details_n' ],
+    mtl_wpn_t8_zm_blundergat_stock => [ 'i_wpn_t8_zm_blundergat_stock_c', 'i_wpn_t8_zm_blundergat_stock_n' ],
+    mtl_wpn_t8_zm_blundergat_barrel => [ 'i_wpn_t8_zm_blundergat_barrel_c', 'i_wpn_t8_zm_blundergat_barrel_n' ],
+    mtl_wpn_t8_zm_blundergat_armor => [ 'i_wpn_t8_zm_blundergat_armor_c', 'i_wpn_t8_zm_blundergat_armor_n' ],
+    mtl_wpn_t8_zm_blundergat_frame => [ undef, 'i_wpn_t8_zm_blundergat_frame_n' ],
+);
 sub bo4_prims {    # a Greyhound export -> ( { mat, pos, nrm, uv, joints (bo4 names x4), weights, idx } ... )
     my $name = shift;
     my $src = "$xg/$name";
@@ -226,11 +235,12 @@ my $root_only = sub { ( [ 0, 0, 0, 0 ], [ 1, 0, 0, 0 ] ) };
 
 my @all_prims;
 for my $m (@models) {
-    my ( $src, $base_name, $up_name ) = @$m;
+    my ( $src, $base_name, $up_name, $pap ) = @$m;
     my @prims = bo4_prims($src);
-    push @all_prims, @prims;
     my @base = grep { !$is_armor{ $_->{mat} } } @prims;
     my @up = without_bone( 'tag_armor_acid', @prims );
+    @up = map { $lit{ $_->{mat} } && !$is_armor{ $_->{mat} } ? { %$_, mat => "$_->{mat}_pap" } : $_ } @up if $pap;
+    push @all_prims, @prims, @up;
     write_model( "$raw/model_export/${base_name}_view_lod0.gltf", $t6_view, \@base, $view_weights );
     write_model( "$raw/model_export/${up_name}_view_lod0.gltf", $t6_view, \@up, $view_weights );
     my ( $bmn, $bmx ) = bounds( map { @{ $_->{pos} } } @base );
@@ -277,14 +287,6 @@ my $lum = sub { ( 0.3 * $_[0] + 0.59 * $_[1] + 0.11 * $_[2] ) };
 my $spec_of = sub { my $l = $lum->(@_); ( $_[0] * 0.4 + 12, $_[1] * 0.4 + 12, $_[2] * 0.4 + 12, 110 + $l * 0.35 ) };
 
 # ---- materials
-my %lit = (    # BO4 material -> [ colour, normal ]  (lit: the Blundergat's own material)
-    mtl_wpn_t8_zm_blundergat_receiver => [ 'i_wpn_t8_zm_blundergat_receiver_c', 'i_wpn_t8_zm_blundergat_receiver_n' ],
-    mtl_wpn_t8_zm_blundergat_stock_details => [ 'i_wpn_t8_zm_blundergat_stock_details_c', 'i_wpn_t8_zm_blundergat_stock_details_n' ],
-    mtl_wpn_t8_zm_blundergat_stock => [ 'i_wpn_t8_zm_blundergat_stock_c', 'i_wpn_t8_zm_blundergat_stock_n' ],
-    mtl_wpn_t8_zm_blundergat_barrel => [ 'i_wpn_t8_zm_blundergat_barrel_c', 'i_wpn_t8_zm_blundergat_barrel_n' ],
-    mtl_wpn_t8_zm_blundergat_armor => [ 'i_wpn_t8_zm_blundergat_armor_c', 'i_wpn_t8_zm_blundergat_armor_n' ],
-    mtl_wpn_t8_zm_blundergat_frame => [ undef, 'i_wpn_t8_zm_blundergat_frame_n' ],
-);
 my %glow = (    # BO4 material -> [ crust colour source, reveal (crack mask), ember source, colour ]  (emberglow: the Acid Gat's)
     mtl_wpn_t8_zm_blundergat_magma => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_magma_glow_e', 'lava' ],
     mtl_wpn_t8_zm_blundergat_magma_barrel => [ 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_acid_c', 'i_mtl_wpn_t8_zm_blundergat_magma_glow_e', 'lava' ],
@@ -303,18 +305,30 @@ my %lava = ( Emissiver_Amount => 16, Flicker_Min => 0.6, Flicker_Max => 1.45, He
     Heat_Direction => [ 0.05, 0.08 ], Ember_Direction => [ -0.03, -0.06 ] );
 my $lit_tmpl = decode_json( slurp("$dump/materials/mc/mtl_t6_wpn_zmb_blundergat.json") );
 my $glow_tmpl = decode_json( slurp("$dump/materials/mc/mtl_t6_wpn_zmb_blundergat_acid.json") );
+# Mob's Pack-a-Punch camo (the one vanilla puts on every Pack-a-Punched gun there, zm_prison's own images): the engine
+# swaps it in for a gun's material with the gun's normal and specular maps in its two code slots; ours are set here
+my $camo_tmpl = decode_json( slurp("$dump/materials/mc/mtl_weapon_camo_zmb_dlc2.json") );
+my %camo_slot = ( Weapon_Normal_Map => 'normalMap', Weapon_Specular_Map => 'specularMap' );
+sub lit_images {    # BO4 lit material -> its colour, normal and specular maps, by the lit template's slot names
+    my ( $c, $n ) = @{ $lit{ $_[0] } };
+    ( my $short = $_[0] ) =~ s/^mtl_wpn_t8_zm_blundergat_?//;
+    $short ||= 'body';
+    return (
+        colorMap => defined $c ? texture( "${short}_c", png($c), 'bc1', 1024 ) : texture( "${short}_c", solid( 34, 32, 30, 255 ), 'bc1', 4 ),
+        normalMap => texture( "${short}_n", png($n), 'bc5', 1024 ),
+        specularMap => defined $c ? texture( "${short}_s", png($c), 'bc3', 512, $spec_of ) : texture( "${short}_s", solid( 26, 26, 26, 150 ), 'bc3', 4 ),
+    );
+}
 my %used = map { $_->{mat} => 1 } @all_prims;
 for my $m ( sort keys %used ) {
     my $mat;
-    if ( my $l = $lit{$m} ) {
-        my ( $c, $n ) = @$l;
-        ( my $short = $m ) =~ s/^mtl_wpn_t8_zm_blundergat_?//;
-        $short ||= 'body';
-        my %img = (
-            colorMap => defined $c ? texture( "${short}_c", png($c), 'bc1', 1024 ) : texture( "${short}_c", solid( 34, 32, 30, 255 ), 'bc1', 4 ),
-            normalMap => texture( "${short}_n", png($n), 'bc5', 1024 ),
-            specularMap => defined $c ? texture( "${short}_s", png($c), 'bc3', 512, $spec_of ) : texture( "${short}_s", solid( 26, 26, 26, 150 ), 'bc3', 4 ),
-        );
+    if ( $m =~ /^(.+)_pap$/ && $lit{$1} ) {
+        my %img = lit_images($1);
+        $mat = decode_json( encode_json($camo_tmpl) );
+        for my $t ( @{ $mat->{textures} } ) { $t->{image} = $img{ $camo_slot{ $t->{name} } } if defined $t->{name} && $camo_slot{ $t->{name} } }
+    }
+    elsif ( $lit{$m} ) {
+        my %img = lit_images($m);
         $mat = decode_json( encode_json($lit_tmpl) );
         for my $t ( @{ $mat->{textures} } ) { $t->{image} = $img{ $t->{name} } // die "build_magmagat_model.pl: lit template slot $t->{name}\n" }
     }
