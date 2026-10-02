@@ -36,22 +36,38 @@ if ( open my $c, '<', "$repo/CHANGELOG.md" ) {
     $news //= '';
     $news =~ s/\r//g;
     $news =~ s/^\s+|\s+\z//g;
-    # its relative links point into the repository at the tag (a release page resolves none)
-    chomp( my $url = `git -C "$repo" remote get-url origin` );
-    $url =~ s{^git\@github\.com:}{https://github.com/};
-    $url =~ s{\.git$}{};
-    $news =~ s{\]\((?![a-z]+:|#)([^)]+)\)}{]($url/blob/$tag/$1)}g if $url =~ m{^https://github\.com/};
 }
 
+# the repository's web address: the notes link to the README, the walkthrough and the issues, and the changelog's
+# relative links point into the repository at the tag (a release page resolves none)
+chomp( my $url = `git -C "$repo" remote get-url origin` );
+$url =~ s{^git\@github\.com:}{https://github.com/};
+$url =~ s{\.git$}{};
+$news =~ s{\]\((?![a-z]+:|#)([^)]+)\)}{]($url/blob/$tag/$1)}g;
+
+# the release page: what it is, how to install it, where the quest is explained, then the version's changelog
 my ( $fh, $notes ) = tempfile( SUFFIX => '.md', UNLINK => 1 );
 print $fh <<"MD";
 Magmagat for Mob of the Dead $version (Plutonium T6).
 
-**Install**: download `zm_magmagat-$version.zip` below (it appears a minute after the release) and unzip it into
-`%localappdata%\\Plutonium\\storage\\t6\\`: its `mods` folder merges with yours. In game: **Mods** -> **zm_magmagat**, then
-play Mob of the Dead.
+Port of Black Ops 4's Magmagat to Black Ops II's **Mob of the Dead**, with the same quest as copforthat's BO3 Workshop
+remaster "MOB OF THE DEAD", released with his permission. Solo and co-op.
+
+## Install
+
+1. Download `zm_magmagat-$version.zip` below (it appears a minute after the release).
+2. Unzip it into `%localappdata%\\Plutonium\\storage\\t6\\`. Its `mods` folder merges with yours, giving
+   `...\\t6\\mods\\zm_magmagat\\`.
+3. In game: **Mods** -> **zm_magmagat** -> load it, then play **Mob of the Dead**.
+
+To check it loaded, the console prints `[MG] Magmagat $version loaded`.
+
+## How to get the Magmagat
+
+Step by step in the [README]($url#how-to-get-the-magmagat), every detail in the [walkthrough]($url/blob/$tag/docs/GUIDE.md).
 MD
-print $fh "\n$news\n" if length $news;
+print $fh "\n## What's new\n\n$news\n" if length $news;
+print $fh "\n## Feedback\n\nIf something feels off, or the mod doesn't load, [open an issue]($url/issues) with what you saw and the console error.\n";
 close $fh;
 my @cmd = ( 'gh', 'release', 'create', $tag, @assets, '--target', $head, '--title', "Magmagat $version", '--notes-file', $notes );
 push @cmd, '--draft' if $draft;
