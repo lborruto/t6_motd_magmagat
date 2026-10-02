@@ -328,7 +328,7 @@ mg_blob_land( blob, player, weapon, fire )
     // its own model flew it; from now a copy shows it, turned to what it stuck to (mg_blob_show)
     blob hide();
     mg_fx_stop( fire );
-    mg_fx_once( "impact", blob.origin );
+    mg_fx_once( "impact", blob.origin, undefined, mg_up_angles( mg_blob_normal( dir, blob ) ) );    // turned to the surface, as the pool
     blob.mg_owner = player;
     blob.mg_weapon = weapon;
     host = mg_blob_host( blob );
