@@ -11,8 +11,7 @@ forge and walk away with Black Ops 4's Magmagat. Solo and co-op.
 
 ## About
 
-A port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same quest as copforthat's BO3 remaster
-"MOB OF THE DEAD".
+A port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same quest as copforthat's BO3 remaster .
 
 ## Install
 
