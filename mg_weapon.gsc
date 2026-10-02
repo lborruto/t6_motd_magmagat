@@ -319,6 +319,7 @@ mg_blob_land( bolt, player, weapon, from, fire )
 
     blob.mg_claimed = 1;
     blob.mg_owner = player;
+    blob.mg_weapon = weapon;
     blob mg_blob_lure( weapon );
     host = mg_blob_host( blob );
 
@@ -529,7 +530,7 @@ mg_blob_burst()
     mg_fx_once( "burst_fire", pos );
     playsoundatposition( "mg_flame_burst", pos );
     playsoundatposition( "zmb_explo", pos );
-    level thread mg_blob_burn_players( pos );
+    level thread mg_blob_burn_players( pos, mg_pool_radius( self.mg_weapon ) * 2 );
     self thread mg_blob_burst_fallback();
 }
 
@@ -549,9 +550,10 @@ mg_blob_burst_fallback()
 }
 
 // The burst burns the players near it too, the shooter as his teammates, as BO3's does (vanilla zombies spares a
-// teammate's explosive and caps one's own): 75 at the blob to 25 at 150 units, and on fire. PhD Flopper takes
-// nothing, as from any explosion.
-mg_blob_burn_players( pos )
+// teammate's explosive and caps one's own): within reach, the width of the pool's fire (the zombies take the
+// weapon's own 300 units), 75 at the blob to 25 at its edge, and on fire. PhD Flopper takes nothing, as from any
+// explosion.
+mg_blob_burn_players( pos, reach )
 {
     wait 0.05;
 
@@ -562,11 +564,11 @@ mg_blob_burn_players( pos )
 
         d = distance( player.origin, pos );
 
-        if ( d > 150 )
+        if ( d > reach )
             continue;
 
         player setburn( 1 );
-        player dodamage( int( 75 - 50 * d / 150 ), pos );
+        player dodamage( int( 75 - 50 * d / reach ), pos );
     }
 }
 
@@ -592,11 +594,7 @@ mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
 mg_pool( blob, player, weapon, shown )
 {
     level endon( "end_game" );
-    radius = 32;
-
-    if ( weapon == "magmagat_upgraded_zm" )
-        radius = 64;
-
+    radius = mg_pool_radius( weapon );
     pos = blob.origin;
     pool = spawn( "trigger_radius", pos, 0, radius, 32 );
     pool.mg_fire_radius = radius * 2;    // the aoe fire is drawn about twice as wide as the remaster's trigger
@@ -623,6 +621,15 @@ mg_pool( blob, player, weapon, shown )
         blob deactivate_zombie_point_of_interest();
         blob delete();
     }
+}
+
+// The pool trigger's radius for weapon: 32, the Magmus 64 (its fire is drawn twice as wide)
+mg_pool_radius( weapon )
+{
+    if ( isdefined( weapon ) && weapon == "magmagat_upgraded_zm" )
+        return 64;
+
+    return 32;
 }
 
 // The pool whose fire a player stands in (its drawn width, about 48 units of height), or undefined: a player walking

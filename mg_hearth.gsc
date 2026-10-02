@@ -465,9 +465,10 @@ mg_hearth_deposit( player )
     }
 
     wait 0.3;
+    // at the souls' end, on the gun: the remaster's blue flame draws 30 to 35 units over its origin
     playsoundatposition( "mg_flame_burst", hearth );
-    mg_fx_once( "hearth_flare", hearth );
-    blue = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 17 ) );
+    mg_fx_once( "hearth_flare", hearth - ( 0, 0, 20 ) );
+    blue = mg_fx_loop( "hearth_blue", hearth - ( 0, 0, 40 ) );
     level.mg_hearth_depositing = 0;
 
     // a reset (the placer gone, a goto) during those waits: the fire stays as it was
