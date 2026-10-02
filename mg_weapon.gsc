@@ -285,15 +285,25 @@ mg_blob_land( bolt, player, weapon, from, fire )
 {
     level endon( "end_game" );
     last = bolt.origin;
+    blob = undefined;
 
+    // landed as soon as its blob appears beside it: a stuck bolt lingers a while before it goes, and waiting for it
+    // held the pool's fire back (it goes unseen, the blob's copy shows from now)
     while ( isdefined( bolt ) )
     {
         last = bolt.origin;
+        blob = mg_blob_find( last, 64 );
+
+        if ( isdefined( blob ) )
+        {
+            bolt hide();
+            break;
+        }
+
         wait 0.05;
     }
 
     mg_fx_stop( fire );
-    blob = undefined;
 
     for ( i = 0; i < 3 && !isdefined( blob ); i++ )
     {
@@ -388,11 +398,15 @@ mg_up_angles( n )
     return ( a[0] + 90, a[1], 0 );
 }
 
-// The unclaimed blob nearest to where its bolt was last seen (a grenade entity with the blob's model), or undefined.
-mg_blob_find( pos )
+// The unclaimed blob nearest to where its bolt was last seen (a grenade entity with the blob's model) within reach
+// (300 units unless given), or undefined.
+mg_blob_find( pos, reach )
 {
+    if ( !isdefined( reach ) )
+        reach = 300;
+
     best = undefined;
-    best_d = 300 * 300;
+    best_d = reach * reach;
 
     foreach ( g in getentarray( "grenade", "classname" ) )
     {
