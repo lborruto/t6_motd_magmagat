@@ -1,8 +1,7 @@
 # Magmagat for Mob of the Dead
 
-**A port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead (Plutonium T6)**, with a quest inspired by
-copforthat's BO3 port of Mob of the Dead: temper a Blundergat in the Warden's Office fireplace, feed it souls and
-carry the burning gun to the forge. Solo and co-op.
+**A port of Black Ops 4's Magmagat to Black Ops II's MOTD (Plutonium T6)**, with a quest inspired by
+copforthat's BO3 port of MOTD.
 
 **[⬇ Download the latest release](https://github.com/lborruto/t6_motd_magmagat/releases/latest)** ·
 [What's new](CHANGELOG.md) · [Full walkthrough](docs/GUIDE.md)
