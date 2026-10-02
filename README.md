@@ -68,7 +68,7 @@ It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
 
 ## Credits
 
-- **copforthat** and the "MOB OF THE DEAD" team (tupivere_, dobby, Xela, Hybs, Rayjiun, robit, GCP, Booris and
+- **copforthat** and the Mob of the Dead BO3 port team (tupivere_, dobby, Xela, Hybs, Rayjiun, robit, GCP, Booris and
   Kingslayer Kyle): the quest this mod follows and the quest's effects, released with copforthat's permission.
 - **Harry**: the Magmagat's blob and muzzle-flash effects, as that map ships them.
 - **Treyarch / Activision**: every model, texture and sound. From Black Ops 4: the Magmagat, the Tempered
