@@ -42,14 +42,18 @@ mg_press_spawn()
         level.mg_press[part] = m;
     }
 
-    // a script_model has no collision: two solid boxes 64 x 64 x 128 along the machine's length (77 x 134, 116 high),
-    // sunk 12 into the floor so they top out with it; bullets stop on them and leave their marks
-    foreach ( dy in array( -30, 34 ) )
+    // a script_model has no collision: four solid boxes 64 x 64 x 128, two along the machine's length and two across,
+    // overlapping so their outer faces meet its sides (77 x 134, 116 high), sunk 12 into the floor so they top out with
+    // it; bullets stop on its skin and leave their marks there
+    foreach ( dy in array( -3, 3 ) )
     {
-        clip = spawn( "script_model", origin + fwd * 2.5 + left * dy + ( 0, 0, 52 ) );
-        clip.angles = ( 0, yaw, 0 );
-        clip setmodel( mg_model( "press_clip" ) );
-        clip ghost();
+        foreach ( dx in array( -4, 9 ) )
+        {
+            clip = spawn( "script_model", origin + fwd * dx + left * ( dy * 11 + 2 ) + ( 0, 0, 52 ) );
+            clip.angles = ( 0, yaw, 0 );
+            clip setmodel( mg_model( "press_clip" ) );
+            clip ghost();
+        }
     }
 
     level.mg_press_rest = origin;
