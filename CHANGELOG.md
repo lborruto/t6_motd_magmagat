@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.1 - 2026-10-02
+
+The Magmagat now matches Black Ops 4's own script more closely:
+
+- Zombies on fire burn for 8 seconds at most (was 12), as in BO4.
+- Two lava pools at once at most (was three): a new one puts out the oldest.
+- Brutus caught in a pool or a burst is scorched once and burns for 8 seconds, without further damage.
+- A blob that sticks to a teammate drops to the floor under him and makes its pool there, instead of vanishing.
+
 ## 1.0.0 - 2026-10-02
 
 The first release: a new wonder weapon and its quest for Black Ops II Zombies, Mob of the Dead, on Plutonium. One
