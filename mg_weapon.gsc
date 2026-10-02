@@ -516,11 +516,11 @@ mg_blob_on_brutus( brutus, player, weapon )
     self mg_blob_burst();
 }
 
-// self = blob. It bursts 0.05 s from now: the weapon's own explosion (the Acid Gat dart's damage, tools/build_weapon.pl)
-// through resetmissiledetonationtime, as the remaster and BO2 do. It hurts the zombies and Brutus around it, and
-// players near it as the remaster's. Its look and sound are played here: Harry's explosion, with Tranzit's lava
-// zombie bursting in fire and smoke over it, the remaster's flame burst and a zombie explosion (a projExplosionSound
-// of the mod's own bank stayed silent).
+// self = blob. It bursts 0.05 s from now: the weapon's own explosion (the remaster's 20 over 300 units,
+// tools/build_weapon.pl) through resetmissiledetonationtime, as the remaster and BO2 do, and it burns the players near
+// it. Its look and sound are played here: Harry's explosion, with Tranzit's lava zombie bursting in fire and smoke
+// over it (the owner's), and the remaster's own explosion sound, the Acid Gat's (a projExplosionSound of the mod's own
+// bank stayed silent).
 mg_blob_burst()
 {
     pos = self.origin;
@@ -528,30 +528,29 @@ mg_blob_burst()
     self resetmissiledetonationtime( 0.05 );
     mg_fx_once( "explo", pos );
     mg_fx_once( "burst_fire", pos );
-    playsoundatposition( "mg_flame_burst", pos );
-    playsoundatposition( "zmb_explo", pos );
+    playsoundatposition( "wpn_blundersplat_explode", pos );
     level thread mg_blob_burn_players( pos, mg_pool_radius( self.mg_weapon ) * 2 );
     self thread mg_blob_burst_fallback();
 }
 
 // self = a bursting blob. A grenade stuck to Brutus may never go off: still here 0.3 s on, the script bursts it with
-// the weapon's own numbers (1000 to 500 over 300 units).
+// the weapon's own numbers (20 over 300 units).
 mg_blob_burst_fallback()
 {
     self endon( "death" );
     wait 0.3;
 
     if ( isdefined( self.mg_owner ) )
-        radiusdamage( self.origin, 300, 1000, 500, self.mg_owner, "MOD_GRENADE_SPLASH", "mg_magma_blob_zm" );
+        radiusdamage( self.origin, 300, 20, 20, self.mg_owner, "MOD_GRENADE_SPLASH", "mg_magma_blob_zm" );
     else
-        radiusdamage( self.origin, 300, 1000, 500 );
+        radiusdamage( self.origin, 300, 20, 20 );
 
     self delete();
 }
 
 // The burst burns the players near it too, the shooter as his teammates, as BO3's does (vanilla zombies spares a
 // teammate's explosive and caps one's own): within reach, the width of the pool's fire (the zombies take the
-// weapon's own 300 units), 75 at the blob to 25 at its edge, and on fire. PhD Flopper takes nothing, as from any
+// weapon's own 300 units), the remaster's 20, and on fire. PhD Flopper takes nothing, as from any
 // explosion.
 mg_blob_burn_players( pos, reach )
 {
@@ -568,7 +567,7 @@ mg_blob_burn_players( pos, reach )
             continue;
 
         player setburn( 1 );
-        player dodamage( int( 75 - 50 * d / reach ), pos );
+        player dodamage( 20, pos );
     }
 }
 
