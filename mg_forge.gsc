@@ -23,16 +23,17 @@ mg_forge_init()
     level thread mg_forge_prompt_loop();
 }
 
-// The remaster's press (p8_zm_esc_machinery_01, mg_upgrade_machine), placed as the remaster places it around the
-// gun on its bed (mg_upgrade_struct): turned 90 degrees from the gun, (-8.75, -6.51) in its own frame, 44 below.
+// The remaster's press (p8_zm_esc_machinery_01, mg_upgrade_machine) at its anchor MG_PRESS (mg_coords.gsc: by
+// default where the remaster places it around the gun on its bed).
 mg_press_spawn()
 {
-    c = mg_coord( "MG_FORGE_GUN" );
-    yaw = c.angles[1] + 90;
+    c = mg_coord( "MG_PRESS" );
+    yaw = c.angles[1];
     fwd = anglestoforward( ( 0, yaw, 0 ) );
     left = anglestoright( ( 0, yaw, 0 ) ) * -1;
-    origin = c.origin + fwd * -8.75 + left * -6.51 - ( 0, 0, 44 );
+    origin = c.origin;
     level.mg_press = [];
+    level.mg_press_clips = [];
 
     foreach ( part in array( "press_body", "press_ram" ) )
     {
@@ -42,9 +43,9 @@ mg_press_spawn()
         level.mg_press[part] = m;
     }
 
-    // a script_model has no collision: four solid boxes 64 x 64 x 128, two along the machine's length and two across,
+    // a script_model stops no player: four clip boxes 64 x 64 x 128, two along the machine's length and two across,
     // overlapping so their outer faces meet its sides (77 x 134, 116 high), sunk 12 into the floor so they top out with
-    // it; bullets stop on its skin and leave their marks there
+    // it (bullets pass through: a script_model of a mod.ff prop has no bullet collision)
     foreach ( dy in array( -3, 3 ) )
     {
         foreach ( dx in array( -4, 9 ) )
@@ -53,6 +54,7 @@ mg_press_spawn()
             clip.angles = ( 0, yaw, 0 );
             clip setmodel( mg_model( "press_clip" ) );
             clip ghost();
+            level.mg_press_clips[level.mg_press_clips.size] = clip;
         }
     }
 
@@ -296,6 +298,25 @@ mg_forge_pickup_window( gun )
     mg_debug_print( "MG: the Magmagat was not taken in 15 s: it is lost" );
     mg_forge_ready_clear();
     mg_forge_rest();
+}
+
+// The machine and its collision gone (`!mg grab MG_PRESS` holds a copy of it meanwhile).
+mg_press_remove()
+{
+    foreach ( m in level.mg_press )
+    {
+        if ( isdefined( m ) )
+            m delete();
+    }
+
+    foreach ( clip in level.mg_press_clips )
+    {
+        if ( isdefined( clip ) )
+            clip delete();
+    }
+
+    level.mg_press = [];
+    level.mg_press_clips = [];
 }
 
 // BO4's ghosts working the forge, as Afterlife bodies (vanilla's c_zom_hero_ghost_fb in its blue glow): at the press's

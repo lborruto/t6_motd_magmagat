@@ -3,6 +3,7 @@
 #include maps\mp\zombies\_zm_utility;
 #include scripts\zm\zm_prison\mg_systems;
 #include scripts\zm\zm_prison\mg_coords;
+#include scripts\zm\zm_prison\mg_forge;
 
 // Magmagat - live placement mode ("!mg grab <KEY>"), ported from Dead Frequency's df_place.gsc (2026-09-08).
 //   The anchor's prop is held at the point under your crosshair and follows it: you walk, look, rotate and lift
@@ -60,6 +61,10 @@ mg_place_grab( key )
 
     if ( !had_model )
         model = mg_model( "beacon" ); // anchors without a prop still need something visible
+
+    // the forge's machine held: the real one goes meanwhile, and stands again where it is placed (or was)
+    if ( key == "MG_PRESS" )
+        mg_press_remove();
 
     ent = spawn( "script_model", c.origin );
     ent setmodel( model );
@@ -233,6 +238,21 @@ mg_place_drop()
     origin = self.mg_place_ent.origin;
     angles = self.mg_place_ent.angles;
 
+    // the machine placed: the gun on its bed and the use spot move and turn with it
+    if ( key == "MG_PRESS" )
+    {
+        old = mg_coord( key );
+        turn = angles[1] - old.angles[1];
+
+        foreach ( k in array( "MG_FORGE_GUN", "MG_FORGE" ) )
+        {
+            a = mg_coord( k );
+            off = a.origin - old.origin;
+            mg_coord_override( k, origin + ( off[0] * cos( turn ) - off[1] * sin( turn ), off[0] * sin( turn ) + off[1] * cos( turn ), off[2] ), a.angles + ( 0, turn, 0 ) );
+            self mg_out( mg_coord_line( k ) );
+        }
+    }
+
     if ( had_model )
         mg_coord_override( key, origin, angles, model );
     else
@@ -283,6 +303,9 @@ mg_place_end_current( why )
     self.mg_place_ent delete();
     self.mg_place_ent = undefined;
     self.mg_place_key = undefined;
+
+    if ( key == "MG_PRESS" )
+        mg_press_spawn();
     self mg_prompt( 0, undefined );
     self notify( "mg_place_end" );
     mg_debug_print( "MG: place mode off (" + key + ", " + why + ")" );

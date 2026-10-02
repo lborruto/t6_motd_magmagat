@@ -470,7 +470,7 @@ mg_hearth_deposit( player )
     // 30 to 35 units over its origin
     playsoundatposition( "mg_flame_burst", hearth );
     mg_fx_once( "hearth_flare", hearth - ( 0, 0, 20 ) );
-    blue = mg_fx_loop( "hearth_blue", ( -466.08, 8807.48, 1303 ) );
+    blue = mg_fx_loop( "hearth_blue", ( -459, 8817.2, 1303 ) );    // 12 deeper into the fireplace than the map's fire
     level.mg_hearth_depositing = 0;
 
     // a reset (the placer gone, a goto) during those waits: the fire stays as it was
