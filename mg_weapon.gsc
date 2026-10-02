@@ -348,8 +348,7 @@ mg_blob_land( blob, player, weapon, fire )
     if ( !isdefined( host ) )
     {
         shown = blob mg_blob_show( mg_up_angles( mg_blob_normal( dir, blob ) ), 0 );
-        blob mg_blob_lure( weapon );
-        level thread mg_pool( blob, player, weapon, shown );
+        level thread mg_pool( blob, player, weapon, shown, mg_blob_lure_spot( blob, shown, weapon ) );
     }
     else if ( mg_is_brutus( host ) )
     {
@@ -603,7 +602,7 @@ mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
 // wall or a ceiling (BO4's: it burns whoever comes close, as on the floor) the trigger stands out of the surface and
 // reaches 72 under the blob, so bodies beside or below it touch it. No cap as in the remaster, but 8 at once at most
 // for T6's entity budget (the oldest goes).
-mg_pool( blob, player, weapon, shown )
+mg_pool( blob, player, weapon, shown, lure )
 {
     level endon( "end_game" );
     radius = mg_pool_radius( weapon );
@@ -633,11 +632,34 @@ mg_pool( blob, player, weapon, shown )
     if ( isdefined( shown ) )
         shown delete();
 
-    if ( isdefined( blob ) )
+    if ( isdefined( lure ) )
     {
-        blob deactivate_zombie_point_of_interest();
-        blob delete();
+        lure deactivate_zombie_point_of_interest();
+
+        if ( lure != blob )
+            lure delete();
     }
+
+    if ( isdefined( blob ) )
+        blob delete();
+}
+
+// The lure of a blob on a surface: the blob itself on the floor; under a blob on a wall or a ceiling, the floor below
+// it (a point of interest zombies cannot stand on leaves them standing still where they are).
+mg_blob_lure_spot( blob, shown, weapon )
+{
+    lure = blob;
+    n = anglestoup( shown.angles );
+
+    if ( n[2] < 0.7 )
+    {
+        from = blob.origin + n * 16;
+        trace = bullettrace( from, from - ( 0, 0, 1000 ), 0, blob );
+        lure = spawn( "script_origin", trace["position"] );
+    }
+
+    lure mg_blob_lure( weapon );
+    return lure;
 }
 
 // The pool trigger's radius for weapon: 32, the Magmus 64

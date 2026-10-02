@@ -143,7 +143,7 @@ while ( my $job = shift @todo ) {
         elsif ( $e->{elemType} != 8 )  { $_ = $as{$_} // t6mat($_) for grep {defined} @{ $e->{visuals} } }
     }
     if ($spread) {
-        for my $e ( @{ $fx->{elemDefs} } ) { $_ *= $spread for map { @{ $e->{spawnOrigin}[$_] } } 0, 1 }
+        for my $e ( @{ $fx->{elemDefs} } ) { $_ *= $spread for @{ $e->{spawnOrigin}[0] }, @{ $e->{spawnOrigin}[1] } }
     }
     if ( my $k = $scale{$n} ) {
         for my $e ( @{ $fx->{elemDefs} } ) { $_ *= $k->[0] for @{ $e->{spawnOrigin}[0] }; $_ *= $k->[1] for @{ $e->{spawnOrigin}[1] } }
