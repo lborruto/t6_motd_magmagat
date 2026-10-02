@@ -256,26 +256,32 @@ mg_blob_fire( weapon )
     bolt = magicbullet( "mg_magma_bolt_zm", origin, trace["position"], self );
 
     if ( isdefined( bolt ) )
-    {
-        bolt thread mg_blob_fire_fx();
-        level thread mg_blob_land( bolt, self, weapon, origin );
-    }
+        level thread mg_blob_land( bolt, self, weapon, origin, bolt mg_blob_flight_fire() );
 }
 
-// self = a bolt in flight: a small fire rides it (on its model's root bone), over Harry's trail, from a frame after its
-// spawn (an effect played in the frame an entity appears is dropped by the clients).
-mg_blob_fire_fx()
+// self = a bolt in flight. A small fire rides it, over Harry's trail, on a carrier linked to it (the blob's model has
+// no tag the effect could take); mg_blob_land puts it out where the bolt lands.
+mg_blob_flight_fire()
+{
+    fire = spawn( "script_model", self.origin );
+    fire setmodel( "tag_origin" );
+    fire linkto( self );
+    fire thread mg_blob_flight_fire_play();
+    return fire;
+}
+
+// self = the flight fire's carrier: lit a frame after its spawn (an effect played in the frame an entity appears is
+// dropped by the clients)
+mg_blob_flight_fire_play()
 {
     self endon( "death" );
     wait 0.05;
-
-    if ( isdefined( level._effect["mg_blob_fire"] ) )
-        playfxontag( level._effect["mg_blob_fire"], self, "p8_fxp_magma_blob" );
+    mg_fx_add( self, "blob_fire" );
 }
 
 // The bolt lands and leaves its blob (the grenade tools/build_weapon.pl gives it, stuck where it hit); the blob
 // then takes one of the remaster's three ways (_zm_weap_magmagat.gsc function_24eea6c5). player may leave meanwhile.
-mg_blob_land( bolt, player, weapon, from )
+mg_blob_land( bolt, player, weapon, from, fire )
 {
     level endon( "end_game" );
     last = bolt.origin;
@@ -286,6 +292,7 @@ mg_blob_land( bolt, player, weapon, from )
         wait 0.05;
     }
 
+    mg_fx_stop( fire );
     blob = undefined;
 
     for ( i = 0; i < 3 && !isdefined( blob ); i++ )
@@ -301,6 +308,7 @@ mg_blob_land( bolt, player, weapon, from )
         return;
 
     blob.mg_claimed = 1;
+    blob.mg_owner = player;
     blob mg_blob_lure( weapon );
     host = mg_blob_host( blob );
 
@@ -413,16 +421,28 @@ mg_blob_host( blob )
     }
 
     // T6's projectile can pass through a moving zombie and land behind it: a blob ending inside a zombie's body (20
-    // units from its axis, between its feet and its head) sticks to it
+    // units from its axis, between its feet and its head; Brutus 40 and 110) sticks to it
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
-        if ( !isdefined( ai ) || !isalive( ai ) || distance2dsquared( ai.origin, blob.origin ) > 20 * 20 )
+        if ( !isdefined( ai ) || !isalive( ai ) )
+            continue;
+
+        reach = 20;
+        top = 72;
+
+        if ( mg_is_brutus( ai ) )
+        {
+            reach = 40;
+            top = 110;
+        }
+
+        if ( distance2dsquared( ai.origin, blob.origin ) > reach * reach )
             continue;
 
         dz = blob.origin[2] - ai.origin[2];
 
         // above its shins: a blob on the floor at its feet is a miss
-        if ( dz >= 12 && dz <= 72 )
+        if ( dz >= 12 && dz <= top )
         {
             blob linkto( ai );
             return ai;
@@ -481,16 +501,37 @@ mg_blob_on_brutus( brutus, player, weapon )
     self mg_blob_burst();
 }
 
-// self = blob. It bursts 0.05 s from now: the weapon's own explosion (mg/fx_magmagat_explode, the Acid Gat dart's
-// damage and sound, tools/build_weapon.pl) through resetmissiledetonationtime, as the remaster and BO2 do. It hurts
-// the zombies and Brutus around it, and players near it as the remaster's.
+// self = blob. It bursts 0.05 s from now: the weapon's own explosion (the Acid Gat dart's damage, tools/build_weapon.pl)
+// through resetmissiledetonationtime, as the remaster and BO2 do. It hurts the zombies and Brutus around it, and
+// players near it as the remaster's. Its look and sound are played here: Harry's explosion, with Tranzit's lava
+// zombie bursting in fire and smoke over it, the remaster's flame burst and a zombie explosion (a projExplosionSound
+// of the mod's own bank stayed silent).
 mg_blob_burst()
 {
+    pos = self.origin;
     self deactivate_zombie_point_of_interest();
     self resetmissiledetonationtime( 0.05 );
-    // the remaster's Magmagat flame burst, played here (a projExplosionSound of the mod's own bank stayed silent)
-    playsoundatposition( "mg_flame_burst", self.origin );
-    level thread mg_blob_burn_players( self.origin );
+    mg_fx_once( "explo", pos );
+    mg_fx_once( "burst_fire", pos );
+    playsoundatposition( "mg_flame_burst", pos );
+    playsoundatposition( "zmb_explo", pos );
+    level thread mg_blob_burn_players( pos );
+    self thread mg_blob_burst_fallback();
+}
+
+// self = a bursting blob. A grenade stuck to Brutus may never go off: still here 0.3 s on, the script bursts it with
+// the weapon's own numbers (1000 to 500 over 300 units).
+mg_blob_burst_fallback()
+{
+    self endon( "death" );
+    wait 0.3;
+
+    if ( isdefined( self.mg_owner ) )
+        radiusdamage( self.origin, 300, 1000, 500, self.mg_owner, "MOD_GRENADE_SPLASH", "mg_magma_blob_zm" );
+    else
+        radiusdamage( self.origin, 300, 1000, 500 );
+
+    self delete();
 }
 
 // The burst burns the players near it too, the shooter as his teammates, as BO3's does (vanilla zombies spares a

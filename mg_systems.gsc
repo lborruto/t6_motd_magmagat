@@ -47,7 +47,8 @@ mg_fx_table()
     t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso"; // a zombie the blob stuck to, burning
     t["patch_fire"] = "mg/fx_prison_magmagat_aoe"; // the remaster's lava pool
     t["blob_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // a small fire riding the blob in flight
-    t["explo"] = "mg/fx_magmagat_explode"; // the blob bursting (`!mg tour`; the weapon file plays it in the game)
+    t["explo"] = "mg/fx_magmagat_explode"; // Harry's: the blob bursting
+    t["burst_fire"] = "maps/zombie/fx_zmb_tranzit_lava_torso_explo"; // Tranzit's lava zombie bursting: fire and smoke over it
     // the debug tools: a saved anchor, a previewed one
     t["blue_spark"] = "electrical/fx_elec_spark_bounce_blue_lg";
     t["glint"] = "maps/zombie_alcatraz/fx_alcatraz_key_glint";
