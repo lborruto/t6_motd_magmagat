@@ -338,11 +338,7 @@ mg_debug_tour()
     trace = bullettrace( back + fwd * 300 + ( 0, 0, 40 ), back + fwd * 300 - ( 0, 0, 200 ), 0, undefined );
     pos = trace["position"];
     self mg_tour_look( "7/7 The Magmagat's shot: the blob flies, a miss lays its pool (6 s), a zombie hit bursts", back, pos );
-    start = self geteye() + fwd * 30;
-    bolt = magicbullet( "mg_magma_bolt_zm", start, pos, self );
-
-    if ( isdefined( bolt ) )
-        level thread mg_blob_land( bolt, self, "magmagat_zm", start );
+    self mg_blob_launch( self geteye(), vectornormalize( pos - self geteye() ), "magmagat_zm" );
 
     wait 7;
 

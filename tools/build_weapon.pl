@@ -3,10 +3,9 @@
 #   magmagat_zm           the real BO4 Magmagat model (tools/build_magmagat_model.pl) on BO2's Blundergat rig, so it
 #                         plays the Blundergat's animations; its lava tanks are the Acid Gat's bones, shown
 #   magmagat_upgraded_zm  the Magmus Operandi: the same model with the BO4 armour kit
-#   mg_magma_bolt_zm      the lava blob in flight: the Acid Gat's dart (blundersplat_bullet_zm) with our blob model
-#                         and Harry's trail and impact; where it sticks it leaves
-#   mg_magma_blob_zm      the blob there: the Acid Gat's sticky grenade (blundersplat_explosive_dart_zm), which the
-#                         script bursts (Harry's explosion) or leaves as a lava pool (mg_weapon.gsc)
+#   mg_magma_blob_zm      the lava blob: the Acid Gat's sticky grenade (blundersplat_explosive_dart_zm) with our blob
+#                         model and Harry's trail, lobbed by the script, which bursts it (Harry's explosion) or leaves
+#                         it as a lava pool (mg_weapon.gsc)
 # Steps: dump zm_prison once (tools/dump_game.pl, into mod/work/dump); the BO4 view models and the near world models
 # with their materials (tools/build_magmagat_model.pl); the lava material (tools/gen_lava_mat.pl); the far
 # world LODs (1, 2) are BO2's Blundergat recoloured (tools/recolor.pl); the weapon files copy vanilla ones (animations,
@@ -87,15 +86,15 @@ my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_worl
 # 5. weapon files: [ ours, the vanilla one it copies, field overrides ]. hideTags = the Acid Gat's: the plain shells and
 #    muzzle go, the lava set (the acid bones) shows. The remaster's Magmagat is the Acid Gat with fire, and ours fires as
 #    T6's Acid Gat does: a harmless hitscan shot with no tracer nor impact, the script fires the blob (magicbullet
-#    mg_magma_bolt_zm, as _zm_weap_blundersplat.gsc fires its dart). Flashes and fire sounds as the remaster's own
+#    mg_magma_blob_zm, as _zm_weap_blundersplat.gsc fires its dart). Flashes and fire sounds as the remaster's own
 #    t8_magmagat_zm / t8_magmagat_upgraded_zm (read from BO3's weapon pool): Harry's fire-coloured flash on the Magmagat
 #    and his _ug one on the Magmus (mod.ff's mg/fx_blundersplat_muzzleflash*), the plain Blundergat's shot on both. The
-#    ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob flies and bursts with the remaster's numbers (its
-#    t8_magmagat_zm projectile, read from BO3's memory, the same on the Magmus): 3000 forward and 200 up, gone after
-#    5 s, and a burst of 20 over 300 units (the script kills the zombie it stuck to, sets the zombies around it alight
-#    as BO4's and burns Brutus).
-#    The blob grenade has no effect nor sound of its own: mg_weapon.gsc plays Harry's explosion and its sound there
-#    and burns the players near it. Its 10 s fuse outlasts the 6 s pool.
+#    ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob is a grenade, so it falls (T6 flies a projectile
+#    weapon straight), lobbed by the script (mg_blob_launch); no hit damage of its own, and a burst of 20 over 300
+#    units, the remaster's (its t8_magmagat_zm, read from BO3's memory; the script kills the zombie it stuck to, sets
+#    the zombies around it alight as BO4's and burns Brutus). No explosion effect nor sound of its own:
+#    mg_weapon.gsc plays Harry's explosion and its sound and burns the players near it. Its 10 s fuse outlasts the 6 s
+#    pool.
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
     fireSound => 'wpn_blundergat_fire_npc', fireSoundPlayer => 'wpn_blundergat_fire_plr' );
@@ -116,14 +115,9 @@ my @weapons = (
         worldModel => 'mg_magmus_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights",
         %blob_only, viewFlashEffect => 'mg/fx_blundersplat_muzzleflash_ug', worldFlashEffect => 'mg/fx_blundersplat_muzzleflash_ug_3p',
         clipSize => 2, maxAmmo => 30, startAmmo => 25 } ],
-    [ 'mg_magma_bolt_zm', 'blundersplat_bullet_zm', { projectileModel => $blob, projectileSpeed => 3000, projectileSpeedUp => 200,
-        projectileLifetime => 5, projTrailEffect => 'mg/fx_magmagat_trail_bolt',
-        projExplosionEffect => 'mg/fx_magmagat_impact', grenadeWeapon => 'mg_magma_blob_zm',
-        explosionInnerDamage => 0, explosionOuterDamage => 0,    # no splash of its own (the dart's 10): it only leaves the blob
-        %no_acid } ],
-    # the grenade invisible: the script shows a copy of the blob, turned to the surface it stuck to, from its first frame
-    [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => 'tag_origin',
-        projExplosionEffect => '', projExplosionSound => '', %no_acid, fuseTime => 10, explosionRadius => 300,
+    # the script hides it where it sticks and shows a copy, turned to the surface it stuck to
+    [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => $blob, projTrailEffect => 'mg/fx_magmagat_trail_bolt',
+        damage => 0, projExplosionEffect => '', projExplosionSound => '', %no_acid, fuseTime => 10, explosionRadius => 300,
         explosionInnerDamage => 20, explosionOuterDamage => 20,
         aifuseTime => 10, explosionTag => '' } ],
     # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still

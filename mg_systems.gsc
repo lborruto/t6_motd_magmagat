@@ -43,10 +43,11 @@ mg_fx_table()
     // the forge
     t["sparks"] = "mg/fx_alcatraz_magmagat_power"; // the remaster's: the Machine powered
     t["forge_rise"] = "mg/fx_prison_magmagat_press_fire"; // the remaster's press at work
-    // the weapon (its bolt's trail, impact and burst are in the weapon files, tools/build_weapon.pl)
+    // the weapon (its blob's trail is in the weapon file, tools/build_weapon.pl)
     t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso"; // a zombie the blob stuck to, burning
     t["patch_fire"] = "mg/fx_prison_magmagat_aoe"; // the remaster's lava pool
     t["blob_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // a small fire riding the blob in flight
+    t["impact"] = "mg/fx_magmagat_impact"; // Harry's: the blob landing
     t["explo"] = "mg/fx_magmagat_explode"; // Harry's: the blob bursting
     t["burst_fire"] = "maps/zombie/fx_zmb_tranzit_lava_torso_explo"; // Tranzit's lava zombie bursting: fire and smoke over it
     // the debug tools: a saved anchor, a previewed one

@@ -48,7 +48,7 @@ change.
 | `mg_hearth.gsc` | fireplace (boards, prompts, place), the lockdown (outline, door clip), the souls (essences dropped, stepped on, flown into the skulls), skulls, the deposit, pickup |
 | `mg_run.gsc` | temper run (15 s timer, barrels, weapon rule), carrier fail rules |
 | `mg_forge.gsc` | forge power, the press, take; the open forge |
-| `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the bolt and blob (sticky projectiles), the lava pool |
+| `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the blob (a sticky grenade, lobbed), the lava pool |
 | `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg zone`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg spots` |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
 | `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/paint_mask.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain (the dump, the props, the drums' paint tint, the Magmagat, the lava material, PNG / DDS) and the release (see "The mod.ff") |
@@ -195,9 +195,8 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   molten ramp, heat = BO2's flicker; `%lava` turns up glow, flicker and scroll). The display names come from
   `english/localizedstrings/mg_weapons.str`.
 - **The blob and the pool** (`tools/gen_lava_mat.pl`, run by `tools/build_weapon.pl`): the script does not fly a mesh. The
-  Magmagat fires a real sticky projectile, as the Acid Gat does: `mg_magma_bolt_zm` (the flight, with the BO3 trail
-  `mg/fx_magmagat_trail_bolt`) leaves `mg_magma_blob_zm` where it lands, and that grenade bursts with
-  `mg/fx_magmagat_explode`. Both wear BO4's blob `mg_magma_blob` (`$blob` in `tools/build_weapon.pl`, `mg_model( "ball" )`),
+  Magmagat lobs a real sticky grenade, `mg_magma_blob_zm` (a grenade falls; T6 flies a projectile weapon straight),
+  with the BO3 trail `mg/fx_magmagat_trail_bolt`; the script bursts it with `mg/fx_magmagat_explode`. It wears BO4's blob `mg_magma_blob` (`$blob` in `tools/build_weapon.pl`, `mg_model( "ball" )`),
   exported from Greyhound after the Magmagat fired in BO3 (before, BO3 has not streamed its mesh in and the export is
   empty, which `tools/import_all.pl` leaves out). The pool a miss lays is the remaster's aoe effect
   (`mg/fx_prison_magmagat_aoe`) at the blob, turned with it to the surface it stuck to. The generator builds only the lava material `mc/mg_lava`: the
@@ -248,7 +247,7 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | Command | Effect |
 |---|---|
 | `!mg status` | state, souls, carrier, timer, the gate flag, forge open |
-| `!mg tour` | the seven steps' effects and sounds in their real place, one after the other (teleports you, labels each step, ends with a real Magmagat bolt): the quick review of the quest's look |
+| `!mg tour` | the seven steps' effects and sounds in their real place, one after the other (teleports you, labels each step, ends with a real Magmagat shot): the quick review of the quest's look |
 | `!mg lockdown` | the office lockdown (the remaster's outline on the door and walls, and the door clip) for 10 s, to check its placement |
 | `!mg zone` | the souls' kill zone (`mg_in_office_box`) marked along its sides for 15 s, to check it against the lockdown's blue walls |
 | `!mg bridge` | meet the bridge requirement (the gate's own event: setting the vanilla flag would also open the bridge's spawn zone) |

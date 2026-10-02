@@ -46,7 +46,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       4. A lit skull (its blue flame).
       5. A drum burning, then its flare.
       6. The forge: the Machine powered, a gun pressed, with the real ram.
-      7. A real Magmagat bolt fired at the floor: it lays its pool, then the burst.
+      7. A real Magmagat blob lobbed at the floor: it lays its pool, then the burst.
 
 ## 1. Locked / ready
 

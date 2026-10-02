@@ -8,8 +8,8 @@
 // The Magmagat is its own weapon, magmagat_zm, shipped in our mod.ff (tools/build_weapon.pl: the Blundergat's rig
 // and animations, BO4's Magmagat model on it); its Pack-a-Punch is magmagat_upgraded_zm, the Magmus Operandi. The remaster's
 // Magmagat (_zm_weap_magmagat.gsc) is BO2's Acid Gat with fire, and so is ours: each shot fires one lava blob as T6's
-// Acid Gat fires its dart (_zm_weap_blundersplat.gsc), a real sticky projectile (mg_magma_bolt_zm, which leaves the
-// blob grenade mg_magma_blob_zm where it lands). Then, as the remaster:
+// Acid Gat fires its dart (_zm_weap_blundersplat.gsc), a real sticky projectile: the blob grenade mg_magma_blob_zm,
+// lobbed so that gravity brings it down as the remaster's. Then, as the remaster:
 // - on a zombie: it burns in the Acid Gat's stun for 1 s and dies, whatever its health; the blob bursts 0.05 s later;
 // - on Brutus: 2500 burn damage (his own armour takes 90 % of it), the blob bursts 3 s later;
 // - anywhere else: a lava pool for 6 s (a radius of 32, the Magmus 64), the blob lying in it. A zombie in it takes a
@@ -31,13 +31,12 @@ mg_weapon_init()
     level thread mg_pool_damage_loop();
 }
 
-// init() only (precacheitem). The script fires the bolt (magicbullet) and the bolt leaves the blob: both are precached,
-// as vanilla precaches the Acid Gat's dart and grenade.
+// init() only (precacheitem). The script lobs the blob grenade (magicgrenadetype): it is precached, as vanilla
+// precaches the Acid Gat's dart and grenade.
 mg_weapon_precache()
 {
     precacheitem( "magmagat_zm" );
     precacheitem( "magmagat_upgraded_zm" );
-    precacheitem( "mg_magma_bolt_zm" );
     precacheitem( "mg_magma_blob_zm" );
     precacheitem( "mg_tempered_zm" );
     precacheitem( "mg_tempered_upgraded_zm" );
@@ -166,10 +165,10 @@ mg_is_magma( weapon )
     return isdefined( weapon ) && ( weapon == "magmagat_zm" || weapon == "magmagat_upgraded_zm" );
 }
 
-// The Magmagat, its bolt in flight or its blob bursting: the weapons whose damage is the Magmagat's.
+// The Magmagat or its blob bursting: the weapons whose damage is the Magmagat's.
 mg_is_magma_damage( weapon )
 {
-    return mg_is_magma( weapon ) || isdefined( weapon ) && ( weapon == "mg_magma_bolt_zm" || weapon == "mg_magma_blob_zm" );
+    return mg_is_magma( weapon ) || isdefined( weapon ) && weapon == "mg_magma_blob_zm";
 }
 
 // The Magmagat this player carries, or undefined.
@@ -251,20 +250,35 @@ mg_weapon_shot_loop()
     }
 }
 
-// self = player. One blob per shot, fired from the eye to where the crosshair points, as the Acid Gat fires its dart
-// (_zm_weap_blundersplat.gsc _titus_locate_target; one blob and no aim help, as the remaster's single grenade).
+// self = player. One blob per shot, lobbed from the eye along the crosshair (one blob and no aim help, as the
+// remaster's single grenade): T6's projectile weapons fly straight, a grenade falls, so the blob is the grenade itself.
 mg_blob_fire( weapon )
 {
-    origin = self getplayercamerapos();
-    trace = bullettrace( origin, origin + anglestoforward( self getplayerangles() ) * 20000, 1, self );
-    bolt = magicbullet( "mg_magma_bolt_zm", origin, trace["position"], self );
-
-    if ( isdefined( bolt ) )
-        level thread mg_blob_land( bolt, self, weapon, origin, bolt mg_blob_flight_fire() );
+    self mg_blob_launch( self getplayercamerapos(), anglestoforward( self getplayerangles() ), weapon );
 }
 
-// self = a bolt in flight. A small fire rides it, over Harry's trail, on a carrier linked to it (the blob's model has
-// no tag the effect could take); mg_blob_land puts it out where the bolt lands.
+// self = player. The blob lobbed from origin along dir: mg_blob_speed forward and mg_blob_up upward (units per second,
+// dvars to tune its arc in game; 1500 and 150 unless set), 20 units out so it clears its shooter.
+mg_blob_launch( origin, dir, weapon )
+{
+    speed = getdvarint( "mg_blob_speed" );
+    up = getdvarint( "mg_blob_up" );
+
+    if ( speed <= 0 )
+        speed = 1500;
+
+    if ( getdvar( "mg_blob_up" ) == "" )
+        up = 150;
+
+    start = origin + dir * 20;
+    blob = self magicgrenadetype( "mg_magma_blob_zm", start, dir * speed + ( 0, 0, up ), 10 );
+
+    if ( isdefined( blob ) )
+        level thread mg_blob_land( blob, self, weapon, blob mg_blob_flight_fire() );
+}
+
+// self = a blob in flight. A small fire rides it, over Harry's trail, on a carrier linked to it (the blob's model has
+// no tag the effect could take); mg_blob_land puts it out where the blob lands.
 mg_blob_flight_fire()
 {
     fire = spawn( "script_model", self.origin );
@@ -283,45 +297,38 @@ mg_blob_flight_fire_play()
     mg_fx_add( self, "blob_fire" );
 }
 
-// The bolt lands and leaves its blob (the grenade tools/build_weapon.pl gives it, stuck where it hit); the blob
-// then takes one of the remaster's three ways (_zm_weap_magmagat.gsc function_24eea6c5). player may leave meanwhile.
-mg_blob_land( bolt, player, weapon, from, fire )
+// The blob lands where it sticks (a sticky grenade stops dead, or rides what it hit), then takes one of the remaster's
+// three ways (_zm_weap_magmagat.gsc function_24eea6c5). player may leave meanwhile.
+mg_blob_land( blob, player, weapon, fire )
 {
     level endon( "end_game" );
-    last = bolt.origin;
-    blob = undefined;
+    prev = blob.origin;
+    dir = ( 0, 0, -1 );
 
-    // landed as soon as its blob appears beside it: a stuck bolt lingers a while before it goes, and waiting for it
-    // held the pool's fire back (it goes unseen, the blob's copy shows from now)
-    while ( isdefined( bolt ) )
+    while ( true )
     {
-        last = bolt.origin;
-        blob = mg_blob_find( last, 64 );
+        wait 0.05;
 
-        if ( isdefined( blob ) )
+        // one that hit nothing went off at the end of its fuse
+        if ( !isdefined( blob ) )
         {
-            bolt hide();
-            break;
+            mg_fx_stop( fire );
+            return;
         }
 
-        wait 0.05;
+        moved = blob.origin - prev;
+
+        if ( isdefined( blob getlinkedent() ) || lengthsquared( moved ) < 1 )
+            break;
+
+        dir = vectornormalize( moved );
+        prev = blob.origin;
     }
 
+    // its own model flew it; from now a copy shows it, turned to what it stuck to (mg_blob_show)
+    blob hide();
     mg_fx_stop( fire );
-
-    for ( i = 0; i < 3 && !isdefined( blob ); i++ )
-    {
-        blob = mg_blob_find( last );
-
-        if ( !isdefined( blob ) )
-            wait 0.05;
-    }
-
-    // a bolt that hit nothing and timed out leaves no blob
-    if ( !isdefined( blob ) )
-        return;
-
-    blob.mg_claimed = 1;
+    mg_fx_once( "impact", blob.origin );
     blob.mg_owner = player;
     blob.mg_weapon = weapon;
     host = mg_blob_host( blob );
@@ -336,12 +343,11 @@ mg_blob_land( bolt, player, weapon, from, fire )
         return;
     }
 
-    // the grenade itself is invisible (tools/build_weapon.pl): a copy of the blob shows it. On a surface it stands out
-    // of it, a wall or a ceiling as the floor, its pool with it (T6 keeps a stuck grenade as it flew); on a zombie or
-    // Brutus it rides the grenade.
+    // the grenade is hidden: a copy of the blob shows it. On a surface it stands out of it, a wall or a ceiling as the
+    // floor, its pool with it (T6 keeps a stuck grenade as it flew); on a zombie or Brutus it rides the grenade.
     if ( !isdefined( host ) )
     {
-        shown = blob mg_blob_show( mg_up_angles( mg_blob_normal( from, blob ) ), 0 );
+        shown = blob mg_blob_show( mg_up_angles( mg_blob_normal( dir, blob ) ), 0 );
         blob mg_blob_lure( weapon );
         level thread mg_pool( blob, player, weapon, shown );
     }
@@ -383,11 +389,10 @@ mg_blob_show_end( blob )
     self delete();
 }
 
-// The normal of the surface the blob stuck to, traced along the shot through it (straight up when nothing is found;
-// the bolt's own last positions are often one and the same, which gave no direction).
-mg_blob_normal( from, blob )
+// The normal of the surface the blob stuck to, traced along its last flight direction through it (straight up when
+// nothing is found).
+mg_blob_normal( dir, blob )
 {
-    dir = vectornormalize( blob.origin - from );
     trace = bullettrace( blob.origin - dir * 24, blob.origin + dir * 24, 0, blob );
 
     if ( trace["fraction"] >= 1 )
@@ -401,33 +406,6 @@ mg_up_angles( n )
 {
     a = vectortoangles( n );
     return ( a[0] + 90, a[1], 0 );
-}
-
-// The unclaimed blob nearest to where its bolt was last seen (a grenade entity with the blob's model) within reach
-// (300 units unless given), or undefined.
-mg_blob_find( pos, reach )
-{
-    if ( !isdefined( reach ) )
-        reach = 300;
-
-    best = undefined;
-    best_d = reach * reach;
-
-    foreach ( g in getentarray( "grenade", "classname" ) )
-    {
-        if ( !isdefined( g.model ) || g.model != mg_model( "blob_grenade" ) || is_true( g.mg_claimed ) )
-            continue;
-
-        d = distancesquared( g.origin, pos );
-
-        if ( d < best_d )
-        {
-            best = g;
-            best_d = d;
-        }
-    }
-
-    return best;
 }
 
 // The living zombie (or Brutus) this blob is stuck to, or undefined.
@@ -546,15 +524,17 @@ mg_blob_burst()
     self thread mg_blob_burst_fallback();
 }
 
-// The burst sets the zombies around it alight, as BO4's (the remaster's does not): within 150 units, they burn as in a
-// pool for 2 s, long enough to die of it, credited to the blob's owner. Brutus only takes the burst.
+// The burst sets the zombies around it alight, as BO4's (the remaster's does not): within 150 units, they burn for 2 s
+// unharmed (still on their feet, still a threat), then as in a pool for 2 s, long enough to die of it, credited to the
+// blob's owner. Brutus only takes the burst.
 mg_blob_ignite( pos, owner, weapon )
 {
     fire = spawnstruct();
     fire.origin = pos;
     fire.owner = owner;
     fire.weapon = weapon;
-    fire.mg_until = gettime() + 2000;
+    fire.mg_from = gettime() + 2000;
+    fire.mg_until = gettime() + 4000;
     level.mg_ignite_end = fire.mg_until;
 
     foreach ( ai in getaiarray( level.zombie_team ) )
@@ -737,6 +717,11 @@ mg_pool_zombie()
     self.mg_pool_next = gettime() + 250;
     self.is_on_fire = 1;
     self mg_burn_start();
+
+    // set alight by a burst: it burns unharmed at first
+    if ( isdefined( pool.mg_from ) && gettime() < pool.mg_from )
+        return;
+
     mg_magma_dodamage( self, int( self.maxhealth / 4 ), pool.origin, pool.owner, "MOD_BURNED", pool.weapon );
 }
 
