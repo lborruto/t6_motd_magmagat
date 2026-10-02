@@ -1,49 +1,89 @@
 # Magmagat for Mob of the Dead
 
-A new wonder weapon and its quest for Black Ops II Zombies, Mob of the Dead, on Plutonium.
+**The Magmagat quest from copforthat's BO3 remaster "MOB OF THE DEAD", now on Black Ops II's Mob of the Dead
+(Plutonium T6).** Temper a Blundergat in the Warden's Office fireplace, feed it souls, carry the burning gun to the
+forge and walk away with Black Ops 4's Magmagat. Solo and co-op.
+
+**[⬇ Download the latest release](https://github.com/lborruto/t6_motd_magmagat/releases/latest)** ·
+[What's new](CHANGELOG.md) · [Full walkthrough](docs/GUIDE.md)
+
+---
+
+## About
+
+A port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same quest as copforthat's BO3 remaster
+"MOB OF THE DEAD".
 
 ## Install
 
-1. Download `zm_magmagat-<version>.zip` from the latest release.
-2. Unzip it into `%localappdata%\Plutonium\storage\t6\`: its `mods` folder merges with yours, so you end up with
-   `...\t6\mods\zm_magmagat\mod.ff`, `mod.all.sabl` and `mod.all.sabs` (the sound bank), `mod.json` and `scripts\`.
-3. In game: **Mods** → **zm_magmagat** → load it, then play Mob of the Dead.
+1. Download `zm_magmagat-<version>.zip` from the
+   [latest release](https://github.com/lborruto/t6_motd_magmagat/releases/latest).
+2. Unzip it into `%localappdata%\Plutonium\storage\t6\`. Its `mods` folder merges with yours, so you end up with
+   `...\t6\mods\zm_magmagat\`.
+3. In game: **Mods** → **zm_magmagat** → load it, then play **Mob of the Dead**.
 
-That folder is the whole mod: the quest scripts, the Magmagat, the props, the effects and the sounds. Nothing goes
-into `scripts\zm\`.
+To check it loaded, the console prints `[MG] Magmagat <version> loaded`.
 
-The Mods menu runs one mod at a time; loose scripts in `scripts\zm\` still load beside it.
+> The Mods menu runs one mod at a time. Loose scripts you keep in `scripts\zm\` still load beside it.
 
-What each release brings is in [CHANGELOG.md](CHANGELOG.md).
+## How to get the Magmagat
 
-## Play
+**You need:** a Blundergat, Sweeper, Acid Gat or Vitriolic Withering, and the plane must have flown once (the quest
+opens when someone sits in the chair on the Golden Gate Bridge after the first trip).
 
-The Warden's Office remembers fire. Our advice: discover it. If you are stuck, `docs/GUIDE.md` has the
-walkthrough behind spoiler folds.
+1. **Open the fireplace.** In the Warden's Office, use the fireplace once (no gun needed).
+2. **Place your gun.** With your Blundergat (or any of the four) **in your hands**, hold use on the fireplace. The
+   office locks down: nobody can walk through its door until it ends.
+3. **Collect 15 souls.** Kill regular zombies **inside the office**: each one drops a soul essence. **Walk over it**
+   to send it into a skull on the mantle. The three skulls light up at 5, 10 and 15 souls. An essence nobody takes
+   fades after 20 seconds. If you (the one who placed the gun) go down, the lockdown fails and the gun is lost.
+4. **Deposit the essence.** When the lockdown ends, hold use on the fireplace to pour the souls into the fire.
+5. **Take the Tempered Blundergat.** Hold use again: you now carry the tempered gun.
+6. **Run to the forge.** You have **15 seconds** before the temper burns out. Five blue drums along the way (the
+   office exit, the stairs, the Citadel, the tunnels, the docks) each refill it to 15 seconds **once per run**.
+   Don't switch to another weapon and don't go down, or the run fails and you start again from step 2.
+7. **Use the forge** in the Generator Room by the docks: first **power the Machine**, then **place the Tempered
+   Blundergat** on it.
+8. **Take the Magmagat** from the forge within 15 seconds. Taking it calls a **Brutus**, so be ready.
+
+A Sweeper or a Vitriolic Withering comes out as the **Magmus Operandi**. The fireplace then takes a new gun, so the
+next player can forge his own. For every detail and edge case, see the [full walkthrough](docs/GUIDE.md).
+
+## The weapon
+
+| | Magmagat | Magmus Operandi |
+|---|---|---|
+| Clip / start / max ammo | 1 / 30 / 36 | 2 / 25 / 30 |
+| Lure (lava pool near the floor) | 3 zombies, 128 units | 6 zombies, 256 units |
+
+- **Blob on a zombie:** it blows the zombie apart (a tough one burns and dies a few seconds later), then bursts and
+  sets the zombies around it on fire.
+- **Blob on Brutus:** he burns for a few seconds.
+- **Missed shot:** a lava pool for 5 seconds that sets on fire every zombie that walks in. It only stings you, barely.
+- **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, and the fireplace takes the Acid Gat again.
 
 ## Credits
 
-- The quest follows the BO3 Workshop map "MOB OF THE DEAD" by copforthat (with tupivere_, dobby, Xela, Hybs, Rayjiun,
-  robit, GCP, Booris and Kingslayer Kyle), released with copforthat's permission. The quest's effects are that team's (`_copforthat/_zm_prison`: the blue
-  flames, the souls, the lockdown, the forge's power and press fire, the lava pool, the blob's scorch), and the mod
-  plays the sounds and props that map picked for the quest.
-- Harry's effects, as that map ships them (`harry/magmagat` and `harry/blundersplat`): the lava blob's trail, impact
-  and burst, and the Magmagat's and the tempered gun's muzzle flashes.
-- Treyarch / Activision: every model, texture and sound the mod ships. From Black Ops 4: the Magmagat, the Tempered
-  Blundergat, the lava blob (`p8_fxp_magma_blob`), the press (`p8_zm_esc_machinery_01`) and, as far as we can tell,
-  the quest's sounds (the flame bursts, the souls, the press, the warden's line). From Black Ops III: the drums, the
-  mantle skulls, the lava and every texture inside the effects. From Black Ops II: Mob of the Dead itself and the
-  Blundergat animations the gun plays.
-- Tools: OpenAssetTools (Laupetin and contributors) builds the fastfile; Greyhound and HydraX (Scobalula) for the
-  extraction from BO3; built on the Dead Frequency toolchain.
+- **copforthat** and the "MOB OF THE DEAD" team (tupivere_, dobby, Xela, Hybs, Rayjiun, robit, GCP, Booris and
+  Kingslayer Kyle): the quest this mod follows and the quest's effects, released with copforthat's permission.
+- **Harry**: the Magmagat's blob and muzzle-flash effects, as that map ships them.
+- **Treyarch / Activision**: every model, texture and sound. From Black Ops 4: the Magmagat, the Tempered
+  Blundergat, the lava blob, the forge and, as far as we can tell, the quest's sounds. From Black Ops III: the drums,
+  the skulls, the lava and the effects' textures. From Black Ops II: Mob of the Dead itself and the Blundergat
+  animations.
+- **Tools**: OpenAssetTools (Laupetin and contributors), Greyhound and HydraX (Scobalula).
+- **Plutonium**, for keeping Black Ops II alive.
 
 ## Assets and takedown
 
 A free, non-commercial fan project, not affiliated with or endorsed by Activision, Treyarch or Plutonium. Call of
-Duty and Black Ops are trademarks of Activision. The models, textures and sounds in mod.ff come from Call of Duty:
+Duty and Black Ops are trademarks of Activision. The models, textures and sounds in the mod come from Call of Duty:
 Black Ops 4, Black Ops III and Black Ops II and remain the property of Activision / Treyarch; the effects from the
 Workshop map "MOB OF THE DEAD" are its team's, used with copforthat's permission. If you hold rights to any asset
-and want it removed, open an issue and it will be removed promptly.
+and want it removed, [open an issue](https://github.com/lborruto/t6_motd_magmagat/issues) and it will be removed
+promptly.
 
-The mod's own code is MIT licensed; the patch in `tools/oat` is GPL-3.0, and the game assets in the release belong to
-their owners. See [LICENSE](LICENSE).
+## License
+
+The mod's own code is MIT licensed; the patch in `tools/oat` is GPL-3.0; the game assets in the release belong to
+their owners. See [LICENSE](LICENSE). To build it yourself or help out, see [CONTRIBUTING](docs/CONTRIBUTING.md).

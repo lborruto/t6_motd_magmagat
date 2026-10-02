@@ -1,8 +1,7 @@
 # Magmagat walkthrough
 
-> **Spoiler warning.** This page gives the full solution, one stage at a time. The [README](../README.md)
-> says it best: our advice is to discover it yourself first. Come back here only if you are stuck. Each
-> section below is folded; open only the one you need.
+Every stage of the quest in full detail: the rules, the timers and what fails it. The [README](../README.md) has the
+short step-by-step version. Each section below is folded: open the one you need.
 
 The quest follows the BO3 remaster "MOB OF THE DEAD" by copforthat, step by step, on Mob of the Dead, with two
 changes of our own: the souls drop as essences you walk over, as in Black Ops 4, and the tempered gun waits for you to
