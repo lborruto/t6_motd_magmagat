@@ -1,8 +1,8 @@
 # Magmagat for Mob of the Dead
 
-**The Magmagat quest from copforthat's BO3 remaster, now on Black Ops II's Mob of the Dead
-(Plutonium T6).** Temper a Blundergat in the Warden's Office fireplace, feed it souls, carry the burning gun to the
-forge and walk away with Black Ops 4's Magmagat.
+**A port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead (Plutonium T6)**, with a quest inspired by
+copforthat's BO3 port of Mob of the Dead: temper a Blundergat in the Warden's Office fireplace, feed it souls and
+carry the burning gun to the forge. Solo and co-op.
 
 **[⬇ Download the latest release](https://github.com/lborruto/t6_motd_magmagat/releases/latest)** ·
 [What's new](CHANGELOG.md) · [Full walkthrough](docs/GUIDE.md)
