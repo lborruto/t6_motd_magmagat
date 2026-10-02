@@ -56,8 +56,8 @@ my @roots;
 open my $lh, '<', "$FindBin::Bin/assets/bo3_fx.tsv" or die "bo3_fx.pl: no tools/assets/bo3_fx.tsv\n";
 # a line: the BO3 effect, then options: scale=x,y stretches its element origins (an effect laid out in one of the
 # remaster's slightly smaller rooms, fitted to BO2's); as=<name> ships a copy instead, mg/<name>, with tint=r,g,b each
-# colour its brightness times the tint (the tempered gun's blue muzzle flash) and spread=k its elements' sideways
-# origins times k (the drums' flame held inside their rim)
+# colour its brightness times the tint (the tempered gun's blue muzzle flash), spread=k its elements' sideways
+# origins times k (the drums' flame held inside their rim) and size=k its sprites' sizes times k (the drums' flare)
 my ( %scale, @copies );
 while (<$lh>) {
     s/\s*#.*//;
@@ -69,10 +69,11 @@ while (<$lh>) {
         elsif (/^as=(\w+)$/)                        { $o{as} = $1 }
         elsif (/^tint=([\d.]+),([\d.]+),([\d.]+)$/) { $o{tint} = [ $1, $2, $3 ] }
         elsif (/^spread=([\d.]+)$/)                 { $o{spread} = $1 }
+        elsif (/^size=([\d.]+)$/)                   { $o{size} = $1 }
         else                                        { die "bo3_fx.pl: bad option $_ for $n\n" }
     }
-    die "bo3_fx.pl: tint= and spread= make a copy: they need as= ($n)\n" if !$o{as} && ( $o{tint} || $o{spread} );
-    if   ( $o{as} ) { push @copies, [ $n, "mg/$o{as}", $o{tint}, $o{spread} ] }
+    die "bo3_fx.pl: tint=, spread= and size= make a copy: they need as= ($n)\n" if !$o{as} && ( $o{tint} || $o{spread} || $o{size} );
+    if   ( $o{as} ) { push @copies, [ $n, "mg/$o{as}", $o{tint}, $o{spread}, $o{size} ] }
     else            { push @roots, $n }
 }
 close $lh;
@@ -110,7 +111,7 @@ sub t6mat { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; $b =~ s/\|.*//; "mg_$b" }
 my ( %done, %by_t6, %mats, @todo, $warn );
 @todo = ( ( map { [ $_, t6fx($_) ] } @roots ), @copies );
 while ( my $job = shift @todo ) {
-    my ( $n, $t6, $tint, $spread ) = @$job;
+    my ( $n, $t6, $tint, $spread, $size ) = @$job;
     next if $done{$t6}++;
     my ( $fx, $need, $notes ) = $c->convert($n);
     # a BO3 heat distortion draws with vanilla's own (a copy of its material crashed the game when drawn)
@@ -144,6 +145,11 @@ while ( my $job = shift @todo ) {
     }
     if ($spread) {
         for my $e ( @{ $fx->{elemDefs} } ) { $_ *= $spread for @{ $e->{spawnOrigin}[0] }, @{ $e->{spawnOrigin}[1] } }
+    }
+    if ($size) {
+        for my $e ( grep { $_->{elemType} <= 6 } @{ $fx->{elemDefs} } ) {
+            for my $v ( map { @$_{qw(base amplitude)} } @{ $e->{visSamples} } ) { $_ *= $size for @{ $v->{size} } }
+        }
     }
     if ( my $k = $scale{$n} ) {
         for my $e ( @{ $fx->{elemDefs} } ) { $_ *= $k->[0] for @{ $e->{spawnOrigin}[0] }; $_ *= $k->[1] for @{ $e->{spawnOrigin}[1] } }

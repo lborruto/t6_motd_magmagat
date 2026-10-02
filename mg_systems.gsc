@@ -38,7 +38,8 @@ mg_fx_table()
     t["hearth_blue"] = "mg/fx_alcatraz_blue_flame_loop"; // the fireplace burning blue once the essence is deposited
     // the run: fire in the barrels, the temper riding the gun
     t["barrel_fire"] = "mg/fx_mg_barrel_flame"; // the remaster's drum flame, held inside the rim (tools/assets/bo3_fx.tsv)
-    t["barrel_flare"] = "mg/fx_alcatraz_blue_flame_flare_up"; // the remaster's: a drum refilling the temper
+    t["barrel_flare"] = "mg/fx_alcatraz_blue_flame_flare_up"; // the remaster's drum flare, full size: the forge's flare-up as the gun is laid down
+    t["drum_flare"] = "mg/fx_mg_barrel_flare"; // the remaster's: a drum refilling the temper, held within its rim (tools/assets/bo3_fx.tsv)
     t["gun_flame"] = "mg/fx_alcatraz_blue_flame_vm"; // the remaster's tempered-gun flame
     // the forge
     t["sparks"] = "mg/fx_alcatraz_magmagat_power"; // the remaster's: the Machine powered

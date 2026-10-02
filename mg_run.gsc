@@ -61,7 +61,7 @@ mg_barrels_set( lit )
 mg_barrel_spend( barrel )
 {
     barrel.mg_spent = 1;
-    mg_fx_once( "barrel_flare", mg_barrel_flame( barrel ), 5 );
+    mg_fx_once( "drum_flare", mg_barrel_base( barrel ), 5 );    // at the foot, as the remaster's: its burst rises at the rim
     barrel playsound( "mg_flame_burst" );
 }
 
