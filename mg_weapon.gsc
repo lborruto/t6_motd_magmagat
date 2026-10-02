@@ -524,7 +524,7 @@ mg_blob_burst()
     self thread mg_blob_burst_fallback();
 }
 
-// The burst sets the zombies around it alight, as BO4's (the remaster's does not): within 150 units, they burn for 2 s
+// The burst sets the zombies around it alight, as BO4's (the remaster's does not): within 100 units, they burn for 2 s
 // unharmed (still on their feet, still a threat), then as in a pool for 2 s, long enough to die of it, credited to the
 // blob's owner. Brutus only takes the burst.
 mg_blob_ignite( pos, owner, weapon )
@@ -539,7 +539,7 @@ mg_blob_ignite( pos, owner, weapon )
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
-        if ( isdefined( ai ) && isalive( ai ) && !mg_is_brutus( ai ) && distancesquared( ai.origin, pos ) < 150 * 150 )
+        if ( isdefined( ai ) && isalive( ai ) && !mg_is_brutus( ai ) && distancesquared( ai.origin, pos ) < 100 * 100 )
             ai.mg_ignited = fire;
     }
 }

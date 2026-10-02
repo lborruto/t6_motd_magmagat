@@ -246,6 +246,8 @@ mg_press_show( weapon )
     mg_fx_once( "barrel_flare", c.origin, 3 );
     body playsound( "mg_flame_burst" );
 
+    level thread mg_forge_ghosts();
+
     // t 0.5: the start anim (the ram comes down 0.3 s in); t 0.55: the press sound at the machine
     wait 0.5;
     level thread mg_press_down();
@@ -289,6 +291,54 @@ mg_forge_pickup_window( gun )
     mg_debug_print( "MG: the Magmagat was not taken in 15 s: it is lost" );
     mg_forge_ready_clear();
     mg_forge_rest();
+}
+
+// BO4's ghosts working the forge, as Afterlife bodies (vanilla's c_zom_hero_ghost_fb in its blue glow): at the press's
+// start one rises out of the floor at each end of the machine, turned to it, and they stand by it through the press;
+// as the Magmagat comes out (t 4.35) they vanish. Held in level.mg_forge_place_ents for a goto's cleanup.
+mg_forge_ghosts()
+{
+    body = level.mg_press["press_body"];
+    left = anglestoright( body.angles ) * -1;
+    ghosts = [];
+
+    foreach ( side in array( -1, 1 ) )
+    {
+        spot = level.mg_press_rest + left * side * 82;
+        ghost = spawn( "script_model", spot - ( 0, 0, 72 ) );
+        ghost.angles = ( 0, vectortoangles( level.mg_press_rest - spot )[1], 0 );
+        ghost setmodel( mg_model( "ghost" ) );
+        ghost.mg_spot = spot;
+        ghosts[ghosts.size] = ghost;
+        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = ghost;
+    }
+
+    wait 0.05;    // an effect played in the frame an entity appears is dropped by the clients
+
+    foreach ( ghost in ghosts )
+    {
+        if ( !isdefined( ghost ) )
+            return;
+
+        mg_fx_add_tag( ghost, "ghost_body", "J_SpineUpper" );
+        mg_fx_add_tag( ghost, "ghost_head", "J_Head" );
+        mg_fx_once( "ghost_tport", ghost.mg_spot );
+        playsoundatposition( "zmb_afterlife_object_apparate", ghost.mg_spot );
+        ghost playloopsound( "zmb_afterlife_ghost_loop", 0.5 );
+        ghost moveto( ghost.mg_spot, 0.8, 0.1, 0.4 );
+    }
+
+    wait 4.3;
+
+    foreach ( ghost in ghosts )
+    {
+        if ( !isdefined( ghost ) )
+            continue;
+
+        mg_fx_once( "ghost_tport", ghost.origin + ( 0, 0, 36 ) );
+        playsoundatposition( "zmb_afterlife_object_disapparate", ghost.origin );
+        ghost delete();
+    }
 }
 
 // The placer takes the Magmagat (the Magmus Operandi when a Pack-a-Punched gun was pressed). One who already owns a

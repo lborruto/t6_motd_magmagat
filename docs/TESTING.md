@@ -164,7 +164,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       the remaster's own t8_magmagat_zm does.
 - [ ] **Hit a zombie**: the blob sticks, the zombie plays the Acid Gat stun and burns (torso fire and loop sound), and dies
       after about 1 s at any round, bursting in gore; the blob bursts about 0.05 s later, in flame with the Acid Gat's
-      explosion sound (no green smoke). The zombies within about 150 units catch fire, burn 2 s unharmed, then die of it within 1-2 s,
+      explosion sound (no green smoke). The zombies within about 100 units catch fire, burn 2 s unharmed, then die of it within 1-2 s,
       falling dead (no gore); every player in the drawn fire's width (you too) catches fire and loses 20 (PhD Flopper:
       nothing). Other zombies are not drawn to a blob on a zombie (BO4).
 - [ ] **Hit Brutus**: one hit of about 250-375; the blob stays on him and bursts 3 s later; zombies are not lured to it.
