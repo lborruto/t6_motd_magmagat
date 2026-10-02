@@ -1,7 +1,6 @@
 # Magmagat for Mob of the Dead
 
-**A port of Black Ops 4's Magmagat to Black Ops II's MOTD (Plutonium T6)**, with a quest inspired by
-copforthat's BO3 port of MOTD.
+Port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same quest as in copforthat's BO3 remaster of MOTD (released with his permission).
 
 **[⬇ Download the latest release](https://github.com/lborruto/t6_motd_magmagat/releases/latest)** ·
 [What's new](CHANGELOG.md) · [Full walkthrough](docs/GUIDE.md)
