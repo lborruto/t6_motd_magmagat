@@ -50,8 +50,8 @@ my ( $fh, $notes ) = tempfile( SUFFIX => '.md', UNLINK => 1 );
 print $fh <<"MD";
 Magmagat for Mob of the Dead $version (Plutonium T6).
 
-Port of Black Ops 4's Magmagat to Black Ops II's **Mob of the Dead**, with the same quest as copforthat's BO3 Workshop
-remaster "MOB OF THE DEAD", released with his permission. Solo and co-op.
+Port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same quest as in copforthat's BO3 remaster of MOTD
+(released with his permission).
 
 ## Install
 
