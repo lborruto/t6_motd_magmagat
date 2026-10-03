@@ -55,7 +55,7 @@ It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
   later). Its death bursts the blob, setting every zombie within 128 units on fire.
 - **On Brutus:** he burns for 5 seconds.
 - **Missed shot:** a lava pool for 5 seconds (two at most at once) that sets on fire every zombie walking in. It only
-  stings you, barely.
+  stings you (your screen burns), barely.
 - **Burning zombies** take a share of their health every second (fast in early rounds, slower later) for up to 8
   seconds, and fall dead.
 - **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, and the fireplace takes the Acid Gat again.

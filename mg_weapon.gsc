@@ -361,7 +361,7 @@ mg_blob_land( blob, player, weapon, fire )
         shown = blob mg_blob_show( mg_up_angles( mg_blob_normal( dir, blob ) ), 0 );
         level thread mg_pool( blob, player, weapon, shown );
     }
-    else if ( mg_is_brutus( host ) )
+    else if ( mg_is_boss( host ) )
     {
         blob mg_blob_show( blob.angles, 1 );
         blob thread mg_blob_on_brutus( host, player, weapon );
@@ -464,6 +464,19 @@ mg_is_brutus( ai )
     return isdefined( ai.animname ) && ai.animname == "brutus_zombie";
 }
 
+// BO4 sorts its enemies (var_6f84b820): "basic" / "enhanced" zombies, "popcorn" fodder, "miniboss" / "boss". BO2's
+// plain zombies are "zombie" (vanilla zombie_spawn_init); its fodder the dogs, Die Rise's leapers and Tranzit's
+// denizens; every other enemy (Brutus on this map) a boss.
+mg_is_popcorn( ai )
+{
+    return isdefined( ai.animname ) && ( ai.animname == "zombie_dog" || ai.animname == "leaper_zombie" || ai.animname == "screecher_zombie" );
+}
+
+mg_is_boss( ai )
+{
+    return isdefined( ai.animname ) && ai.animname != "zombie" && !mg_is_popcorn( ai );
+}
+
 // The lure of a pool, BO4's (function_7b25328b): vanilla's point of interest on the floor under the blob, 128 units
 // and 3 zombies (the Magmus 256 and 6), only when that floor is within 64 of the blob (a blob up a wall or on a
 // ceiling draws no one); Brutus ignores it. Returns its entity, or undefined.
@@ -483,7 +496,7 @@ mg_blob_lure( blob, weapon )
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
-        if ( isdefined( ai ) && mg_is_brutus( ai ) )
+        if ( isdefined( ai ) && mg_is_boss( ai ) )
             ai thread add_poi_to_ignore_list( lure );
     }
 
@@ -499,6 +512,13 @@ mg_magma_stuck( player, weapon )
     self.mg_magma_stuck = 1;
     wait 0.5;
     self notify( "killed_by_a_blundersplat", player );
+
+    // fodder: killed outright, no gore (BO4's popcorn)
+    if ( mg_is_popcorn( self ) )
+    {
+        mg_magma_dodamage( self, self.health + 100, self.origin, player, "MOD_BURNED", weapon );
+        return;
+    }
 
     if ( self.health <= 1000 )
     {
@@ -553,8 +573,8 @@ mg_blob_on_brutus( brutus, player, weapon )
 
 // self = blob on a zombie that died: BO4's burst (function_209c8c45), played with Harry's explosion, Tranzit's lava
 // zombie bursting in fire and smoke over it (the owner's) and the Acid Gat's explosion, the remaster's sound. The
-// zombies within 128 not burning yet catch fire and take 400 (a blast that tears limbs off, vanilla's gibs); Brutus
-// takes 20. It hurts no player. Then the blob goes (BO4 detonates nothing: no explosion of the weapon's own).
+// zombies within 128 not burning yet catch fire and take 400 (a blast that tears limbs off, vanilla's gibs); any
+// other enemy (Brutus, fodder, a boss) takes 20 and burns. It hurts no player. Then the blob goes (BO4 detonates nothing: no explosion of the weapon's own).
 mg_blob_burst( player, weapon )
 {
     pos = self.origin;
@@ -567,7 +587,7 @@ mg_blob_burst( player, weapon )
         if ( !isdefined( ai ) || !isalive( ai ) || is_true( ai.mg_burning ) || distancesquared( ai.origin, pos ) > 128 * 128 )
             continue;
 
-        if ( mg_is_brutus( ai ) )
+        if ( isdefined( ai.animname ) && ai.animname != "zombie" )
         {
             ai thread mg_brutus_scorch( player, weapon, 20 );
             continue;
@@ -738,7 +758,7 @@ mg_pool_damage_loop()
 }
 
 // self = zombie in a pool (BO4's function_c74dfed4): one not burning yet catches fire for a tenth of its health
-// (mg_zombie_ignite); Brutus is scorched for a tenth of his (mg_brutus_scorch).
+// (mg_zombie_ignite); fodder dies; Brutus or another boss is scorched for a tenth of its own (mg_brutus_scorch).
 mg_pool_zombie()
 {
     pool = mg_pool_touched( self );
@@ -746,7 +766,13 @@ mg_pool_zombie()
     if ( !isdefined( pool ) || is_true( self.mg_burning ) )
         return;
 
-    if ( mg_is_brutus( self ) )
+    if ( mg_is_popcorn( self ) )
+    {
+        mg_magma_dodamage( self, self.health + 100, pool.origin, pool.owner, "MOD_BURNED", pool.weapon );
+        return;
+    }
+
+    if ( mg_is_boss( self ) )
     {
         self thread mg_brutus_scorch( pool.owner, pool.weapon, self.health * 0.1 );
         return;
@@ -755,7 +781,8 @@ mg_pool_zombie()
     self mg_zombie_ignite( pool.owner, pool.weapon, self.health * 0.1 );
 }
 
-// self = player. Only the pool's owner is hurt, as BO4's (function_b1abe6ab): 1 every 0.4 s while he touches it.
+// self = player. Only the pool's owner is hurt, as BO4's (function_b1abe6ab): 1 every 0.4 s while he touches it. BO4's
+// engine burns the screen for MOD_BURNED; T6 needs setburn for it (as vanilla's fire trap).
 mg_pool_player()
 {
     pool = undefined;
@@ -770,6 +797,7 @@ mg_pool_player()
         return;
 
     self.mg_pool_next = gettime() + 400;
+    self setburn( 0.5 );
     self dodamage( 1, pool.origin );
 }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2 - 2026-10-04
+
+- Standing in your own lava pool burns your screen again, as vanilla's fire traps do (BO4's engine does it on its
+  own; Black Ops II needs it asked for).
+- The weapon now sorts its targets with Black Ops 4's own enemy classes (plain zombies, fodder, bosses): Brutus takes
+  the boss side of every rule, as before.
+
 ## 1.0.1 - 2026-10-02
 
 The Magmagat now matches Black Ops 4's own script more closely:
