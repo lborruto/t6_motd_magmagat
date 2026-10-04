@@ -259,8 +259,18 @@ sub texture {    # (name, png or code, format, max px, transform) -> '*image'
     my ( $name, $png, $format, $max, $fn ) = @_;
     my $ours = "*mg_bo4_$name";
     return $ours if $tex_done{$ours}++;
-    my $img = ref $png ? $png->() : MgPng::read($png);
-    while ( $img->{w} > $max || $img->{h} > $max ) {    # 2x box downscale
+    my $img = shrink( ref $png ? $png->() : MgPng::read($png), $max );
+    if ($fn) {
+        my $px = $img->{px};
+        for ( my $i = 0; $i < @$px; $i += 4 ) { @$px[ $i .. $i + 3 ] = map { my $v = int( $_ + 0.5 ); $v < 0 ? 0 : $v > 255 ? 255 : $v } $fn->( @$px[ $i .. $i + 3 ] ) }
+    }
+    make_path("$raw/images");
+    MgDds::write( "$raw/images/_mg_bo4_$name.dds", $img, $format );
+    return $ours;
+}
+sub shrink {    # (image, max px) -> the image, 2x box downscaled until it fits
+    my ( $img, $max ) = @_;
+    while ( $img->{w} > $max || $img->{h} > $max ) {
         my ( $w, $h, $px ) = @$img{qw(w h px)};
         my ( $nw, $nh ) = ( int( $w / 2 ), int( $h / 2 ) );
         my @d;
@@ -272,19 +282,33 @@ sub texture {    # (name, png or code, format, max px, transform) -> '*image'
         }
         $img = { w => $nw, h => $nh, px => \@d };
     }
-    if ($fn) {
-        my $px = $img->{px};
-        for ( my $i = 0; $i < @$px; $i += 4 ) { @$px[ $i .. $i + 3 ] = map { my $v = int( $_ + 0.5 ); $v < 0 ? 0 : $v > 255 ? 255 : $v } $fn->( @$px[ $i .. $i + 3 ] ) }
-    }
-    make_path("$raw/images");
-    MgDds::write( "$raw/images/_mg_bo4_$name.dds", $img, $format );
-    return $ours;
+    return $img;
 }
 sub solid { my @c = @_; sub { { w => 4, h => 4, px => [ (@c) x 16 ] } } }
 sub png { my $n = shift; my $f = "$xi/$n.png"; die "build_magmagat_model.pl: $n.png is not in $xi\n" unless -f $f; $f }
 my $lum = sub { ( 0.3 * $_[0] + 0.59 * $_[1] + 0.11 * $_[2] ) };
-# T6 specular map: rgb = specular colour, alpha = gloss; from the colour map (dark metal: dim, fairly glossy)
-my $spec_of = sub { my $l = $lum->(@_); ( $_[0] * 0.4 + 12, $_[1] * 0.4 + 12, $_[2] * 0.4 + 12, 110 + $l * 0.35 ) };
+# T6 specular map: rgb = specular colour, alpha = gloss. BO4's materials are physically based: a metal's colour map is
+# nearly black (5 to 17 / 255 on the Magmagat) and its shine is in its own specular (_s) and gloss (_g) maps, so they
+# are taken as they are, gloss into the alpha. A map BO4 does not have: a plain non-metal's specular (0.04, sRGB 56), a
+# middling gloss.
+my $SPEC_PX = 512;
+sub spec_gloss {    # (BO4 texture stem) -> code making the T6 specular map
+    my $stem = shift;
+    return sub {
+        my ( $s, $g ) = map { -f "$xi/${stem}_$_.png" ? shrink( MgPng::read("$xi/${stem}_$_.png"), $SPEC_PX ) : undef } qw(s g);
+        my $base = $s // $g // die "build_magmagat_model.pl: ${stem} has neither _s nor _g\n";
+        my ( $w, $h ) = @$base{qw(w h)};
+        for ( grep { defined } $s, $g ) {
+            die "build_magmagat_model.pl: ${stem}: _s and _g sizes differ ($_->{w}x$_->{h} vs ${w}x$h)\n" if $_->{w} != $w || $_->{h} != $h;
+        }
+        my @px;
+        for my $i ( 0 .. $w * $h - 1 ) {
+            my $o = $i * 4;
+            push @px, $s ? @{ $s->{px} }[ $o .. $o + 2 ] : ( 56, 56, 56 ), $g ? $g->{px}[$o] : 128;
+        }
+        return { w => $w, h => $h, px => \@px };
+    };
+}
 
 # ---- materials
 my %glow = (    # BO4 material -> [ crust colour source, reveal (crack mask), ember source, colour ]  (emberglow: the Acid Gat's)
@@ -315,10 +339,11 @@ sub lit_images {    # BO4 lit material -> its colour, normal and specular maps, 
     my ( $c, $n ) = @{ $lit{ $_[0] } };
     ( my $short = $_[0] ) =~ s/^mtl_wpn_t8_zm_blundergat_?//;
     $short ||= 'body';
+    ( my $stem = $n ) =~ s/_n$//;
     return (
         colorMap => defined $c ? texture( "${short}_c", png($c), 'bc1', 1024 ) : texture( "${short}_c", solid( 34, 32, 30, 255 ), 'bc1', 4 ),
         normalMap => texture( "${short}_n", png($n), 'bc5', 1024 ),
-        specularMap => defined $c ? texture( "${short}_s", png($c), 'bc3', 512, $spec_of ) : texture( "${short}_s", solid( 26, 26, 26, 150 ), 'bc3', 4 ),
+        specularMap => texture( "${short}_s", spec_gloss($stem), 'bc3', $SPEC_PX ),
     );
 }
 my %used = map { $_->{mat} => 1 } @all_prims;
