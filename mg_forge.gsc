@@ -445,3 +445,63 @@ mg_forge_fabricate( state )
         level thread mg_forge_pickup_window( level.mg_forge_ready_gun );
     }
 }
+
+#using_animtree("fxanim_props");
+
+// 1.0.3 work, `!mg smelter`: BO4's own forge as its scene aib_vign_zm_mob_smelter_ghost plays it (ate47/bo4-source): the
+// smelter and two ghouls at one spot, shot 1 (the machine's start and each ghoul's, 11.5 s) then shot 2 (the machine's
+// finish, 0.9 s; the ghouls go, deletewhenfinished). Spawned 250 in front of the player who typed, facing him. Script
+// models share one animtree (see tools/import_all.pl): Mob's fxanim_props, which mod.ff extends with ours.
+// A server script plays an xanim with setanim, which notifies no notetrack.
+mg_forge_bo4_test()
+{
+    self endon( "disconnect" );
+    level notify( "mg_forge_bo4_test" );
+    level endon( "mg_forge_bo4_test" );
+    mg_forge_bo4_clear();
+    yaw = self.angles[1];
+    origin = self.origin + anglestoforward( ( 0, yaw, 0 ) ) * 250;
+    scriptmodelsuseanimtree( #animtree );
+    level.mg_bo4_forge = [];
+
+    foreach ( key in array( "smelter", "ghoul1", "ghoul2" ) )
+    {
+        e = spawn( "script_model", origin );
+        e.angles = ( 0, yaw + 180, 0 );
+        e setmodel( mg_model( key ) );
+        e useanimtree( #animtree );
+        level.mg_bo4_forge[key] = e;
+    }
+
+    wait 0.1;
+    shot1 = getanimlength( %mg_smelter_start );
+    self mg_out( "MG: BO4 forge, shot 1 (" + shot1 + " s)" );
+    level.mg_bo4_forge["smelter"] setanim( %mg_smelter_start, 1, 0, 1 );
+    level.mg_bo4_forge["ghoul1"] setanim( %mg_ghoul_smelter_1, 1, 0, 1 );
+    level.mg_bo4_forge["ghoul2"] setanim( %mg_ghoul_smelter_2, 1, 0, 1 );
+    wait shot1;
+
+    foreach ( key in array( "ghoul1", "ghoul2" ) )
+        level.mg_bo4_forge[key] delete();
+
+    shot2 = getanimlength( %mg_smelter_finish );
+    self mg_out( "MG: BO4 forge, shot 2 (" + shot2 + " s)" );
+    level.mg_bo4_forge["smelter"] clearanim( %mg_smelter_start, 0 );
+    level.mg_bo4_forge["smelter"] setanim( %mg_smelter_finish, 1, 0, 1 );
+    wait shot2;
+    self mg_out( "MG: BO4 forge done (`!mg smelter clear` removes it)" );
+}
+
+mg_forge_bo4_clear()
+{
+    if ( !isdefined( level.mg_bo4_forge ) )
+        return;
+
+    foreach ( e in level.mg_bo4_forge )
+    {
+        if ( isdefined( e ) )
+            e delete();
+    }
+
+    level.mg_bo4_forge = undefined;
+}

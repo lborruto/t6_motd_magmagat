@@ -8,6 +8,7 @@
 use strict;
 use warnings;
 use FindBin;
+use File::Copy qw(copy);
 use File::Path qw(make_path remove_tree);
 
 my $gh = $ENV{MG_GREYHOUND} // 'C:/Games/t6/Greyhound-1.49.4.0';
@@ -51,6 +52,25 @@ my @props = (
     [ 'mg_press_ram', 'p8_zm_esc_machinery_01', '--bones', 'j_press', @press_decals ],
 );
 
+# Black Ops 4's own forge, from its Blood of the Dead export (Greyhound, BO4 running on the map): the scene
+# aib_vign_zm_mob_smelter_ghost (ate47/bo4-source, scriptbundle/scene) plays the smelter machine and two ghouls
+# (aitype spawner_zm_ghost: c_t8_zmb_mob_ghoul1..3) together, shot 1 then shot 2. Skinned: script plays their xanims.
+# Greyhound names an xanim it cannot resolve xanim_<fnv1a-64 of the name, 60 bits>; ours are named after the scene.
+my $xm4 = "$gh/exported_files/black_ops_4_sp/xmodels";
+my $xi4 = "$gh/exported_files/black_ops_4_sp/ximages";
+my $xa4 = "$gh/exported_files/black_ops_4_sp/xanims";
+my @bo4_props = (
+    [ 'mg_smelter', 'p8_fxanim_zm_esc_smelter_ghost_mod', '--skinned', @press_decals[ 0, 1 ] ],
+    [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned' ],
+    [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned' ],
+);
+my @bo4_anims = (    # [ our xanim, Greyhound's (Direct XAnim, BO1 compatibility: the version 19 OpenAssetTools reads) ]
+    [ 'mg_smelter_start', 'xanim_9de8b7aa027633b' ],     # p8_fxanim_zm_esc_smelter_ghost_start_anim, 11.5 s: levers, press down
+    [ 'mg_smelter_finish', 'xanim_1e661c0485bee6c' ],    # p8_fxanim_zm_esc_smelter_ghost_finish_anim, 0.9 s: press up
+    [ 'mg_ghoul_smelter_1', 'xanim_2d21557dbf41b9b' ],   # the scene's fakeactor 1, 11.5 s with the machine's start
+    [ 'mg_ghoul_smelter_2', 'xanim_2d21657dbf41d4e' ],   # fakeactor 2
+);
+
 system( 'perl', "$FindBin::Bin/dump_game.pl" ) == 0 or die "import_all.pl: the dump failed\n";    # the material template
 remove_tree($raw);
 make_path($work);
@@ -61,12 +81,52 @@ for my $p (@paints) {
 
 # a model Greyhound exported empty (import_prop.pl exits 3) is left out; what uses it falls back on a vanilla one
 my @built;
-for my $p (@props) {
-    my ( $name, $model, @opt ) = @$p;
-    my $rc = system( 'perl', "$FindBin::Bin/import_prop.pl", @opt, "$xm/$model", $name, $xi ) >> 8;
+for my $p ( ( map { [ $xm, $xi, @$_ ] } @props ), ( map { [ $xm4, $xi4, @$_ ] } @bo4_props ) ) {
+    my ( $models, $images, $name, $model, @opt ) = @$p;
+    if ( !-d "$models/$model" ) { warn "import_all.pl: $name left out (no $model in $models)\n"; next }
+    my $rc = system( 'perl', "$FindBin::Bin/import_prop.pl", @opt, "$models/$model", $name, $images ) >> 8;
     if ( $rc == 3 ) { warn "import_all.pl: $name left out ($model exported empty)\n"; next }
     $rc == 0 or die "import_all.pl: $name failed\n";
-    push @built, $p;
+    push @built, $name;
+}
+
+# the xanims, as Greyhound wrote them: the Linker reads xanim/<name> from the search path
+my @anims;
+make_path("$raw/xanim");
+for my $a (@bo4_anims) {
+    my ( $name, $file ) = @$a;
+    if ( !-f "$xa4/$file" ) { warn "import_all.pl: xanim $name left out (no $xa4/$file)\n"; next }
+    copy( "$xa4/$file", "$raw/xanim/$name" ) or die "import_all.pl: xanim $name: $!\n";
+    push @anims, $name;
+}
+
+# Script models all share ONE animtree (scriptmodelsuseanimtree is global, server and client), and Mob's own scripts
+# set it to fxanim_props (its fan trap, the gondola chains): ours join that tree rather than replace it. mod.ff
+# carries patch_zm's animtrees/fxanim_props.atr with ours appended (patch_zm's is the full one: common_zm's lacks Mob's
+# own, zm_prison.ff only references it, and a tree without Mob's refuses the map: "animation
+# 'fxanim_zom_al_bodybag_crane_anim' not defined in anim tree 'fxanim_props'"). mod.ff loads after both and overrides
+# them, so #using_animtree("fxanim_props") resolves ours (an animtree is the list of the xanims it may play, by name).
+my $atr;
+if (@anims) {
+    my $oat = $ENV{MG_OAT} // 'C:/Games/t6/openassettools';
+    my $bo2 = $ENV{MG_BO2} // 'C:/Program Files (x86)/Steam/steamapps/common/Call of Duty Black Ops II';
+    my $rawdump = "$work/rawfile_patch_zm";
+    my $vanilla = "$rawdump/animtrees/fxanim_props.atr";
+    if ( !-f $vanilla ) {
+        system( "$oat/Unlinker.exe", '--include-assets', 'rawfile', '-o', $rawdump, "$bo2/zone/all/patch_zm.ff" ) == 0 or die "import_all.pl: the rawfile dump failed\n";
+        -f $vanilla or die "import_all.pl: no animtrees/fxanim_props.atr in patch_zm.ff\n";
+    }
+    open my $vh, '<:raw', $vanilla or die "$vanilla: $!\n";
+    my $tree = do { local $/; <$vh> };
+    close $vh;
+    $tree =~ s/\r\n/\n/g;
+    $tree =~ s/\s*\z/\n\n/;
+    $tree .= "//MAGMAGAT (zm_magmagat: BO4's forge)\n" . join( '', map { "$_\n" } @anims );
+    make_path("$raw/animtrees");
+    open my $th, '>:raw', "$raw/animtrees/fxanim_props.atr" or die "import_all.pl: animtree: $!\n";
+    print $th $tree;
+    close $th;
+    $atr = 'animtrees/fxanim_props.atr';
 }
 
 # the zone: our props block replaces the previous one
@@ -75,10 +135,11 @@ open my $h, '<:raw', $zone or die "$zone: $!\n";
 my $z = do { local $/; <$h> };
 $z =~ s/\r\n/\n/g;    # a checkout may hand it over with CRLF endings
 close $h;
-my $block = "// props (tools/import_all.pl)\n" . join( '', map { "xmodel,$_->[0]\n" } @built ) . "// end props\n";
+my $block = "// props (tools/import_all.pl)\n" . join( '', map { "xmodel,$_\n" } @built ) . join( '', map { "xanim,$_\n" } @anims )
+    . ( $atr ? "rawfile,$atr\n" : '' ) . "// end props\n";
 # in place when the block exists (the zone keeps its order), else appended
 if ( $z !~ s/\/\/ props \(tools\/import_all\.pl\).*?\/\/ end props\n/$block/s ) { $z =~ s/\s*\z/\n/; $z .= "\n$block" }
 open $h, '>:raw', $zone or die "$zone: $!\n";
 print $h $z;
 close $h;
-printf "import_all.pl: %d props\n", scalar @built;
+printf "import_all.pl: %d props, %d xanims\n", scalar @built, scalar @anims;

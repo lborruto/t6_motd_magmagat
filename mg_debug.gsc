@@ -56,6 +56,28 @@ mg_debug_init()
 {
     level.mg_shock = 0;
     level.mg_shock_weapon = "m1911_zm";
+    level thread mg_debug_autorun();
+}
+
+// dvar mg_autorun "<cmd> [arg]" (with mg_debug 1): the host runs `!mg <cmd> [arg]` once he is in the game, as if he had
+// typed it: a test started from the command line (+set mg_autorun smelter), with no one at the keyboard
+mg_debug_autorun()
+{
+    level endon( "end_game" );
+    line = getdvar( "mg_autorun" );
+
+    if ( !isdefined( line ) || line == "" || getdvarint( "mg_debug" ) != 1 )
+        return;
+
+    // the boot runs once the rounds start: the host is in by then, or about to be
+    while ( getplayers().size == 0 || !is_player_valid( getplayers()[0] ) )
+        wait 0.5;
+
+    player = getplayers()[0];
+    player endon( "disconnect" );
+    wait 3;
+    print( "[MG] autorun: !mg " + line + "\n" );
+    level notify( "say", "!mg " + line, player );    // as the chat hands it to mg_chat_listener
 }
 
 // self = player. 1 when the command was ours.
@@ -218,6 +240,19 @@ mg_debug_command( sub, arg, args )
             }
 
             self mg_debug_spawn_model( arg );
+            return 1;
+
+        // 1.0.3 work: BO4's own forge and ghouls, playing BO4's animations in front of you (`clear` removes them)
+        case "smelter":
+            if ( isdefined( arg ) && arg == "clear" )
+            {
+                level notify( "mg_forge_bo4_test" );
+                mg_forge_bo4_clear();
+                self mg_out( "MG: BO4 forge removed" );
+                return 1;
+            }
+
+            self thread mg_forge_bo4_test();
             return 1;
 
         case "tp":

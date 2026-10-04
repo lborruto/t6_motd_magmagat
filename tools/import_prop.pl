@@ -17,6 +17,8 @@
 #     --color <regex>=<png>       use this colour map for the matching material (e.g. one tinted by tools/paint_mask.pl)
 #     --bones <b,..> / --bones '!b,..'   keep only the triangles riding these bones / all but those (a part of a skinned
 #                                 model that script moves on its own, e.g. a press's ram)
+#     --skinned                   keep the skeleton and the vertex weights (an animated model: script plays its xanims
+#                                 on it), instead of making the model rigid
 #     --material <name>          every surface uses this existing material (e.g. mc/mg_lava, built by tools/build_weapon.pl)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
@@ -39,7 +41,9 @@ my $offset = '0,0,0';
 my $use_material;
 my $bones_opt;
 my $size = 1;    # --scale: the mesh scaled about its pivot (the Magmagat's blob a little smaller than BO4's)
-GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size ) or die "import_prop.pl: bad options\n";
+my $skinned;
+GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size, 'skinned' => \$skinned ) or die "import_prop.pl: bad options\n";
+die "import_prop.pl: --skinned and --bones exclude each other (--bones makes a rigid part)\n" if $skinned && defined $bones_opt;
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
@@ -230,6 +234,28 @@ sub keep_bones {
     $g->{buffers}[0]{byteLength} = length $$buf;
 }
 
+# --skinned: the skeleton goes to the Linker's axes as the vertices do. The Linker builds the bones from the joint
+# nodes' translation and rotation (not the inverse bind matrices) and turns its Y-up glTF to T6's Z-up by +90 degrees
+# about X, so the skeleton's roots turn -90 degrees about X (the vertices' (x, y, z) -> (x, z, -y)) and every joint
+# offset goes from Greyhound's centimetres to inches; a child's local frame then follows its parent's.
+sub qmul { my ( $a, $b ) = @_; ( $a->[3] * $b->[0] + $a->[0] * $b->[3] + $a->[1] * $b->[2] - $a->[2] * $b->[1], $a->[3] * $b->[1] - $a->[0] * $b->[2] + $a->[1] * $b->[3] + $a->[2] * $b->[0], $a->[3] * $b->[2] + $a->[0] * $b->[1] - $a->[1] * $b->[0] + $a->[2] * $b->[3], $a->[3] * $b->[3] - $a->[0] * $b->[0] - $a->[1] * $b->[1] - $a->[2] * $b->[2] ) }
+sub skeleton_to_linker {
+    my $g = shift;
+    die "import_prop.pl: --skinned but the glTF has no skin\n" unless @{ $g->{skins} || [] };
+    my %joint = map { $_ => 1 } map { @{ $_->{joints} } } @{ $g->{skins} };
+    my %child = map { $_ => 1 } map { @{ $_->{children} || [] } } @{ $g->{nodes} };
+    my $turn = [ -sqrt(0.5), 0, 0, sqrt(0.5) ];    # -90 degrees about X
+    for my $i ( keys %joint ) {
+        my $n = $g->{nodes}[$i];
+        die "import_prop.pl: joint node $i has a matrix (only translation / rotation are converted)\n" if $n->{matrix};
+        my @t = map { $_ * $size / 2.54 } @{ $n->{translation} // [ 0, 0, 0 ] };
+        if ( $child{$i} ) { $n->{translation} = \@t; next }
+        $n->{translation} = [ $t[0] + $off_gl[0], $t[2] + $off_gl[1], -$t[1] + $off_gl[2] ];
+        $n->{rotation} = [ qmul( $turn, $n->{rotation} // [ 0, 0, 0, 1 ] ) ];
+    }
+    delete $_->{inverseBindMatrices} for @{ $g->{skins} };    # in Greyhound's axes, and unused by the Linker
+}
+
 # LODs with our material names
 my @lodjson;
 # switch distances; the last LOD stays drawn to 10000 units (a prop that vanished at its LOD0 distance, 300, was a bug)
@@ -267,9 +293,12 @@ for my $k ( 0 .. $#lods ) {
     }
     $g->{materials} = \@used;
     $_->{name} = $ours_of{ $_->{name} } // $_->{name} for @{ $g->{materials} };
-    delete $g->{skins};
-    delete $_->{skin} for @{ $g->{nodes} };
-    for my $mesh ( @{ $g->{meshes} } ) { delete @{ $_->{attributes} }{qw(JOINTS_0 WEIGHTS_0)} for @{ $mesh->{primitives} } }
+    if ($skinned) { skeleton_to_linker($g) }
+    else {
+        delete $g->{skins};
+        delete $_->{skin} for @{ $g->{nodes} };
+        for my $mesh ( @{ $g->{meshes} } ) { delete @{ $_->{attributes} }{qw(JOINTS_0 WEIGHTS_0)} for @{ $mesh->{primitives} } }
+    }
     delete @$g{qw(images textures samplers)};
     for my $m ( @{ $g->{materials} } ) { delete $m->{pbrMetallicRoughness}{baseColorTexture}; delete $m->{normalTexture} }
     # Greyhound's glTF is Z-up in centimetres, the Linker's is Y-up in inches (like its own dumps): (x, y, z) -> (x, z, -y) / 2.54
