@@ -20,6 +20,8 @@
 #     --skinned                   keep the skeleton and the vertex weights (an animated model: script plays its xanims
 #                                 on it), instead of making the model rigid
 #     --material <name>          every surface uses this existing material (e.g. mc/mg_lava, built by tools/build_weapon.pl)
+#     --material-rename FROM=TO   a surface whose material matches FROM (a regex) uses the existing material TO, $1..
+#                                 from FROM's groups (e.g. a ghoul part on mc/mg_ghoul_$1, tools/build_ghoul_mats.pl)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
 #   e.g. perl tools/import_prop.pl --offset 0,0,-3.51 C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_3_sp/xmodels/p7_zm_zod_skull mg_skull
@@ -39,10 +41,11 @@ use Getopt::Long;
 my ( @skip, @skip_color, %color_for, $tints_file );
 my $offset = '0,0,0';
 my $use_material;
+my @rename;    # --material-rename FROM=TO: a surface whose material matches FROM (a regex) uses TO ($1.. from FROM)
 my $bones_opt;
 my $size = 1;    # --scale: the mesh scaled about its pivot (the Magmagat's blob a little smaller than BO4's)
 my $skinned;
-GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size, 'skinned' => \$skinned ) or die "import_prop.pl: bad options\n";
+GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'material-rename=s' => \@rename, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size, 'skinned' => \$skinned ) or die "import_prop.pl: bad options\n";
 die "import_prop.pl: --skinned and --bones exclude each other (--bones makes a rigid part)\n" if $skinned && defined $bones_opt;
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
@@ -173,6 +176,13 @@ my %ours_of;
 for my $idx ( 0 .. $#mat_order ) {
     my $srcname = $mat_order[$idx];
     if ( defined $use_material ) { $ours_of{$srcname} = $use_material; next }
+    for my $r (@rename) {
+        my ( $from, $to ) = split /=/, $r, 2;
+        my @cap = $srcname =~ /^(?:$from)$/ or next;
+        ( $ours_of{$srcname} = $to ) =~ s/\$(\d)/$cap[ $1 - 1 ]/g;
+        last;
+    }
+    next if defined $ours_of{$srcname};
     my $t = $mat{$srcname};
     my $m = decode_json( encode_json($tmpl) );
     my ($ckey) = grep { $srcname =~ /$_/ } sort keys %color_for;

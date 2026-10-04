@@ -45,7 +45,7 @@ mg_press_spawn()
 
     // BO4's lever (tools/import_all.pl), turned about its pivot (mg_lever_pivot) by mg_press_show
     lever = spawn( "script_model", mg_press_point( mg_lever_pivot() ) );
-    lever.angles = ( 0, yaw, 0 );
+    lever.angles = ( 0, yaw + getdvarfloat( "mg_lever_yaw" ), 0 );    // dvar mg_lever_yaw turns it, to fit it in game
     lever setmodel( mg_model( "press_lever" ) );
     level.mg_press["press_lever"] = lever;
 

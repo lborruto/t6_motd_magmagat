@@ -335,6 +335,17 @@ my $glow_tmpl = decode_json( slurp("$dump/materials/mc/mtl_t6_wpn_zmb_blundergat
 # glow as the camo's, with the camo's own images (zm_prison's, loaded by name) and the gun's normal map.
 my %camo = ( Diffuse_Map => '~-gcamo_zmb_dlc2_col', EmberGlow_Reveal_Map => 'camo_zmb_dlc2_reveal', Ember_Map => 'camo_zmb_dlc2_ember',
     SpecularAndGloss => '~~-gcamo_zmb_dlc2_spc-rgb&~-r~471adc2c' );
+# On a gun in hand that crust read too dark (the owner, 2026-10-04: "very somber"): the Magmus takes a copy lifted
+# (gamma 0.6, x 1.2) and a brighter glow (Emissiver_Amount 14, the template's 10).
+my $MAGMUS_GLOW = 14;
+my $magmus_crust = texture( 'magmus_crust', sub {
+    my $img = MgDds::read("$dump/images/~-gcamo_zmb_dlc2_col.dds");
+    my $px = $img->{px};
+    for ( my $i = 0; $i < @$px; $i += 4 ) {
+        for ( 0 .. 2 ) { my $v = int( 1.2 * 255 * ( $px->[ $i + $_ ] / 255 )**0.6 + 0.5 ); $px->[ $i + $_ ] = $v > 255 ? 255 : $v }
+    }
+    return $img;
+}, 'bc1', 1024 );
 sub lit_images {    # BO4 lit material -> its colour, normal and specular maps, by the lit template's slot names
     my ( $c, $n ) = @{ $lit{ $_[0] } };
     ( my $short = $_[0] ) =~ s/^mtl_wpn_t8_zm_blundergat_?//;
@@ -350,9 +361,10 @@ my %used = map { $_->{mat} => 1 } @all_prims;
 for my $m ( sort keys %used ) {
     my $mat;
     if ( $m =~ /^(.+)_pap$/ && $lit{$1} ) {
-        my %img = ( %camo, Normal_Map => { lit_images($1) }->{normalMap} );
+        my %img = ( %camo, Normal_Map => { lit_images($1) }->{normalMap}, Diffuse_Map => $magmus_crust );
         $mat = decode_json( encode_json($glow_tmpl) );
         for my $t ( @{ $mat->{textures} } ) { $t->{image} = $img{ $t->{name} } if defined $t->{name} && exists $img{ $t->{name} } }    # heat map, rim mask: vanilla
+        for my $c ( @{ $mat->{constants} || [] } ) { $c->{literal}[0] = $MAGMUS_GLOW if $c->{name} eq 'Emissiver_Amount' }
     }
     elsif ( $lit{$m} ) {
         my %img = lit_images($m);

@@ -58,8 +58,8 @@ my @props = (
 # its BO4 materials do not carry over, so the remaster's press stays; it takes the smelter's lever, which BO4's press is
 # the same machine as at 0.755 scale (its smasher and our ram are one mesh, 1136 triangles): the shaft handel_1_jnt
 # and its two grips (handel_1/2_release_jnt), pivot at handel_1_jnt (100.71, 80.02, 59.49 in, BO4's centimetres / 2.54)
-# moved to the origin. The ghouls are skinned (script plays their xanims) and wear Mob's own Afterlife ghost
-# (mc/mtl_c_zom_hero_ghost_smoke, so_zclassic_zm_prison.ff: tools/build_mod.pl loads it), not their BO4 materials.
+# moved to the origin. The ghouls are skinned (script plays their xanims); BO4's ghost shader does not exist in T6, so
+# their parts glow blue on the Acid Gat's shader with BO4's own maps (tools/build_ghoul_mats.pl, mc/mg_ghoul_<part>).
 # Greyhound names an xanim it cannot resolve xanim_<fnv1a-64 of the name, 60 bits>; ours are named after the scene.
 my $xm4 = "$gh/exported_files/black_ops_4_sp/xmodels";
 my $xi4 = "$gh/exported_files/black_ops_4_sp/ximages";
@@ -72,8 +72,8 @@ my @bo4_props = (
     # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is our remaster skull's mesh. Pivot at mid height, as mg_skull's.
     [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--offset', '0,0,-3.51' ],
     [ 'mg_skull_bo4_lit', 'p8_zm_esc_skull_afterlife', '--offset', '0,0,-3.51' ],
-    [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--material', 'mc/mtl_c_zom_hero_ghost_smoke' ],
-    [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned', '--material', 'mc/mtl_c_zom_hero_ghost_smoke' ],
+    [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
+    [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
 );
 my @bo4_anims = (    # [ our xanim, Greyhound's (Direct XAnim, BO1 compatibility: the version 19 OpenAssetTools reads) ]
     [ 'mg_ghoul_smelter_1', 'xanim_2d21557dbf41b9b' ],   # the scene's fakeactor 1, 11.4 s (the smelter's start: its levers at 3.4 s, its smasher down at 4.0 s)
@@ -86,6 +86,11 @@ make_path($work);
 for my $p (@paints) {
     my ( $out, $img, $tint ) = @$p;
     system( 'perl', "$FindBin::Bin/paint_mask.pl", "$xi/$img.png", $out, '--tint', $tint ) == 0 or die "import_all.pl: paint $out failed\n";
+}
+
+if ( -d $xi4 ) {
+    system( 'perl', "$FindBin::Bin/build_ghoul_mats.pl", $raw, "$work/dump", $xi4 ) == 0 or die "import_all.pl: the ghouls' materials failed
+";
 }
 
 # a model Greyhound exported empty (import_prop.pl exits 3) is left out; what uses it falls back on a vanilla one
