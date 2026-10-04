@@ -233,7 +233,7 @@ The dvar `mg_bo4` lists the parts to play BO4's way; set it in the console **bef
 - [ ] `pool`: a missed blob leaves a puddle of molten lava with embers instead of the remaster's fire.
 - [ ] The forge (always BO4's now): `say !mg press` plays it on a Tempered Blundergat. The ghouls come out of the gun
       to the lever's ends, the lever drops at 3.4 s, the ram strikes at 4 s and works 7.4 s, the Magmagat glows on
-      the bed. `set mg_lever_offset "x y z"` (forward, left, up) moves the lever; the default is `"38.9 -0.24 55.9"`.
+      the bed. `!mg grab MG_LEVER` places the lever (the ghouls fly around it).
 - [ ] The Machine's power step (`say !mg tour`, step 6): a surge, the machine jolts awake, a flare of fire in embers.
 
 ## 9. Lints and syntax (before every deploy)

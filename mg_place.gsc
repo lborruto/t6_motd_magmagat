@@ -62,8 +62,8 @@ mg_place_grab( key )
     if ( !had_model )
         model = mg_model( "beacon" ); // anchors without a prop still need something visible
 
-    // the forge's machine held: the real one goes meanwhile, and stands again where it is placed (or was)
-    if ( key == "MG_PRESS" )
+    // the forge's machine or its lever held: the real one goes meanwhile, and stands again where it is placed (or was)
+    if ( key == "MG_PRESS" || key == "MG_LEVER" )
         mg_press_remove();
 
     ent = spawn( "script_model", c.origin );
@@ -238,13 +238,13 @@ mg_place_drop()
     origin = self.mg_place_ent.origin;
     angles = self.mg_place_ent.angles;
 
-    // the machine placed: the gun on its bed and the use spot move and turn with it
+    // the machine placed: the gun on its bed, the use spot and the lever move and turn with it
     if ( key == "MG_PRESS" )
     {
         old = mg_coord( key );
         turn = angles[1] - old.angles[1];
 
-        foreach ( k in array( "MG_FORGE_GUN", "MG_FORGE" ) )
+        foreach ( k in array( "MG_FORGE_GUN", "MG_FORGE", "MG_LEVER" ) )
         {
             a = mg_coord( k );
             off = a.origin - old.origin;
@@ -304,7 +304,7 @@ mg_place_end_current( why )
     self.mg_place_ent = undefined;
     self.mg_place_key = undefined;
 
-    if ( key == "MG_PRESS" )
+    if ( key == "MG_PRESS" || key == "MG_LEVER" )
         mg_press_spawn();
     self mg_prompt( 0, undefined );
     self notify( "mg_place_end" );

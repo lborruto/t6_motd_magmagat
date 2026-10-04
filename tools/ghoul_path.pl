@@ -4,13 +4,11 @@
 # tag_origin motion on a script_model, so script moves the ghoul along it: this samples the track every $STEP frames
 # from Greyhound's SEAnim export and writes it, brought onto the remaster's press, into mg_forge.gsc (between its
 # "ghoul paths" markers): one string a ghoul, "x,y,z,pitch,yaw,roll" keys joined by "|", read by mg_ghoul_path().
-#   The mapping, the lever's (tools/import_all.pl): BO4's smelter is the remaster's press at 0.755 scale with its
-# smasher on our ram, turned 180 degrees about it (the owner turned the press to face as BO4's: the remaster's model
-# faces the other way). So a point p (cm, the smelter's frame) lands at
-#   ram + R180( p * 0.755 / 2.54 - smasher )   on x, y;   p.z / 2.54   up (from the floor: the ghoul keeps its size, its
-#   body hanging a fixed 103.5 cm under tag_origin, so its height is BO4's own)
-# with the smelter's smasher centre (42.54, 60.40) and our ram's centre (5.4, -0.25) in inches, and a rotation q at
-# R180 * q, written as the angles (pitch, yaw, roll) of the press's frame.
+#   Around the lever: BO4's ghouls fly around its smelter's lever, which the remaster's press carries (MG_LEVER,
+# the smelter's lever at 0.755 scale, pivot at its origin), so a point p (cm, the smelter's frame) is written from that
+# pivot, ( p - pivot ) * 0.755 / 2.54 on x, y, in the lever's frame; and its height from the floor unscaled, p.z / 2.54
+# (the ghoul keeps its size, its body hanging a fixed 103.5 cm under tag_origin). A rotation is written as the angles
+# (pitch, yaw, roll) of the lever's frame. mg_ghoul_path() turns both by the lever's yaw, at its spot.
 #
 #   perl tools/ghoul_path.pl <ghoul 1 .seanim> <ghoul 2 .seanim>
 use strict;
@@ -20,8 +18,7 @@ use Math::Trig qw(pi);
 
 my $STEP = 6;    # frames (30 fps): 0.2 s
 my $SCALE = 0.755 / 2.54;
-my @SMASHER = ( 42.54, 60.40 );
-my @RAM = ( 5.4, -0.25 );
+my @PIVOT = ( 255.80, 203.24 );    # the smelter's handel_1_jnt, cm
 
 sub read_root {    # SEAnim file -> ( frame count, { frame => [x y z] }, { frame => [x y z w] } ) of tag_origin
     my $f = shift;
@@ -63,9 +60,8 @@ sub at {    # keys, frame -> the value there, linear between the keys around it 
     return \@v;
 }
 
-sub angles {    # quaternion (x y z w), turned 180 degrees about z -> (pitch, yaw, roll) degrees, R = Rz(yaw) Ry(pitch) Rx(roll)
+sub angles {    # quaternion (x y z w) -> (pitch, yaw, roll) degrees, R = Rz(yaw) Ry(pitch) Rx(roll)
     my ( $x, $y, $z, $w ) = @{ $_[0] };
-    ( $x, $y, $z, $w ) = ( -$y, $x, $w, -$z );    # (0 0 1 0) * q: 180 degrees about z, first
     my @m = (
         [ 1 - 2 * ( $y * $y + $z * $z ), 2 * ( $x * $y - $z * $w ), 2 * ( $x * $z + $y * $w ) ],
         [ 2 * ( $x * $y + $z * $w ), 1 - 2 * ( $x * $x + $z * $z ), 2 * ( $y * $z - $x * $w ) ],
@@ -85,9 +81,9 @@ for my $g ( 0 .. 1 ) {
     my @keys;
     for ( my $f = 0; $f < $fc; $f += $STEP ) {
         my $p = at( $t, $f );
-        my @s = map { $_ * $SCALE } @$p;
+        my @s = map { ( $p->[$_] - $PIVOT[$_] ) * $SCALE } 0, 1;
         my $t_z = $p->[2] / 2.54;    # its height unscaled: the body hangs a fixed 103.5 cm under it
-        push @keys, sprintf( '%.1f,%.1f,%.1f,%.0f,%.0f,%.0f', $RAM[0] - ( $s[0] - $SMASHER[0] ), $RAM[1] - ( $s[1] - $SMASHER[1] ), $t_z, angles( at( $r, $f ) ) );
+        push @keys, sprintf( '%.1f,%.1f,%.1f,%.0f,%.0f,%.0f', $s[0], $s[1], $t_z, angles( at( $r, $f ) ) );
     }
     push @data, join( '|', @keys );
 }

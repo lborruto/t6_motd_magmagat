@@ -89,6 +89,15 @@ mg_coords_init()
     yaw = gun.angles[1] + 90;
     foot = gun.origin + anglestoforward( ( 0, yaw, 0 ) ) * -8.75 + anglestoright( ( 0, yaw, 0 ) ) * 6.51 - ( 0, 0, 44 );
     mg_coord_set( "MG_PRESS", foot, ( 0, yaw, 0 ), mg_model( "press_body" ) );
+
+    // BO4's lever on the machine (its pivot): by default where the smelter has it next to its smasher, the smelter's
+    // smasher and our ram being one mesh at 0.755 scale (the smasher's centre + (33.5, 0, -30.6) scaled, from our ram's
+    // centre (5.4, -0.25, 86.5)), on the machine's other side and turned 180 degrees (the remaster's machine faces the
+    // other way than BO4's); `!mg grab MG_LEVER` places it, and the forge's ghouls fly around it (mg_ghoul_path)
+    press = level.mg_coords["MG_PRESS"];
+    p = press.angles[1];
+    lever = press.origin + anglestoforward( ( 0, p, 0 ) ) * -28.1 + anglestoright( ( 0, p, 0 ) ) * 0.26 + ( 0, 0, 55.9 );
+    mg_coord_set( "MG_LEVER", lever, ( 0, p + 180, 0 ), mg_model( "press_lever" ) );
 }
 
 // Owner spots go here, one line each: mg_coord_override( "KEY", ( x, y, z ), ( pitch, yaw, roll ) );
