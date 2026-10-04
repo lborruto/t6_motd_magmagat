@@ -336,8 +336,7 @@ my $glow_tmpl = decode_json( slurp("$dump/materials/mc/mtl_t6_wpn_zmb_blundergat
 my %camo = ( Diffuse_Map => '~-gcamo_zmb_dlc2_col', EmberGlow_Reveal_Map => 'camo_zmb_dlc2_reveal', Ember_Map => 'camo_zmb_dlc2_ember',
     SpecularAndGloss => '~~-gcamo_zmb_dlc2_spc-rgb&~-r~471adc2c' );
 # On a gun in hand that crust read too dark (the owner, 2026-10-04: "very somber"): the Magmus takes a copy lifted
-# (gamma 0.6, x 1.2) and a brighter glow (Emissiver_Amount 14, the template's 10).
-my $MAGMUS_GLOW = 14;
+# (gamma 0.6, x 1.2); its glow stays the template's (10: the owner found 14 too strong).
 my $magmus_crust = texture( 'magmus_crust', sub {
     my $img = MgDds::read("$dump/images/~-gcamo_zmb_dlc2_col.dds");
     my $px = $img->{px};
@@ -364,7 +363,6 @@ for my $m ( sort keys %used ) {
         my %img = ( %camo, Normal_Map => { lit_images($1) }->{normalMap}, Diffuse_Map => $magmus_crust );
         $mat = decode_json( encode_json($glow_tmpl) );
         for my $t ( @{ $mat->{textures} } ) { $t->{image} = $img{ $t->{name} } if defined $t->{name} && exists $img{ $t->{name} } }    # heat map, rim mask: vanilla
-        for my $c ( @{ $mat->{constants} || [] } ) { $c->{literal}[0] = $MAGMUS_GLOW if $c->{name} eq 'Emissiver_Amount' }
     }
     elsif ( $lit{$m} ) {
         my %img = lit_images($m);

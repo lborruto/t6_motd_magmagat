@@ -11,6 +11,14 @@ xmodel,mg_fx_magma_splat03_mesh
 xmodel,mg_magma_blob
 xmodel,mg_press_body
 xmodel,mg_press_ram
+xmodel,mg_press_lever
+xmodel,mg_skull_bo4
+xmodel,mg_skull_bo4_lit
+xmodel,mg_ghoul1
+xmodel,mg_ghoul2
+xanim,mg_ghoul_smelter_1
+xanim,mg_ghoul_smelter_2
+rawfile,animtrees/fxanim_props.atr
 // end props
 
 // weapon (tools/build_weapon.pl)
