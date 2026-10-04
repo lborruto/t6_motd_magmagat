@@ -68,6 +68,10 @@ my $lever_scale = 0.755;
 my @bo4_props = (
     [ 'mg_press_lever', 'p8_fxanim_zm_esc_smelter_ghost_mod', '--bones', 'handel_1_jnt,handel_1_release_jnt,handel_2_release_jnt', @press_decals[ 0, 1 ],
         '--scale', $lever_scale, '--offset', join( ',', map { sprintf '%.3f', -$_ * $lever_scale } 100.71, 80.02, 59.49 ) ],
+    # BO4's mantle skulls (dvar mg_bo4 "skulls"): its quest stands three plain ones and swaps each for the Afterlife skull
+    # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is our remaster skull's mesh. Pivot at mid height, as mg_skull's.
+    [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--offset', '0,0,-3.51' ],
+    [ 'mg_skull_bo4_lit', 'p8_zm_esc_skull_afterlife', '--offset', '0,0,-3.51' ],
     [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--material', 'mc/mtl_c_zom_hero_ghost_smoke' ],
     [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned', '--material', 'mc/mtl_c_zom_hero_ghost_smoke' ],
 );

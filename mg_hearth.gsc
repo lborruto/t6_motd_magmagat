@@ -33,7 +33,7 @@ mg_hearth_init()
     {
         c = mg_coord( "MG_SKULL_" + i );
         skull = spawn( "script_model", c.origin );
-        skull setmodel( mg_model( "skull" ) );
+        skull setmodel( mg_skull_model( 0 ) );
         skull.angles = c.angles;
         level.mg_skulls[i - 1] = skull;
     }
@@ -174,10 +174,34 @@ mg_hearth_place( player )
 
     level.mg_hearth_weapon = weapon;
     level.mg_hearth_owner = player;
-    c = mg_coord( "MG_HEARTH" );
-    level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
+    mg_hearth_gun_spawn( weapon );
     mg_state_set( "souls" );
     level thread mg_lockdown( player );
+}
+
+// The gun in the fire, at MG_HEARTH. With mg_bo4 "hover", BO4's: it floats there (its
+// p8_fxanim_zm_esc_blundergat_fireplace_hover_anim: up 3.7 cm, 1.5 in, and back over its 3.33 s loop, no turn).
+mg_hearth_gun_spawn( weapon )
+{
+    c = mg_coord( "MG_HEARTH" );
+    level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
+
+    if ( mg_bo4( "hover" ) )
+        level.mg_hearth_gun thread mg_hearth_gun_hover( c.origin );
+}
+
+// self = the gun in the fire, floating until it goes
+mg_hearth_gun_hover( origin )
+{
+    self endon( "death" );
+
+    for ( ;; )
+    {
+        self moveto( origin + ( 0, 0, 1.47 ), 1.67, 0.6, 0.6 );
+        wait 1.67;
+        self moveto( origin, 1.66, 0.6, 0.6 );
+        wait 1.66;
+    }
 }
 
 // The lockdown (MG.gsc:431-454): the office shut for players, its fire outline, the laugh, the laundry's defend music;
@@ -401,8 +425,22 @@ mg_essence_fly( skull )
     wait 0.5;
 }
 
-// Skull index 0..2 lights: the remaster's blue flame skull on it (MG.gsc:473-494, MG.csc:86-99); the skull model does
-// not change and nothing sounds. It stays lit until a failed lockdown or a failed run.
+// The mantle skull's model: the remaster's (its skull keeps one model, lit or not), or with mg_bo4 "skulls" BO4's,
+// a plain skull that becomes the Afterlife skull once lit.
+mg_skull_model( lit )
+{
+    if ( !mg_bo4( "skulls" ) )
+        return mg_model( "skull" );
+
+    if ( lit )
+        return mg_model( "skull_bo4_lit" );
+
+    return mg_model( "skull_bo4" );
+}
+
+// Skull index 0..2 lights: the remaster's blue flame skull on it (MG.gsc:473-494, MG.csc:86-99); nothing sounds. The
+// remaster's skull model does not change, BO4's turns into its Afterlife skull. It stays lit until a failed lockdown or
+// a failed run.
 mg_skull_light( idx )
 {
     skull = level.mg_skulls[idx];
@@ -410,6 +448,7 @@ mg_skull_light( idx )
     if ( !isdefined( skull ) )
         return;
 
+    skull setmodel( mg_skull_model( 1 ) );
     mg_fx_stop( level.mg_skull_fx[idx] );
     gen = level.mg_skull_gen;
     ent = mg_fx_loop( "soul_full", skull.origin - ( 0, 0, 3.5 ) ); // at the skull's foot, as the remaster's skull fire
@@ -437,6 +476,12 @@ mg_skulls_dark()
         mg_fx_stop( ent );
 
     level.mg_skull_fx = [];
+
+    foreach ( skull in level.mg_skulls )
+    {
+        if ( isdefined( skull ) )
+            skull setmodel( mg_skull_model( 0 ) );
+    }
 }
 
 // The owner's deposit (over the remaster, which hands the gun at once): the placer pours the essence into the fire,
@@ -652,10 +697,9 @@ mg_hearth_fabricate( state )
 
     if ( state == "souls" || state == "pickup" )
     {
-        c = mg_coord( "MG_HEARTH" );
         level.mg_hearth_weapon = "blundergat_zm";
         level.mg_hearth_owner = placer;
-        level.mg_hearth_gun = spawn_weapon_model( "blundergat_zm", undefined, c.origin, c.angles );
+        mg_hearth_gun_spawn( "blundergat_zm" );
     }
 
     if ( state == "souls" )

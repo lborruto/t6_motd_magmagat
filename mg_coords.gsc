@@ -18,6 +18,9 @@ mg_models_init()
     level.mg_models["press_body"] = "mg_press_body"; // mod.ff: the remaster's press (p8_zm_esc_machinery_01) without its ram
     level.mg_models["press_ram"] = "mg_press_ram"; // its ram, which script brings down
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
+    level.mg_models["puddle"] = "mg_fx_magma_splat02_mesh"; // mod.ff: the remaster's lava splat, a pool's lava with mg_bo4 "pool"
+    level.mg_models["skull_bo4"] = "mg_skull_bo4"; // mod.ff: BO4's mantle skull, plain (dvar mg_bo4 "skulls")
+    level.mg_models["skull_bo4_lit"] = "mg_skull_bo4_lit"; // mod.ff: BO4's lit one, the Afterlife skull, once filled
     level.mg_models["press_lever"] = "mg_press_lever"; // mod.ff: BO4's smelter's lever on the press, pivot at its origin
     level.mg_models["ghoul1"] = "mg_ghoul1"; // mod.ff: BO4's ghouls, the ghosts that pull the lever (skinned, Afterlife ghost material)
     level.mg_models["ghoul2"] = "mg_ghoul2";

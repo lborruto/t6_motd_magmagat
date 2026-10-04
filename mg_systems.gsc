@@ -150,6 +150,14 @@ mg_fx_add( ent, key )
         playfxontag( level._effect["mg_" + key], ent, "tag_origin" );
 }
 
+// Whether part plays BO4's way rather than the remaster's: the dvar mg_bo4 lists the parts ("skulls hover"), or "all".
+// The owner's comparison knob (set before the map loads: some parts are spawned at start).
+mg_bo4( part )
+{
+    list = " " + getdvar( "mg_bo4" ) + " ";
+    return issubstr( list, " " + part + " " ) || issubstr( list, " all " );
+}
+
 // A vector dvar, "x y z" (an in-game fitting knob), or fallback when it is not set.
 mg_dvar_vec( name, fallback )
 {

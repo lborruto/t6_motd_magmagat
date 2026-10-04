@@ -223,6 +223,19 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] After a Magmagat, another player can temper his own: the fireplace takes a Blundergat again, and the powered
       Machine takes only his Tempered Blundergat (no plain Blundergat).
 
+## 8b. BO4 or the remaster (1.0.3 work)
+
+The dvar `mg_bo4` lists the parts to play BO4's way; set it in the console **before loading the map**
+(`set mg_bo4 "skulls hover pool"`, or `all`; empty = the remaster's).
+
+- [ ] `skulls`: BO4's mantle skulls, plain until filled, then the Afterlife skull (its quest's own swap at 5 / 10 / 15).
+- [ ] `hover`: the gun in the fireplace floats up and down, BO4's 3.3 s loop.
+- [ ] `pool`: a missed blob leaves a puddle of molten lava with embers instead of the remaster's fire.
+- [ ] The forge (always BO4's now): `say !mg press` plays it on a Tempered Blundergat. The ghouls come out of the gun
+      to the lever's ends, the lever drops at 3.4 s, the ram strikes at 4 s and works 7.4 s, the Magmagat glows on
+      the bed. `set mg_lever_offset "x y z"` (forward, left, up) moves the lever; the default is `"38.9 -0.24 55.9"`.
+- [ ] The Machine's power step (`say !mg tour`, step 6): a surge, the machine jolts awake, a flare of fire in embers.
+
 ## 9. Lints and syntax (before every deploy)
 
 - [ ] `perl tools/lint_includes.pl && perl tools/lint_calls.pl && perl tools/lint_sounds.pl && perl tools/check_links.pl .`
