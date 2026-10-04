@@ -55,10 +55,10 @@ Port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same 
 
 ## Install
 
-1. Download `zm_magmagat-$version.zip` below (it appears a minute after the release).
+1. Download `zm_magmagat-$version.zip` below.
 2. Unzip it into `%localappdata%\\Plutonium\\storage\\t6\\`. Its `mods` folder merges with yours, giving
    `...\\t6\\mods\\zm_magmagat\\`.
-3. In game: **Mods** -> **zm_magmagat** -> load it, then play **Mob of the Dead**.
+3. In game: **Mods** -> **Magmagat** -> load it, then play **Mob of the Dead**.
 
 To check it loaded, the console prints `[MG] Magmagat $version loaded`.
 
@@ -66,8 +66,10 @@ To check it loaded, the console prints `[MG] Magmagat $version loaded`.
 
 Step by step in the [README]($url#how-to-get-the-magmagat), every detail in the [walkthrough]($url/blob/$tag/docs/GUIDE.md).
 MD
-print $fh "\n## What's new\n\n$news\n" if length $news;
-print $fh "\n## Feedback\n\nIf something feels off, or the mod doesn't load, [open an issue]($url/issues) with what you saw and the console error.\n";
+print $fh "\n## Changelog\n\n";
+print $fh "$news\n\n" if length $news;
+print $fh "Full history: [CHANGELOG.md]($url/blob/main/CHANGELOG.md)\n";
+print $fh "\n## Feedback\n\nFound a bug or have an idea? Feel free to [open an issue]($url/issues), or to contribute to the project (see [CONTRIBUTING]($url/blob/main/docs/CONTRIBUTING.md)).\n";
 close $fh;
 my @cmd = ( 'gh', 'release', 'create', $tag, @assets, '--target', $head, '--title', "Magmagat $version", '--notes-file', $notes );
 push @cmd, '--draft' if $draft;

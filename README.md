@@ -13,7 +13,7 @@ Port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same 
    [latest release](https://github.com/lborruto/t6_motd_magmagat/releases/latest).
 2. Unzip it into `%localappdata%\Plutonium\storage\t6\`. Its `mods` folder merges with yours, so you end up with
    `...\t6\mods\zm_magmagat\`.
-3. In game: **Mods** → **zm_magmagat** → load it, then play **Mob of the Dead**.
+3. In game: **Mods** → **Magmagat** → load it, then play **Mob of the Dead**.
 
 To check it loaded, the console prints `[MG] Magmagat <version> loaded`.
 
