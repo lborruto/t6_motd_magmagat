@@ -42,9 +42,11 @@ mg_fx_table()
     // the forge
     t["sparks"] = "mg/fx_alcatraz_magmagat_power"; // the remaster's: the Machine powered
     t["forge_rise"] = "mg/fx_prison_magmagat_press_fire"; // the remaster's press at work
-    t["ghost_body"] = "maps/zombie_alcatraz/fx_alcatraz_ghost_body"; // vanilla's Afterlife glow, on the forge's ghosts
+    t["forge_glow"] = "maps/zombie_alcatraz/fx_alcatraz_quest_item_glow"; // the Magmagat's glow on the bed, BO4's (no flame: a glow)
+    t["forge_embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat"; // BO4's tiny flames on the bed under it
+    t["ghost_body"] = "maps/zombie_alcatraz/fx_alcatraz_ghost_body"; // vanilla's Afterlife glow, on the forge's ghouls
     t["ghost_head"] = "maps/zombie_alcatraz/fx_alcatraz_ghost_head";
-    t["ghost_tport"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a ghost appearing, vanishing
+    t["ghost_tport"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a ghoul appearing, vanishing
     // the weapon (its blob's trail is in the weapon file, tools/build_weapon.pl)
     t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso"; // a zombie the blob stuck to, burning
     t["patch_fire"] = "mg/fx_prison_magmagat_aoe"; // the remaster's lava pool
@@ -146,6 +148,17 @@ mg_fx_add( ent, key )
 {
     if ( isdefined( ent ) && isdefined( level._effect["mg_" + key] ) )
         playfxontag( level._effect["mg_" + key], ent, "tag_origin" );
+}
+
+// A vector dvar, "x y z" (an in-game fitting knob), or fallback when it is not set.
+mg_dvar_vec( name, fallback )
+{
+    parts = strtok( getdvar( name ), " " );
+
+    if ( parts.size != 3 )
+        return fallback;
+
+    return ( float( parts[0] ), float( parts[1] ), float( parts[2] ) );
 }
 
 // An effect on one of an entity's tags (a body's), if the effect is in the table.

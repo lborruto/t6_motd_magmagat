@@ -43,6 +43,12 @@ mg_press_spawn()
         level.mg_press[part] = m;
     }
 
+    // BO4's lever (tools/import_all.pl), turned about its pivot (mg_lever_pivot) by mg_press_show
+    lever = spawn( "script_model", mg_press_point( mg_lever_pivot() ) );
+    lever.angles = ( 0, yaw, 0 );
+    lever setmodel( mg_model( "press_lever" ) );
+    level.mg_press["press_lever"] = lever;
+
     // a script_model stops no player: four clip boxes 64 x 64 x 128, two along the machine's length and two across,
     // overlapping so their outer faces meet its sides (77 x 134, 116 high), sunk 12 into the floor so they top out with
     // it (bullets pass through: a script_model of a mod.ff prop has no bullet collision)
@@ -59,6 +65,22 @@ mg_press_spawn()
     }
 
     level.mg_press_rest = origin;
+}
+
+// The lever's pivot in the press's frame: where the smelter has it next to its smasher, the smelter's smasher and our
+// ram being one mesh at 0.755 scale (the smasher's centre + (33.5, 0, -30.6) scaled, on our ram's centre (5.4, -0.25,
+// 86.5)). The dvar mg_lever_offset "x y z" (forward, left, up) replaces it, to fit it in game.
+mg_lever_pivot()
+{
+    return mg_dvar_vec( "mg_lever_offset", ( 38.9, -0.24, 55.9 ) );
+}
+
+// A point in the press's frame (forward, left, up from its anchor MG_PRESS), in the world.
+mg_press_point( v )
+{
+    c = mg_coord( "MG_PRESS" );
+    yaw = ( 0, c.angles[1], 0 );
+    return c.origin + anglestoforward( yaw ) * v[0] - anglestoright( yaw ) * v[1] + ( 0, 0, v[2] );
 }
 
 // The press's own animations, played on its ram: fxanim_zom_magmagat_press_start_anim brings it down 74.5 cm onto the
@@ -190,15 +212,14 @@ mg_forge_press( player )
     mg_forge_place( player, weapon );
 }
 
-// The carrier powers the Machine (the remaster's function_b09dee70): the power panel sound and the power effect on
-// the machine, 1 s later the Warden's line to him. The run goes on (the owner's rule: the tempered gun is what the
-// forge takes); the Machine stays powered for good.
+// The carrier powers the Machine (the remaster's function_b09dee70, its power sound and effect, 1 s later the Warden's
+// line to him). The run goes on (the owner's rule: the tempered gun is what the forge takes); the Machine stays
+// powered for good.
 mg_forge_power( player )
 {
     level endon( "mg_goto" );
     level.mg_forge_busy = 1;
-    level.mg_press["press_body"] playsound( "zmb_powerpanel_activate" );
-    mg_fx_once( "sparks", level.mg_press_rest, undefined, level.mg_press["press_body"].angles );
+    level thread mg_forge_power_fx();
     wait 1;
 
     if ( isdefined( player ) )
@@ -207,6 +228,29 @@ mg_forge_power( player )
     level.mg_forge_open = 1;
     level.mg_forge_busy = 0;
     mg_debug_print( "MG: the Machine is powered: lay the Tempered Blundergat on it" );
+}
+
+// The Machine waking (the owner's wish: more than electricity): the remaster's power effect and sound, a surge, the
+// machine shuddering (its ram jolts, its lever twitches), and a flare of fire on its bed in embers. Also `!mg tour`.
+mg_forge_power_fx()
+{
+    level endon( "mg_goto" );
+    body = level.mg_press["press_body"];
+    ram = level.mg_press["press_ram"];
+    lever = level.mg_press["press_lever"];
+    bed = mg_coord( "MG_FORGE_GUN" ).origin;
+    body playsound( "zmb_powerpanel_activate" );
+    body playsound( "evt_electrical_surge" );
+    mg_fx_once( "sparks", level.mg_press_rest, undefined, body.angles );
+    ram moveto( level.mg_press_rest - ( 0, 0, 4 ), 0.12 );
+    lever rotatepitch( 8, 0.12 );
+    wait 0.12;
+    ram moveto( level.mg_press_rest, 0.2, 0, 0.15 );
+    lever rotatepitch( -8, 0.25, 0, 0.2 );
+    wait 0.3;
+    mg_fx_once( "barrel_flare", bed, 3 );
+    mg_fx_once( "forge_embers", bed, 3 );
+    body playsound( "mg_flame_burst" );
 }
 
 // The gun goes on the bed and the press works it, on the remaster's timeline (function_fb635f94; t from the use).
@@ -235,9 +279,11 @@ mg_forge_place( player, weapon )
     level thread mg_forge_pickup_window( gun );
 }
 
-// The press at work on weapon, on the remaster's timeline (function_fb635f94; t from the use); the gun on the bed is
-// held in level.mg_forge_place_ents for a goto's cleanup. Returns the Magmagat lying on the bed at t 4.35, as the ram
-// lifts. Also played by `!mg tour`.
+// The press at work on weapon, on BO4's timeline (its scene aib_vign_zm_mob_smelter_ghost: the smelter's start anim,
+// 11.4 s, then its finish; t from the gun laid down): two ghouls come out of the gun and pull the lever (t 3.4), the
+// ram comes down on the gun (t 4.0, the smelter_press notetrack) and works it 7.4 s in fire and sparks, then lifts on
+// the Magmagat (t 11.6, smelter_show), which glows on the bed in tiny flames until taken. The gun on the bed is held
+// in level.mg_forge_place_ents for a goto's cleanup. Returns the Magmagat on the bed. Also played by `!mg tour`.
 mg_press_show( weapon )
 {
     level endon( "end_game" );
@@ -246,43 +292,65 @@ mg_press_show( weapon )
     gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
     level.mg_forge_place_ents = [];
     level.mg_forge_place_ents[0] = gun;
-
-    // the owner's wish over the remaster's single fire: the temper flares up as the gun is laid down, the ram strikes
-    // in sparks, the fire roars through the press, the Magmagat comes out in a burst
     body = level.mg_press["press_body"];
+    lever = level.mg_press["press_lever"];
+
+    // t 0: the temper flares up as the gun is laid down, the ghouls rise out of it
     mg_fx_once( "barrel_flare", c.origin, 3 );
     body playsound( "mg_flame_burst" );
+    level thread mg_forge_ghouls( c.origin );
 
-    level thread mg_forge_ghosts();
+    // t 3.4: the lever pulled down 45 degrees in 0.2 s (the smelter's handel_1_jnt, frames 102 to 109)
+    wait 3.4;
+    lever playsound( "zmb_trap_switch" );
+    lever rotatepitch( 45, 0.2, 0.05, 0.05 );
 
-    // t 0.5: the start anim (the ram comes down 0.3 s in); t 0.55: the press sound at the machine
-    wait 0.5;
+    // t 3.6: the ram comes down (mg_press_down: 0.3 s, then 0.33 s) and strikes the gun at t 4.0
+    wait 0.2;
     level thread mg_press_down();
-    wait 0.05;
     body playsound( "mg_press" );
-    body playloopsound( "zmb_fire_loop", 0.5 );
-
-    // t 0.85: the ram strikes the gun
-    wait 0.3;
+    wait 0.43;
     mg_fx_once( "sparks", c.origin, undefined, body.angles );
     body playsound( "zmb_hellbox_slam_shake" );
-
-    // t 1.35, the start anim over: the press fire once at the machine, the gun under the ram gone
-    wait 0.5;
-    mg_fx_once( "forge_rise", level.mg_press_rest, 6, body.angles );
-    body playsound( "mg_flame_burst" );
+    body playloopsound( "zmb_fire_loop", 0.5 );
     gun delete();
 
-    // t 4.35: the Magmagat lies on the bed in a burst as the end anim lifts the ram; ready 0.8 + 0.5 s later
-    wait 3;
+    // t 4.0 to 11.4: the press works the gun, the remaster's press fire through it and sparks from the bed
+    mg_fx_once( "forge_rise", level.mg_press_rest, 7.4, body.angles );
+
+    for ( i = 0; i < 5; i++ )
+    {
+        wait 1.4;
+        mg_fx_once( "sparks", c.origin, undefined, body.angles );
+        body playsound( "zmb_hellbox_slam_shake" );
+    }
+
+    // t 11.4: the finish, the ram and the lever up (frames 4 to 25); t 11.6 (smelter_show) the Magmagat on the bed
+    wait 0.4;
+    level thread mg_press_up();
+    lever rotatepitch( -45, 0.7, 0.1, 0.3 );
+    body stoploopsound( 0.5 );
+    wait 0.17;
     gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin, c.angles );
     level.mg_forge_place_ents[0] = gun;
     mg_fx_once( "explo", c.origin );
-    body stoploopsound( 0.5 );
     body playsound( "mg_flame_burst" );
     body playsound( "zmb_buildable_complete" );
-    level thread mg_press_up();
+    level thread mg_forge_glow( gun, c.origin );
     return gun;
+}
+
+// BO4's reveal: the Magmagat glows on the bed (a glow, no flame) over tiny flames, while it lies there.
+mg_forge_glow( gun, origin )
+{
+    glow = mg_fx_loop( "forge_glow", origin );
+    embers = mg_fx_loop( "forge_embers", origin - ( 0, 0, 2 ) );
+
+    while ( isdefined( gun ) )
+        wait 0.2;
+
+    mg_fx_stop( glow );
+    mg_fx_stop( embers );
 }
 
 // 15 s to take the Magmagat, or it is lost without a sign (the remaster's function_369019ca). The forge stays open.
@@ -317,54 +385,6 @@ mg_press_remove()
 
     level.mg_press = [];
     level.mg_press_clips = [];
-}
-
-// BO4's ghosts working the forge, as Afterlife bodies (vanilla's c_zom_hero_ghost_fb in its blue glow): at the press's
-// start one rises out of the floor at each end of the machine, turned to it, and they stand by it through the press;
-// as the Magmagat comes out (t 4.35) they vanish. Held in level.mg_forge_place_ents for a goto's cleanup.
-mg_forge_ghosts()
-{
-    body = level.mg_press["press_body"];
-    left = anglestoright( body.angles ) * -1;
-    ghosts = [];
-
-    foreach ( side in array( -1, 1 ) )
-    {
-        spot = level.mg_press_rest + left * side * 82;
-        ghost = spawn( "script_model", spot - ( 0, 0, 72 ) );
-        ghost.angles = ( 0, vectortoangles( level.mg_press_rest - spot )[1], 0 );
-        ghost setmodel( mg_model( "ghost" ) );
-        ghost.mg_spot = spot;
-        ghosts[ghosts.size] = ghost;
-        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = ghost;
-    }
-
-    wait 0.05;    // an effect played in the frame an entity appears is dropped by the clients
-
-    foreach ( ghost in ghosts )
-    {
-        if ( !isdefined( ghost ) )
-            return;
-
-        mg_fx_add_tag( ghost, "ghost_body", "J_SpineUpper" );
-        mg_fx_add_tag( ghost, "ghost_head", "J_Head" );
-        mg_fx_once( "ghost_tport", ghost.mg_spot );
-        playsoundatposition( "zmb_afterlife_object_apparate", ghost.mg_spot );
-        ghost playloopsound( "zmb_afterlife_ghost_loop", 0.5 );
-        ghost moveto( ghost.mg_spot, 0.8, 0.1, 0.4 );
-    }
-
-    wait 4.3;
-
-    foreach ( ghost in ghosts )
-    {
-        if ( !isdefined( ghost ) )
-            continue;
-
-        mg_fx_once( "ghost_tport", ghost.origin + ( 0, 0, 36 ) );
-        playsoundatposition( "zmb_afterlife_object_disapparate", ghost.origin );
-        ghost delete();
-    }
 }
 
 // The placer takes the Magmagat (the Magmus Operandi when a Pack-a-Punched gun was pressed). One who already owns a
@@ -448,60 +468,65 @@ mg_forge_fabricate( state )
 
 #using_animtree("fxanim_props");
 
-// 1.0.3 work, `!mg smelter`: BO4's own forge as its scene aib_vign_zm_mob_smelter_ghost plays it (ate47/bo4-source): the
-// smelter and two ghouls at one spot, shot 1 (the machine's start and each ghoul's, 11.5 s) then shot 2 (the machine's
-// finish, 0.9 s; the ghouls go, deletewhenfinished). Spawned 250 in front of the player who typed, facing him. Script
-// models share one animtree (see tools/import_all.pl): Mob's fxanim_props, which mod.ff extends with ours.
-// A server script plays an xanim with setanim, which notifies no notetrack.
-mg_forge_bo4_test()
+// BO4's ghouls (its scene's two fakeactors, c_t8_zmb_mob_ghoul bodies in Mob's Afterlife ghost material): out of the
+// gun on the bed, each glides 2.5 s to its end of the lever and turns to the press, playing BO4's own 11.4 s animation
+// (their pull at 3.4 s, the lever's), then vanishes as the press lifts. BO4 walks them there by the animation's own
+// root motion, which a script_model does not take: script moves them. Script models share one animtree (Mob's
+// fxanim_props, which mod.ff extends with theirs: tools/import_all.pl). Held in level.mg_forge_place_ents.
+mg_forge_ghouls( from )
 {
-    self endon( "disconnect" );
-    level notify( "mg_forge_bo4_test" );
-    level endon( "mg_forge_bo4_test" );
-    mg_forge_bo4_clear();
-    yaw = self.angles[1];
-    origin = self.origin + anglestoforward( ( 0, yaw, 0 ) ) * 250;
+    level endon( "mg_goto" );
+    yaw = level.mg_press["press_body"].angles[1];
+    pivot = mg_lever_pivot();
     scriptmodelsuseanimtree( #animtree );
-    level.mg_bo4_forge = [];
+    anims = array( %mg_ghoul_smelter_1, %mg_ghoul_smelter_2 );
+    ghouls = [];
 
-    foreach ( key in array( "smelter", "ghoul1", "ghoul2" ) )
+    foreach ( i, side in array( -1, 1 ) )
     {
-        e = spawn( "script_model", origin );
-        e.angles = ( 0, yaw + 180, 0 );
-        e setmodel( mg_model( key ) );
-        e useanimtree( #animtree );
-        level.mg_bo4_forge[key] = e;
+        // beyond its grip (the lever's ends, 63.5 to either side of its pivot), on the floor, facing the press
+        spot = mg_press_point( ( pivot[0] + 33, pivot[1] + side * 63.5, 0 ) );
+        spot = groundpos( spot + ( 0, 0, 40 ) );
+        g = spawn( "script_model", from );
+        g.angles = ( 0, vectortoangles( spot - from )[1], 0 );
+        g setmodel( mg_model( "ghoul" + ( i + 1 ) ) );
+        g useanimtree( #animtree );
+        g setanim( anims[i], 1, 0, 1 );
+        g.mg_spot = spot;
+        ghouls[ghouls.size] = g;
+        level.mg_forge_place_ents[level.mg_forge_place_ents.size] = g;
     }
 
-    wait 0.1;
-    shot1 = getanimlength( %mg_smelter_start );
-    self mg_out( "MG: BO4 forge, shot 1 (" + shot1 + " s)" );
-    level.mg_bo4_forge["smelter"] setanim( %mg_smelter_start, 1, 0, 1 );
-    level.mg_bo4_forge["ghoul1"] setanim( %mg_ghoul_smelter_1, 1, 0, 1 );
-    level.mg_bo4_forge["ghoul2"] setanim( %mg_ghoul_smelter_2, 1, 0, 1 );
-    wait shot1;
+    wait 0.05;    // an effect played in the frame an entity appears is dropped by the clients
 
-    foreach ( key in array( "ghoul1", "ghoul2" ) )
-        level.mg_bo4_forge[key] delete();
-
-    shot2 = getanimlength( %mg_smelter_finish );
-    self mg_out( "MG: BO4 forge, shot 2 (" + shot2 + " s)" );
-    level.mg_bo4_forge["smelter"] clearanim( %mg_smelter_start, 0 );
-    level.mg_bo4_forge["smelter"] setanim( %mg_smelter_finish, 1, 0, 1 );
-    wait shot2;
-    self mg_out( "MG: BO4 forge done (`!mg smelter clear` removes it)" );
-}
-
-mg_forge_bo4_clear()
-{
-    if ( !isdefined( level.mg_bo4_forge ) )
-        return;
-
-    foreach ( e in level.mg_bo4_forge )
+    foreach ( g in ghouls )
     {
-        if ( isdefined( e ) )
-            e delete();
+        mg_fx_add_tag( g, "ghost_body", "j_spineupper" );
+        mg_fx_add_tag( g, "ghost_head", "j_head" );
+        mg_fx_once( "ghost_tport", from );
+        playsoundatposition( "zmb_afterlife_object_apparate", from );
+        g playloopsound( "zmb_afterlife_ghost_loop", 0.5 );
+        g moveto( g.mg_spot, 2.5, 0.5, 0.8 );
     }
 
-    level.mg_bo4_forge = undefined;
+    wait 2.5;
+
+    foreach ( g in ghouls )
+    {
+        if ( isdefined( g ) )
+            g rotateto( ( 0, yaw + 180, 0 ), 0.4, 0.1, 0.1 );
+    }
+
+    // t 11.4: gone as the press lifts
+    wait 8.9;
+
+    foreach ( g in ghouls )
+    {
+        if ( !isdefined( g ) )
+            continue;
+
+        mg_fx_once( "ghost_tport", g.origin + ( 0, 0, 36 ) );
+        playsoundatposition( "zmb_afterlife_object_disapparate", g.origin );
+        g delete();
+    }
 }

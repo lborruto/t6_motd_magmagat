@@ -60,7 +60,7 @@ mg_debug_init()
 }
 
 // dvar mg_autorun "<cmd> [arg]" (with mg_debug 1): the host runs `!mg <cmd> [arg]` once he is in the game, as if he had
-// typed it: a test started from the command line (+set mg_autorun smelter), with no one at the keyboard
+// typed it: a test started from the command line (+set mg_autorun press), with no one at the keyboard
 mg_debug_autorun()
 {
     level endon( "end_game" );
@@ -78,6 +78,27 @@ mg_debug_autorun()
     wait 3;
     print( "[MG] autorun: !mg " + line + "\n" );
     level notify( "say", "!mg " + line, player );    // as the chat hands it to mg_chat_listener
+}
+
+// The real press (mg_press_show) on a Tempered Blundergat, unless one is at work or a Magmagat waits on the bed; the
+// Magmagat it makes goes 3 s later.
+mg_debug_press()
+{
+    if ( is_true( level.mg_forge_busy ) || isdefined( level.mg_forge_ready_gun ) )
+    {
+        mg_debug_print( "MG: the forge is busy" );
+        return;
+    }
+
+    level.mg_forge_busy = 1;
+    gun = mg_press_show( "mg_tempered_zm" );
+    wait 3;
+
+    if ( isdefined( gun ) )
+        gun delete();
+
+    level.mg_forge_place_ents = [];
+    level.mg_forge_busy = 0;
 }
 
 // self = player. 1 when the command was ours.
@@ -242,17 +263,9 @@ mg_debug_command( sub, arg, args )
             self mg_debug_spawn_model( arg );
             return 1;
 
-        // 1.0.3 work: BO4's own forge and ghouls, playing BO4's animations in front of you (`clear` removes them)
-        case "smelter":
-            if ( isdefined( arg ) && arg == "clear" )
-            {
-                level notify( "mg_forge_bo4_test" );
-                mg_forge_bo4_clear();
-                self mg_out( "MG: BO4 forge removed" );
-                return 1;
-            }
-
-            self thread mg_forge_bo4_test();
+        // the forge's sequence, as the quest plays it, on a Tempered Blundergat (unless the forge is at work)
+        case "press":
+            self thread mg_debug_press();
             return 1;
 
         case "tp":
@@ -344,26 +357,12 @@ mg_debug_tour()
 
     // 6. the forge: powered, then a gun pressed into the Magmagat (the ram stays up while a real press runs)
     fc = mg_coord( "MG_FORGE_GUN" );
-    angles = level.mg_press["press_body"].angles;
     self mg_tour_look( "6/7 The forge: the Machine powered, the Tempered Blundergat pressed", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
-    mg_fx_once( "sparks", level.mg_press_rest, undefined, angles );
-    self playsoundtoplayer( "zmb_powerpanel_activate", self );
+    level thread mg_forge_power_fx();
     wait 1;
     self playsoundtoplayer( "mg_brutus_mgu", self );
     wait 2;
-    // the real press (mg_press_show), unless one is at work or a Magmagat waits on the bed
-    if ( !is_true( level.mg_forge_busy ) && !isdefined( level.mg_forge_ready_gun ) )
-    {
-        level.mg_forge_busy = 1;
-        gun = mg_press_show( "mg_tempered_zm" );
-        wait 3;
-
-        if ( isdefined( gun ) )
-            gun delete();
-
-        level.mg_forge_place_ents = [];
-        level.mg_forge_busy = 0;
-    }
+    mg_debug_press();
 
     // 7. the Magmagat's shot, fired for real at the floor ahead: the blob flies and lays its pool
     self setorigin( back );

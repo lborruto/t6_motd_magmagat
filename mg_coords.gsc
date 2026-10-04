@@ -18,9 +18,8 @@ mg_models_init()
     level.mg_models["press_body"] = "mg_press_body"; // mod.ff: the remaster's press (p8_zm_esc_machinery_01) without its ram
     level.mg_models["press_ram"] = "mg_press_ram"; // its ram, which script brings down
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
-    level.mg_models["ghost"] = "c_zom_hero_ghost_fb"; // vanilla's Afterlife body (_zm_afterlife): the forge's ghosts
-    level.mg_models["smelter"] = "mg_smelter"; // mod.ff (tools/import_all.pl): BO4's own forge, the smelter, skinned (mg_forge_bo4_test)
-    level.mg_models["ghoul1"] = "mg_ghoul1"; // mod.ff: BO4's ghouls, the ghosts that work it
+    level.mg_models["press_lever"] = "mg_press_lever"; // mod.ff: BO4's smelter's lever on the press, pivot at its origin
+    level.mg_models["ghoul1"] = "mg_ghoul1"; // mod.ff: BO4's ghouls, the ghosts that pull the lever (skinned, Afterlife ghost material)
     level.mg_models["ghoul2"] = "mg_ghoul2";
     level.mg_models["press_clip"] = "collision_clip_64x64x128"; // common_zm: the forge machine's collision for players and zombies, centred
     level.mg_models["clip"] = "collision_clip_32x32x128"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none), centred

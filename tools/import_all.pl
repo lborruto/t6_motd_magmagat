@@ -54,20 +54,25 @@ my @props = (
 
 # Black Ops 4's own forge, from its Blood of the Dead export (Greyhound, BO4 running on the map): the scene
 # aib_vign_zm_mob_smelter_ghost (ate47/bo4-source, scriptbundle/scene) plays the smelter machine and two ghouls
-# (aitype spawner_zm_ghost: c_t8_zmb_mob_ghoul1..3) together, shot 1 then shot 2. Skinned: script plays their xanims.
+# (aitype spawner_zm_ghost: c_t8_zmb_mob_ghoul1..3) together. The smelter itself is too big for the Generator Room and
+# its BO4 materials do not carry over, so the remaster's press stays; it takes the smelter's lever, which BO4's press is
+# the same machine as at 0.755 scale (its smasher and our ram are one mesh, 1136 triangles): the shaft handel_1_jnt
+# and its two grips (handel_1/2_release_jnt), pivot at handel_1_jnt (100.71, 80.02, 59.49 in, BO4's centimetres / 2.54)
+# moved to the origin. The ghouls are skinned (script plays their xanims) and wear Mob's own Afterlife ghost
+# (mc/mtl_c_zom_hero_ghost_smoke, so_zclassic_zm_prison.ff: tools/build_mod.pl loads it), not their BO4 materials.
 # Greyhound names an xanim it cannot resolve xanim_<fnv1a-64 of the name, 60 bits>; ours are named after the scene.
 my $xm4 = "$gh/exported_files/black_ops_4_sp/xmodels";
 my $xi4 = "$gh/exported_files/black_ops_4_sp/ximages";
 my $xa4 = "$gh/exported_files/black_ops_4_sp/xanims";
+my $lever_scale = 0.755;
 my @bo4_props = (
-    [ 'mg_smelter', 'p8_fxanim_zm_esc_smelter_ghost_mod', '--skinned', @press_decals[ 0, 1 ] ],
-    [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned' ],
-    [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned' ],
+    [ 'mg_press_lever', 'p8_fxanim_zm_esc_smelter_ghost_mod', '--bones', 'handel_1_jnt,handel_1_release_jnt,handel_2_release_jnt', @press_decals[ 0, 1 ],
+        '--scale', $lever_scale, '--offset', join( ',', map { sprintf '%.3f', -$_ * $lever_scale } 100.71, 80.02, 59.49 ) ],
+    [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--material', 'mc/mtl_c_zom_hero_ghost_smoke' ],
+    [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned', '--material', 'mc/mtl_c_zom_hero_ghost_smoke' ],
 );
 my @bo4_anims = (    # [ our xanim, Greyhound's (Direct XAnim, BO1 compatibility: the version 19 OpenAssetTools reads) ]
-    [ 'mg_smelter_start', 'xanim_9de8b7aa027633b' ],     # p8_fxanim_zm_esc_smelter_ghost_start_anim, 11.5 s: levers, press down
-    [ 'mg_smelter_finish', 'xanim_1e661c0485bee6c' ],    # p8_fxanim_zm_esc_smelter_ghost_finish_anim, 0.9 s: press up
-    [ 'mg_ghoul_smelter_1', 'xanim_2d21557dbf41b9b' ],   # the scene's fakeactor 1, 11.5 s with the machine's start
+    [ 'mg_ghoul_smelter_1', 'xanim_2d21557dbf41b9b' ],   # the scene's fakeactor 1, 11.4 s (the smelter's start: its levers at 3.4 s, its smasher down at 4.0 s)
     [ 'mg_ghoul_smelter_2', 'xanim_2d21657dbf41d4e' ],   # fakeactor 2
 );
 

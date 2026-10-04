@@ -548,10 +548,7 @@ mg_lockdown_on()
 {
     mg_lockdown_off();
     origin = ( -961.4, 9027.4, 1373 );    // the fit, then 10 west and 5 up onto BO2's office door (the owner's check in game)
-    parts = strtok( getdvar( "mg_lock_offset" ), " " );
-
-    if ( parts.size == 3 )
-        origin = origin + ( float( parts[0] ), float( parts[1] ), float( parts[2] ) );
+    origin = origin + mg_dvar_vec( "mg_lock_offset", ( 0, 0, 0 ) );
 
     level thread mg_lockdown_wall( origin, ( 0, getdvarfloat( "mg_lock_yaw" ), 0 ) );
     mg_lockdown_clip_on();

@@ -122,7 +122,7 @@ mg_help()
 {
     self mg_out( "!mg commands (chat, needs `set mg_debug 1`; every answer is also a [MG] console line):" );
     self mg_out( "  status | goto <locked|ready|souls|pickup|run|forge|done> | spots | help" );
-    self mg_out( "  tour (every step's effects and sounds, in place) | lockdown (the blue walls and door clip, 10 s) | zone (the souls' kill zone marked, 15 s) | bridge (meet the bridge requirement) | give (a Blundergat) | magma (the gun in hand becomes its Magmagat) | shock (zap every shock box and panel now) | shock gun (pistol zaps what you shoot)" );
+    self mg_out( "  tour (every step's effects and sounds, in place) | press (the forge's sequence on a Tempered Blundergat) | lockdown (the blue walls and door clip, 10 s) | zone (the souls' kill zone marked, 15 s) | bridge (meet the bridge requirement) | give (a Blundergat) | magma (the gun in hand becomes its Magmagat) | shock (zap every shock box and panel now) | shock gun (pistol zaps what you shoot)" );
     self mg_out( "  fx [<n>|<name>|next|prev|stop] | snd [<n>|<name>|next|prev]" );
     self mg_out( "  grab <KEY> (prop follows your crosshair; FIRE place, MELEE cancel, ADS freeze, 1/2 turn, 3/4 raise, F surface/float) | drop | cancel | rot <deg> | up <units> | show [KEY] | hide | tp <KEY>" );
 }
