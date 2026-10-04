@@ -112,12 +112,12 @@ mg_apply_overrides()
 
     mg_coord_override( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ) );
 
-    // the forge: the machine stands where the owner found the remaster's (136 6655 72, 2026-09-30; the office fit is 92
-    // units off at the docks), turned as the remaster's (190.7); the gun on its bed and the use trigger keep the remaster's
-    // offsets from it (mg_upgrade_struct -7.4 -8.0 44, tr_forge -25.5 -5.7), and mg_press_spawn stands the machine back
-    mg_coord_override( "MG_FORGE", ( 110.5, 6649.3, 72 ), ( 0, 190.7, 0 ) );
+    // the forge: the machine stands where BO4's own fits (the owner, 2026-10-04: -309 6348 64, yaw -79; the remaster's
+    // spot was 136 6655 72, yaw 190.7); the gun on its bed and the use trigger keep the remaster's offsets from it
+    // (mg_upgrade_struct -7.4 -8.0 44, tr_forge -25.5 -5.7), and mg_press_spawn stands the machine back from the gun
+    mg_coord_override( "MG_FORGE", ( -303.1, 6322.5, 64 ), ( 0, 281, 0 ) );
 
-    mg_coord_override( "MG_FORGE_GUN", ( 128.6, 6647, 116 ), ( 0, 100.7, 0 ) );
+    mg_coord_override( "MG_FORGE_GUN", ( -300.9, 6340.7, 108 ), ( 0, 191, 0 ) );
 }
 
 mg_coord_set( key, origin, angles, model )
