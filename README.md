@@ -28,9 +28,9 @@ opens when someone sits in the chair on the Golden Gate Bridge after the first t
 2. **Place your gun.** With your Blundergat (or any of the four) **in your hands**, hold use on the fireplace. The
    office locks down: nobody can walk through its door until it ends.
 3. **Collect 15 souls.** Kill regular zombies **inside the office**: each one drops a soul essence. **Walk over it**
-   to send it into a skull on the mantle. The three skulls light up at 5, 10 and 15 souls. An essence nobody takes
-   fades after 20 seconds. If you (the one who placed the gun) go down, the lockdown fails and the gun is lost.
-4. **Deposit the essence.** When the lockdown ends, hold use on the fireplace to pour the souls into the fire.
+   to collect it; it fades after 20 seconds. If you (the one who placed the gun) go down, the lockdown fails and the
+   gun is lost.
+4. **Deposit the essence.** When the lockdown ends, hold use on the fireplace.
 5. **Take the Tempered Blundergat.** Hold use again: you now carry the tempered gun.
 6. **Run to the forge.** You have **15 seconds** before the temper burns out. Five blue drums along the way (the
    office exit, the stairs, the Citadel, the tunnels, the docks) each refill it to 15 seconds **once per run**.

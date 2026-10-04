@@ -22,13 +22,13 @@ The office **locks down**: nobody can walk through its door until the lockdown e
 ## 2. The souls
 
 - Every regular zombie that dies **inside the office** drops an **essence** over its body, whoever killed it.
-- **Walk over it** (any player) to send it into a skull on the mantle. It counts when it gets there.
-- You need **15 souls**: the three skulls light up at **5**, **10** and **15**.
+- **Walk over it** (any player) to collect it.
+- You need **15 souls**.
 - An essence nobody takes **fades after 20 seconds**. Brutus drops none.
 - There is no time limit.
 
-**It fails** only if the player who placed the gun **goes down** (last stand or Afterlife): the skulls go dark and the
-gun is lost. Place a new one to start again.
+**It fails** only if the player who placed the gun **goes down** (last stand or Afterlife): the gun is lost. Place a
+new one to start again.
 
 The lockdown ends two seconds after the 15th soul.
 
@@ -36,7 +36,7 @@ The lockdown ends two seconds after the 15th soul.
 
 Only the player who placed the gun can use the fireplace now, with no time limit.
 
-1. **Hold use** to deposit the essence: the fire turns blue and the skulls go out.
+1. **Hold use** to deposit the essence.
 2. **Hold use** again to take the **Tempered Blundergat**.
 
 ## 4. The run
@@ -53,7 +53,7 @@ In the Generator Room by the docks, while the temper still burns:
 
 1. **Hold use** to **power the Machine** (once per game; the run goes on).
 2. **Hold use** to **place the Tempered Blundergat** on it. The run is won.
-3. The press works the gun for about 6 seconds, then **take the Magmagat** within **15 seconds**, or it is lost.
+3. After about 6 seconds, **take the Magmagat** within **15 seconds**, or it is lost.
 
 Taking it calls a **Brutus** into the Generator Room. Already own a Magmagat? Taking one refills its ammo (a
 Pack-a-Punched gun turns a plain Magmagat into the Magmus Operandi). The fireplace then takes a new gun, so every
