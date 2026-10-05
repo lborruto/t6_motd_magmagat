@@ -5,7 +5,9 @@
 The Magmagat, 1:1 with Black Ops 4's own script:
 
 - One blob kills Brutus in a few seconds in early rounds; a lava pool burns him hard.
-- Every hit pays points, and Insta-Kill works with the Magmagat.
+- Burns and bursts pay points (the shot and the blob's impact pay none), and Insta-Kill works with the Magmagat: a blob
+  kills a zombie on contact, with no burst, and pools there.
+- In co-op a zombie's burst goes to the player who killed it.
 - A lava pool draws zombies into its fire 3 at a time (the Magmus Operandi 6), the next coming as each dies.
 - Twelve enemies burn at most at once.
 - A zombie with a blob bursts only when the Magmagat kills it, tearing limbs off its neighbours; a second blob hurts it

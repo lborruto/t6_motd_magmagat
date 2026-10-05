@@ -72,7 +72,8 @@ player can forge his own.
 - **Missed shot**: a lava pool for **5 seconds** (two at most). Zombies touching it catch fire, Brutus burns hard
   until his flames catch; near the floor it lures zombies into its fire, 3 at a time. It only stings its owner, barely.
 - **Burning zombies** die fast in early rounds, slower later, and fall dead. Twelve enemies burn at most at once.
-- **Points**: every hit pays as any weapon's; under Insta-Kill any Magmagat hit kills.
+- **Points**: burns and bursts pay as any weapon's hits (the shot and the blob's impact pay none); under Insta-Kill
+  any Magmagat hit kills, a blob on contact (no burst, it pools there).
 - **Pack-a-Punch** turns it into the Magmus Operandi. The **Acid Gat kit** turns it back into an Acid Gat with the
   Magmagat's ammo, and the fireplace takes the Acid Gat again. The Mystery Box offers no Blundergat while you hold a
   Magmagat.

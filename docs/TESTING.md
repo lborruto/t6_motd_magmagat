@@ -186,10 +186,15 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] **12 burning at most**: with 12 or more enemies burning (a big train through two pools), the next ones take
       only the first hit (no flames, no burn): a pool keeps hitting them while they stand in it.
 - [ ] Spam 5 or more pools: never more than 2 at once (the oldest goes).
-- [ ] **Points**: each hit pays +10 as any weapon's (a burn's ticks at most every 0.5 s); kills give the normal kill
-      points; Brutus pays none per hit, as for any weapon.
-- [ ] **Insta-Kill**: from round 10 (zombies over 1000 health), any blob, pool or burst kills a zombie at once, its
-      head gibbed; Brutus is not killed by it.
+- [ ] **Points**: each burn pays +10 (its ticks at most every 0.5 s), each burst hit +10 on a survivor; the shot and
+      the blob's impact pay nothing (shoot a zombie point-blank, the blob blocked: no points); kills give the normal
+      kill points (a burst kill +10 torso bonus); Brutus pays none per hit, as for any weapon.
+- [ ] **Insta-Kill**: from round 10 (zombies over 1000 health), a blob kills the zombie it hits on contact, its head
+      gibbed, with no burst and no splash on its neighbours, and pools where it is; any pool or burn kills at once too.
+      Brutus is not killed by it.
+- [ ] **Co-op burst**: player A sticks a blob on a tough zombie, player B a second one: when B's blob kills it (0.5 s
+      on), the burst's kills and points go to B (to A when A's burn kills it first).
+- [ ] A burst in a crowd: its gibs and 400s land two by two, 0.1 s apart (BO4's throttle), not all in one frame.
 - [ ] **Spoon**: stuck-blob kills in the showers count.
 - [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
 - [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and

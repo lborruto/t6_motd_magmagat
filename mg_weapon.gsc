@@ -20,8 +20,10 @@
 //   and playable. A zombie touching it catches fire; Brutus burns each frame until his flames light; its owner takes 1
 //   every 0.4 s.
 // A burning zombie takes a share of its maximum health each second for up to 8 s, while fewer than 12 enemies burn.
-// Magmagat damage pays vanilla's points per hit and kills outright under Insta-Kill. The Acid Gat kit takes the
-// Magmagat as the Blundergat it was and makes the Acid Gat, with the Magmagat's ammo; the Mystery Box offers no
+// The script's own Magmagat hits pay vanilla's points per hit (the carrier bullet and the blob's impact nothing) and
+// kill outright under Insta-Kill, the blob's impact too (the zombie dies on contact, no burst; the blob pools). A burst
+// is the killing hit's player's. Burst hits and burn ticks pass BO4's throttle (2 each 0.1 s). The Acid Gat kit takes
+// the Magmagat as the Blundergat it was and makes the Acid Gat, with the Magmagat's ammo; the Mystery Box offers no
 // Blundergat to a Magmagat's owner.
 
 mg_weapon_init()
@@ -381,10 +383,26 @@ mg_blob_land( blob, player, weapon, fire )
         blob mg_blob_show( blob.angles, 1 );
         blob thread mg_blob_on_brutus( host, player, weapon );
     }
+    else if ( mg_insta_kill_on( player, host ) )
+    {
+        // BO4 threads the weapon's damage override (zm.gsc actor_damage_override_wrapper), so its "return 0" for
+        // MOD_IMPACT cancels nothing, and Insta-Kill (zm_powerups function_fe6d6eac) turns the impact into health + 666:
+        // the zombie dies on contact, head gibbed, with no burst (function_efefda46 returns before it on MOD_IMPACT,
+        // mg_blob_on_zombie as it); the blob pools where it is. The spoon counts it, as the 0.5 s kill (mg_magma_stuck).
+        host notify( "killed_by_a_blundersplat", player );
+
+        if ( !is_true( host.no_gib ) )
+            host thread maps\mp\zombies\_zm_spawner::zombie_head_gib( player, "MOD_IMPACT" );
+
+        host dodamage( host.health + 666, blob.origin, player, player, "none", "MOD_IMPACT", 0, weapon );
+        blob unlink();
+        shown = blob mg_blob_show( mg_up_angles( mg_blob_normal( dir, blob ) ), 0 );
+        level thread mg_pool( blob, player, weapon, shown );
+    }
     else
     {
         blob mg_blob_show( blob.angles, 1 );
-        blob thread mg_blob_on_zombie( host, player, weapon );
+        blob thread mg_blob_on_zombie( host );
 
         // each blob on it, a second one too, as each of BO4's impacts (function_efefda46: MOD_IMPACT)
         host thread mg_magma_stuck( player, weapon );
@@ -582,7 +600,7 @@ mg_magma_stuck( player, weapon )
         self maps\mp\animscripts\zm_run::needsupdate();
 
     wait 4;
-    mg_magma_dodamage( self, self.health + 100, self.origin, player, "MOD_BURNED", weapon );
+    mg_magma_dodamage( self, self.health + 100, self.origin, player, "MOD_BURNED", weapon, "torso_lower" );    // BO4's (function_7f95d262)
 }
 
 // self = zombie. BO4's annihilate (gibserverutils, its Magmagat deaths), as T6 can: vanilla's gut explosion, once;
@@ -599,23 +617,31 @@ mg_annihilate()
 }
 
 // self = blob on a zombie. When Magmagat damage kills the zombie (BO4's function_efefda46 runs for its damage only:
-// willbekilled) the zombie is torn apart and the blob bursts around it (function_209c8c45); any other death (another
-// weapon, a trap, a despawn) only takes the blob.
-mg_blob_on_zombie( zombie, player, weapon )
+// willbekilled) the zombie is torn apart and the blob bursts around it (function_209c8c45), for the killing player;
+// any other death (another weapon, a trap, a despawn, a blob's impact) only takes the blob.
+mg_blob_on_zombie( zombie )
 {
     self endon( "death" );
 
     if ( isalive( zombie ) )
         zombie waittill( "death" );
 
-    if ( !isdefined( zombie ) || !mg_is_magma_damage( zombie.damageweapon ) )
+    // a zombie killed by a blob's impact (Insta-Kill, mg_blob_land) does not burst, even wearing an older blob, as BO4's
+    if ( !isdefined( zombie ) || !mg_is_magma_damage( zombie.damageweapon ) || zombie.damagemod == "MOD_IMPACT" )
     {
         self delete();
         return;
     }
 
+    // BO4's burst is the killing hit's (function_efefda46, then function_209c8c45): its attacker and weapon, so in co-op
+    // another player's Magmagat burn killing a zombie wearing this blob bursts it for him; no living player, no one
+    killer = undefined;
+
+    if ( isdefined( zombie.attacker ) && isplayer( zombie.attacker ) && isalive( zombie.attacker ) )
+        killer = zombie.attacker;
+
     zombie mg_annihilate();
-    self mg_blob_burst( player, weapon, zombie.origin );
+    self mg_blob_burst( killer, zombie.damageweapon, zombie.origin );
 }
 
 // self = blob on Brutus (BO4's boss: function_5f305489): his burn (mg_brutus_blob_burn) for 5 s, then the blob goes
@@ -685,12 +711,47 @@ mg_blob_burst( player, weapon, centre )
             continue;
         }
 
-        ai mg_gib_random_parts( player );
-        ai mg_zombie_ignite( player, weapon );
-        mg_magma_dodamage( ai, 400, pos, player, "MOD_EXPLOSIVE", weapon );
+        ai thread mg_burst_hit( player, weapon, pos );
     }
 
     self delete();
+}
+
+// self = zombie in a burst (BO4's function_b826901d): its turn in BO4's throttle (mg_throttle_wait), then its limbs,
+// its fire and 400 at the lower torso, as BO4's hit
+mg_burst_hit( player, weapon, pos )
+{
+    self endon( "death" );
+    mg_throttle_wait();
+    self mg_gib_random_parts( player );
+    self mg_zombie_ignite( player, weapon );
+    mg_magma_dodamage( self, 400, pos, player, "MOD_EXPLOSIVE", weapon, "torso_lower" );
+}
+
+// BO4's throttle (zm_weap_blundergat level.var_214f6204: throttle_shared initialize( 2, 0.1 ), waitinqueue), shared by
+// every burst hit and burn tick: 2 go through each 0.1 s, the others wait their turn in order. Here each caller takes
+// the next free place in a window of 100 ms (level.mg_throttle_at, a time, with level.mg_throttle_n taken) and waits
+// till it opens.
+mg_throttle_wait()
+{
+    now = gettime();
+
+    if ( !isdefined( level.mg_throttle_at ) || level.mg_throttle_at + 100 <= now )
+    {
+        level.mg_throttle_at = now;
+        level.mg_throttle_n = 0;
+    }
+
+    if ( level.mg_throttle_n >= 2 )
+    {
+        level.mg_throttle_at = level.mg_throttle_at + 100;
+        level.mg_throttle_n = 0;
+    }
+
+    level.mg_throttle_n++;
+
+    if ( level.mg_throttle_at > now )
+        wait( ( level.mg_throttle_at - now ) / 1000 );
 }
 
 // self = zombie. BO4's gib_random_parts (zombie_utility): its head, each leg and each arm torn off one time in two,
@@ -766,7 +827,7 @@ mg_zombie_ignite( player, weapon, hit )
     }
 
     if ( isdefined( hit ) )
-        mg_magma_dodamage( self, int( hit ), self.origin, player, "MOD_BURNED", weapon );
+        mg_magma_dodamage( self, int( hit ), self.origin, player, "MOD_BURNED", weapon, "torso_lower" );    // as function_ba9e077b's
 
     if ( burn && isalive( self ) )    // an Insta-Kill ignition kills: no burn on the corpse
         self thread mg_zombie_burn( player, weapon );
@@ -804,6 +865,8 @@ mg_zombie_burn( player, weapon )
 
     while ( gettime() < end )
     {
+        mg_throttle_wait();    // BO4's waitinqueue before each tick
+
         if ( level.round_number < 9 )
             share = randomfloatrange( 0.6, 0.9 );
         else if ( level.round_number < 16 )
@@ -830,7 +893,7 @@ mg_brutus_scorch( player, weapon, hit )
 {
     self endon( "death" );
     self.mg_lit = 1;
-    mg_magma_dodamage( self, int( hit ), self.origin, player, "MOD_BURNED", weapon );
+    mg_magma_dodamage( self, int( hit ), self.origin, player, "MOD_BURNED", weapon, "torso_lower" );    // as function_ba9e077b's
 
     if ( is_true( self.mg_burning ) )
         return;
@@ -870,10 +933,14 @@ mg_brutus_scorch( player, weapon, hit )
 
 // Magmagat damage, credited to its player while he is still here. Under his Insta-Kill it kills outright, the head
 // gibbed, as BO4's on every hit, burns too (zm_powerups function_fe6d6eac; vanilla check_for_instakill's rules): not
-// Brutus (his instakill_func, BO4's instakill_override too).
-mg_magma_dodamage( victim, amount, pos, player, mod, weapon )
+// Brutus (his instakill_func, BO4's instakill_override too). hitloc, "none" unless given, is BO4's where it names one
+// (torso_lower: function_ba9e077b's hit, the burst's 400, function_7f95d262's kill).
+mg_magma_dodamage( victim, amount, pos, player, mod, weapon, hitloc )
 {
-    if ( isdefined( player ) && isalive( player ) && isplayer( player ) && ( level.zombie_vars[player.team]["zombie_insta_kill"] || is_true( player.personal_instakill ) ) && !isdefined( victim.instakill_func ) && !is_magic_bullet_shield_enabled( victim ) )
+    if ( !isdefined( hitloc ) )
+        hitloc = "none";
+
+    if ( mg_insta_kill_on( player, victim ) )
     {
         if ( !is_true( victim.no_gib ) )
             victim thread maps\mp\zombies\_zm_spawner::zombie_head_gib( player, mod );
@@ -884,9 +951,16 @@ mg_magma_dodamage( victim, amount, pos, player, mod, weapon )
     amount = mg_brutus_unscaled( victim, amount, player, mod, weapon );
 
     if ( isdefined( player ) )
-        victim dodamage( amount, pos, player, player, "none", mod, 0, weapon );
+        victim dodamage( amount, pos, player, player, hitloc, mod, 0, weapon );
     else
-        victim dodamage( amount, pos, undefined, victim, "none", mod, 0, weapon );    // the weapon kept (the burst checks it), as vanilla zombie_damage
+        victim dodamage( amount, pos, undefined, victim, hitloc, mod, 0, weapon );    // the weapon kept (the burst checks it), as vanilla zombie_damage
+}
+
+// Whether a hit of this player kills victim outright, BO4's Insta-Kill test (zm_powerups function_fe6d6eac; vanilla
+// check_for_instakill's rules): a living player under his team's or his own Insta-Kill, not on Brutus (instakill_func)
+mg_insta_kill_on( player, victim )
+{
+    return isdefined( player ) && isplayer( player ) && isalive( player ) && ( level.zombie_vars[player.team]["zombie_insta_kill"] || is_true( player.personal_instakill ) ) && !isdefined( victim.instakill_func ) && !is_magic_bullet_shield_enabled( victim );
 }
 
 // The Magmagat's burns on Brutus land as BO4's do: vanilla brutus_damage_override (_zm_ai_brutus.gsc) keeps a tenth of
@@ -912,9 +986,9 @@ mg_brutus_unscaled( victim, amount, player, mod, weapon )
 }
 
 // self = zombie (vanilla _zm_spawner::zombie_damage, on each hit it survives). Magmagat damage skips vanilla's flame and
-// grenade handling, as the remaster's function_93036c27, but pays vanilla's points for the hit as BO4 pays its own on
-// every hit (zm_score function_89db94b3): a burn at most every 0.5 s, as vanilla's fire (zombie_give_flame_damage_points);
-// Brutus none, as vanilla (no_damage_points). The kill pays as ever.
+// grenade handling, as the remaster's function_93036c27, but pays vanilla's points for the script's own hits as BO4 pays
+// its own on every hit (zm_score function_89db94b3): a burn at most every 0.5 s, as vanilla's fire
+// (zombie_give_flame_damage_points); Brutus none, as vanilla (no_damage_points). The kill pays as ever.
 mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
 {
     if ( !mg_is_magma_damage( self.damageweapon ) )
@@ -930,6 +1004,12 @@ mg_magma_damage_callback( mod, hit_location, hit_origin, player, amount )
 
         return true;
     }
+
+    // only the script's own Magmagat damage pays, as BO4's (its burns above, the burst's 400): the 0-damage carrier
+    // bullet (BO4 has none, the weapon is its projectile) and the blob's impact pay nothing. Returning true still keeps
+    // vanilla's Insta-Kill off them (check_for_instakill): mg_blob_land kills on the impact itself.
+    if ( mod != "MOD_EXPLOSIVE" )
+        return true;
 
     damage_type = "damage_light";
 

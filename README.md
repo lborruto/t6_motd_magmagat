@@ -59,7 +59,8 @@ It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
   burns Brutus hard until his flames catch. It only stings you (your screen burns), barely.
 - **Burning zombies** take a share of their health every second (fast in early rounds, slower later) for up to 8
   seconds, and fall dead. Twelve enemies burn at most at once.
-- **Points and power-ups:** every hit pays points as any weapon does; Insta-Kill kills with any Magmagat hit.
+- **Points and power-ups:** burns and bursts pay points as any weapon's hits (the shot and the blob's impact pay
+  none); under Insta-Kill any Magmagat hit kills, a blob on contact (no burst, it pools there).
 - **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, keeping its ammo, and the fireplace takes the Acid
   Gat again.
 
