@@ -59,7 +59,7 @@ my @props = (
 # the same machine as at 0.755 scale (its smasher and our ram are one mesh, 1136 triangles): the shaft handel_1_jnt
 # and its two grips (handel_1/2_release_jnt), pivot at handel_1_jnt (100.71, 80.02, 59.49 in, BO4's centimetres / 2.54)
 # moved to the origin. The ghouls are skinned (script plays their xanims); BO4's ghost shader does not exist in T6, so
-# their parts glow blue on the Acid Gat's shader with BO4's own maps (tools/build_ghoul_mats.pl, mc/mg_ghoul_<part>).
+# their parts wear Mob's Afterlife ghost with BO4's own normal maps (tools/build_ghoul_mats.pl, mc/mg_ghoul_<part>).
 # Greyhound names an xanim it cannot resolve xanim_<fnv1a-64 of the name, 60 bits>; ours are named after the scene.
 my $xm4 = "$gh/exported_files/black_ops_4_sp/xmodels";
 my $xi4 = "$gh/exported_files/black_ops_4_sp/ximages";
@@ -91,7 +91,7 @@ for my $p (@paints) {
 }
 
 if ( -d $xi4 ) {
-    system( 'perl', "$FindBin::Bin/build_ghoul_mats.pl", $raw, "$work/dump", $xi4 ) == 0 or die "import_all.pl: the ghouls' materials failed
+    system( 'perl', "$FindBin::Bin/build_ghoul_mats.pl", $raw, $work, $xi4 ) == 0 or die "import_all.pl: the ghouls' materials failed
 ";
 }
 

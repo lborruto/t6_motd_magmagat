@@ -247,7 +247,7 @@ mg_forge_power_fx()
     }
 
     // t 1.1: a slam in sparks, the fire flaring on the bed
-    mg_fx_once( "sparks", bed, undefined, body.angles );
+    mg_fx_once( "sparks", fx.origin, undefined, fx.angles );
     mg_fx_once( "barrel_flare", bed, 3 );
     body playsound( "zmb_hellbox_slam_shake" );
     body playsound( "mg_flame_burst" );
@@ -328,19 +328,19 @@ mg_press_show( weapon )
     level thread mg_press_down();
     body playsound( "mg_press" );
     wait 0.43;
-    mg_fx_once( "sparks", c.origin, undefined, body.angles );
+    fx = mg_coord( "MG_FORGE_FX" );
+    mg_fx_once( "sparks", fx.origin, undefined, fx.angles );
     body playsound( "zmb_hellbox_slam_shake" );
     body playloopsound( "zmb_fire_loop", 0.5 );
     gun delete();
 
     // t 4.0 to 11.4: the press works the gun, the remaster's press fire through it and sparks from the bed
-    fx = mg_coord( "MG_FORGE_FX" );
     mg_fx_once( "forge_rise", fx.origin, 7.4, fx.angles );
 
     for ( i = 0; i < 5; i++ )
     {
         wait 1.4;
-        mg_fx_once( "sparks", c.origin, undefined, body.angles );
+        mg_fx_once( "sparks", fx.origin, undefined, fx.angles );
         body playsound( "zmb_hellbox_slam_shake" );
     }
 
@@ -498,13 +498,12 @@ mg_forge_fabricate( state )
 
 #using_animtree("fxanim_props");
 
-// BO4's ghouls (its scene's two fakeactors, c_t8_zmb_mob_ghoul bodies glowing blue: tools/build_ghoul_mats.pl) on BO4's
-// timeline, each playing its own 11.4 s animation in place: out of the gun on the bed (t 0), each flies to its grip of
-// the lever (t 0.5 to 2.9), turned to the machine, dips with the lever's pull (t 3.4), holds it, and goes at the
-// animation's end_alpha (t 10.67). BO4 flies them by their animation's tag_origin track in its scene's own frame,
-// which neither a script_model plays nor fits the remaster's press: script flies them to their spots instead
-// (MG_GHOUL_1 / _2, at the grips; a ghoul's origin is its waist). Script models share one animtree (Mob's fxanim_props, which
-// mod.ff extends with theirs: tools/import_all.pl). Held in level.mg_forge_place_ents.
+// BO4's ghouls (its scene's two fakeactors, c_t8_zmb_mob_ghoul bodies in Mob's Afterlife ghost: tools/build_ghoul_mats.pl),
+// each playing its own BO4 animation, flown by script (BO4 flies them by their animation's tag_origin track, in its
+// scene's own frame, which neither a script_model plays nor fits the remaster's press), as the owner set it: out of the
+// bed under the Magmagat head first (t 0), face first to its grip of the lever (its spot MG_GHOUL_1 / _2, a ghoul's
+// origin its waist), the pull with the lever (t 3.4), then off through the roof (t 3.8). Script models share one
+// animtree (Mob's fxanim_props, which mod.ff extends with theirs: tools/import_all.pl). Held in level.mg_forge_place_ents.
 mg_forge_ghouls( bed )
 {
     level endon( "mg_goto" );
@@ -515,19 +514,22 @@ mg_forge_ghouls( bed )
     for ( i = 0; i < 2; i++ )
     {
         c = mg_coord( "MG_GHOUL_" + ( i + 1 ) );
-        g = spawn( "script_model", bed + ( 0, 0, 10 ) );
-        g.angles = ( 0, vectortoangles( c.origin - bed )[1], 0 );
+        yaw = vectortoangles( c.origin - bed )[1];
+        g = spawn( "script_model", bed - ( 0, 0, 30 ) );    // inside the bed, under the Magmagat
+        g.angles = ( 0, yaw, 0 );
         g setmodel( mg_model( "ghoul" + ( i + 1 ) ) );
         g useanimtree( #animtree );
         g setanim( anims[i], 1, 0, 1 );
         g.mg_spot = c.origin;
         g.mg_face = c.angles;
+        g.mg_yaw = yaw;
         ghouls[i] = g;
         level.mg_forge_place_ents[level.mg_forge_place_ents.size] = g;
     }
 
     wait 0.05;    // an effect played in the frame an entity appears is dropped by the clients
 
+    // t 0 to 0.6: out of the bed head first
     foreach ( g in ghouls )
     {
         mg_fx_add_tag( g, "ghost_body", "j_spineupper" );
@@ -535,32 +537,42 @@ mg_forge_ghouls( bed )
         mg_fx_once( "ghost_tport", bed );
         playsoundatposition( "zmb_afterlife_object_apparate", bed );
         g playloopsound( "zmb_afterlife_ghost_loop", 0.5 );
+        g moveto( bed + ( 0, 0, 25 ), 0.55, 0.1, 0.2 );
     }
 
-    // t 0.5 to 2.9: out to its grip, turned to the machine
-    wait 0.45;
+    // t 0.6 to 2.6: face first to its grip, leaning into the flight, then upright to it
+    wait 0.55;
 
     foreach ( g in ghouls )
     {
-        g moveto( g.mg_spot, 2.4, 0.6, 0.8 );
-        g rotateto( g.mg_face, 2.4, 0.6, 0.8 );
+        g moveto( g.mg_spot, 2, 0.4, 0.7 );
+        g rotateto( ( 40, g.mg_yaw, 0 ), 0.3, 0.1, 0.1 );
     }
 
+    wait 1.6;
+
+    foreach ( g in ghouls )
+        g rotateto( g.mg_face, 0.4, 0.1, 0.2 );
+
     // t 3.4: the pull, the lever's
-    wait 2.9;
+    wait 1.2;
 
     foreach ( g in ghouls )
         g moveto( g.mg_spot - ( 0, 0, 10 ), 0.2, 0.05, 0.05 );
 
-    // t 10.67, the animation's end_alpha: up and gone
-    wait 7.07;
+    // t 3.8: off through the roof, head first
+    wait 0.4;
+
+    foreach ( g in ghouls )
+        g moveto( g.mg_spot + ( 0, 0, 400 ), 1.4, 0.9, 0 );
+
+    wait 1.4;
 
     foreach ( g in ghouls )
     {
         if ( !isdefined( g ) )
             continue;
 
-        mg_fx_once( "ghost_tport", g gettagorigin( "j_spineupper" ) );
         playsoundatposition( "zmb_afterlife_object_disapparate", g.origin );
         g delete();
     }

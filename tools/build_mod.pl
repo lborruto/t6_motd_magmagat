@@ -3,7 +3,8 @@
 # installs it where Plutonium's Mods menu finds it:
 #   %LOCALAPPDATA%\Plutonium\storage\t6\mods\zm_magmagat\mod.ff (+ mod.json)
 # The zm_prison and common_zm zones are loaded first, so our assets can reuse their techsets, materials and images
-# (a material we copy from a vanilla template keeps its techniqueSet reference).
+# (a material we copy from a vanilla template keeps its techniqueSet reference), and so_zclassic_zm_prison, which
+# holds the Afterlife ghost shader the forge's ghouls wear (tools/build_ghoul_mats.pl; Mob loads it too).
 #
 #   perl tools/build_mod.pl            build + install (tools/deploy.pl installs the scripts beside it)
 #   perl tools/build_mod.pl --no-install
@@ -36,7 +37,7 @@ chdir "$repo/mod" or die "build_mod.pl: no mod/ folder\n";
 -d 'sound' or die "build_mod.pl: no mod/sound: run perl tools/import_sounds.pl first\n";
 -d 'fx' or die "build_mod.pl: no mod/fx: run perl tools/bo3_fx.pl first\n";
 my @cmd = ( "$oat/Linker.exe", '--base-folder', '.', '--output-folder', 'out',
-    '--load', "$zones/common_zm.ff", '--load', "$zones/zm_prison.ff",
+    '--load', "$zones/common_zm.ff", '--load', "$zones/zm_prison.ff", '--load', "$zones/so_zclassic_zm_prison.ff",
     '--add-asset-search-path', '?base?/props;?base?/weapon;?base?/sound;?base?/fx', 'mod' );
 system(@cmd) == 0 or die "build_mod.pl: the Linker failed (exit " . ( $? >> 8 ) . ")\n";
 -f 'out/mod.ff' or die "build_mod.pl: no out/mod.ff after the build\n";
