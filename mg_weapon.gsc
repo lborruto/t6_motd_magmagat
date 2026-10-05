@@ -499,7 +499,9 @@ mg_blob_lure( blob, player )
 {
     trace = bullettrace( blob.origin, blob.origin - ( 0, 0, 1000 ), 0, blob );
 
-    if ( trace["fraction"] >= 1 || distance( trace["position"], blob.origin ) > 64 || !check_point_in_playable_area( trace["position"] ) )
+    // BO4's in_playable_area, and its create_zombie_point_of_interest's is_point_inside_enabled_zone: no lure in a
+    // zone not yet opened
+    if ( trace["fraction"] >= 1 || distance( trace["position"], blob.origin ) > 64 || !check_point_in_playable_area( trace["position"] ) || !check_point_in_enabled_zone( trace["position"] ) )
         return undefined;
 
     held = undefined;
