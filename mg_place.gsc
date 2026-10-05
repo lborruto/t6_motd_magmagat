@@ -62,9 +62,12 @@ mg_place_grab( key )
     if ( !had_model )
         model = mg_model( "beacon" ); // anchors without a prop still need something visible
 
-    // the forge's machine or its lever held: the real one goes meanwhile, and stands again where it is placed (or was)
-    if ( key == "MG_PRESS" || key == "MG_LEVER" )
+    // the forge's machine held: the real one goes meanwhile, and stands again where it is placed (or was); its lever
+    // held: only the real lever hides, the machine stays to fit it on
+    if ( key == "MG_PRESS" )
         mg_press_remove();
+    else if ( key == "MG_LEVER" && isdefined( level.mg_press["press_lever"] ) )
+        level.mg_press["press_lever"] hide();
 
     ent = spawn( "script_model", c.origin );
     ent setmodel( model );
@@ -304,8 +307,13 @@ mg_place_end_current( why )
     self.mg_place_ent = undefined;
     self.mg_place_key = undefined;
 
+    // the machine back (its lever with it, where it was placed)
+    if ( key == "MG_LEVER" )
+        mg_press_remove();
+
     if ( key == "MG_PRESS" || key == "MG_LEVER" )
         mg_press_spawn();
+
     self mg_prompt( 0, undefined );
     self notify( "mg_place_end" );
     mg_debug_print( "MG: place mode off (" + key + ", " + why + ")" );
