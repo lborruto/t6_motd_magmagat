@@ -54,8 +54,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       hearth even with a Blundergat in hand, presses do nothing.
 - [ ] Ride the plane and sit in a bridge chair, or `!mg bridge` (the same requirement met, without the plane), or
       `!mg goto ready`: state becomes `ready`. `!mg bridge` in any other state says the fireplace is already open.
-- [ ] The first press at the hearth (gun or not, no prompt yet): the flame-burst sound and a fire over the boards for
-      about 4 s; a second later "Hold [use] to place Blundergat" shows for every player near the hearth. This happens
+- [ ] The first press at the hearth (gun or not, no prompt yet): the flame-burst sound, an orange burst of flame in
+      the fire and embers on the floor before it; a second later "Hold [use] to place Blundergat" shows for every player near the hearth. This happens
       once per game (`!mg goto locked` resets it).
 - [ ] No Blundergat, Sweeper, Acid Gat or Vitriolic Withering in your hands (none, or one put away): no prompt, and a
       press does nothing; nothing is taken.
