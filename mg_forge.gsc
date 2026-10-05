@@ -229,7 +229,8 @@ mg_forge_power_fx()
     closed = level.mg_press_rest - ( 0, 0, 29.33 );
     body playsound( "zmb_powerpanel_activate" );
     body playsound( "evt_electrical_surge" );
-    mg_fx_once( "sparks", level.mg_press_rest, undefined, body.angles );
+    fx = mg_coord( "MG_FORGE_FX" );
+    mg_fx_once( "sparks", fx.origin, undefined, fx.angles );
     lever rotatepitch( 8, 0.12 );
     wait 0.12;
     lever rotatepitch( -8, 0.25, 0, 0.2 );
@@ -255,7 +256,7 @@ mg_forge_power_fx()
     // t 1.4: the press opens, fire roaring through it
     ram moveto( level.mg_press_rest, 0.9, 0.2, 0.4 );
     body playsound( "mg_press" );
-    mg_fx_once( "forge_rise", level.mg_press_rest, 2, body.angles );
+    mg_fx_once( "forge_rise", fx.origin, 2, fx.angles );
     mg_fx_once( "forge_embers", bed, 4 );
     wait 0.9;
     body playsound( "mg_flame_burst" );
@@ -333,7 +334,8 @@ mg_press_show( weapon )
     gun delete();
 
     // t 4.0 to 11.4: the press works the gun, the remaster's press fire through it and sparks from the bed
-    mg_fx_once( "forge_rise", level.mg_press_rest, 7.4, body.angles );
+    fx = mg_coord( "MG_FORGE_FX" );
+    mg_fx_once( "forge_rise", fx.origin, 7.4, fx.angles );
 
     for ( i = 0; i < 5; i++ )
     {
@@ -500,31 +502,26 @@ mg_forge_fabricate( state )
 // timeline, each playing its own 11.4 s animation in place: out of the gun on the bed (t 0), each flies to its grip of
 // the lever (t 0.5 to 2.9), turned to the machine, dips with the lever's pull (t 3.4), holds it, and goes at the
 // animation's end_alpha (t 10.67). BO4 flies them by their animation's tag_origin track in its scene's own frame,
-// which neither a script_model plays nor fits the remaster's press: script flies them to our grips instead. A ghoul's
-// body hangs 40 below its origin (j_mainroot, 103.5 cm). Script models share one animtree (Mob's fxanim_props, which
+// which neither a script_model plays nor fits the remaster's press: script flies them to their spots instead
+// (MG_GHOUL_1 / _2, at the grips; a ghoul's origin is its waist). Script models share one animtree (Mob's fxanim_props, which
 // mod.ff extends with theirs: tools/import_all.pl). Held in level.mg_forge_place_ents.
 mg_forge_ghouls( bed )
 {
     level endon( "mg_goto" );
     scriptmodelsuseanimtree( #animtree );
     anims = array( %mg_ghoul_smelter_1, %mg_ghoul_smelter_2 );
-    l = mg_coord( "MG_LEVER" );
-    lever_yaw = ( 0, l.angles[1], 0 );
     ghouls = [];
 
-    foreach ( i, side in array( -1, 1 ) )
+    for ( i = 0; i < 2; i++ )
     {
-        // its grip (the lever's frame: 8 out, 61 along the shaft, 10.5 up; tools/import_all.pl's lever), it standing
-        // 20 further out, its body's hands at the grip
-        grip = l.origin + anglestoforward( lever_yaw ) * 8 - anglestoright( lever_yaw ) * ( side * 61 ) + ( 0, 0, 10.5 );
-        spot = grip + anglestoforward( lever_yaw ) * 20 + ( 0, 0, 22 );
-        g = spawn( "script_model", bed + ( 0, 0, 40 ) );
-        g.angles = ( 0, vectortoangles( spot - bed )[1], 0 );
+        c = mg_coord( "MG_GHOUL_" + ( i + 1 ) );
+        g = spawn( "script_model", bed + ( 0, 0, 10 ) );
+        g.angles = ( 0, vectortoangles( c.origin - bed )[1], 0 );
         g setmodel( mg_model( "ghoul" + ( i + 1 ) ) );
         g useanimtree( #animtree );
         g setanim( anims[i], 1, 0, 1 );
-        g.mg_spot = spot;
-        g.mg_face = ( 0, vectortoangles( grip - spot )[1], 0 );
+        g.mg_spot = c.origin;
+        g.mg_face = c.angles;
         ghouls[i] = g;
         level.mg_forge_place_ents[level.mg_forge_place_ents.size] = g;
     }

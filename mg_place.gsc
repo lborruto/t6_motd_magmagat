@@ -83,9 +83,9 @@ mg_place_grab( key )
     self.mg_place_start_org = c.origin;
     self.mg_place_start_ang = c.angles;
     self.mg_place_frozen = 0;
-    // the lever is fitted onto the machine, which the crosshair goes through (a script_model stops no trace): it stays
-    // where it is and moves by !mg move, !mg rot, !mg up and 1-4 only
-    self.mg_place_pinned = key == "MG_LEVER";
+    // the lever, the machine's effects and its ghouls are fitted onto the machine, which the crosshair goes through (a
+    // script_model stops no trace): they stay where they are and move by !mg move, !mg rot, !mg up and 1-4 only
+    self.mg_place_pinned = key == "MG_LEVER" || key == "MG_FORGE_FX" || key == "MG_GHOUL_1" || key == "MG_GHOUL_2";
     self.mg_place_nudge = ( 0, 0, 0 );
 
     self thread mg_place_think();
@@ -257,7 +257,7 @@ mg_place_drop()
         old = mg_coord( key );
         turn = angles[1] - old.angles[1];
 
-        foreach ( k in array( "MG_FORGE_GUN", "MG_FORGE", "MG_LEVER" ) )
+        foreach ( k in array( "MG_FORGE_GUN", "MG_FORGE", "MG_LEVER", "MG_FORGE_FX", "MG_GHOUL_1", "MG_GHOUL_2" ) )
         {
             a = mg_coord( k );
             off = a.origin - old.origin;

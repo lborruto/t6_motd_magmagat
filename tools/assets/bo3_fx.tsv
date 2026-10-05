@@ -7,8 +7,8 @@ _copforthat/_zm_prison/fx_alcatraz_blue_flame_flare_up as=fx_mg_barrel_flare spr
 _copforthat/_zm_prison/fx_alcatraz_blue_flame_skull         # a lit skull
 _copforthat/_zm_prison/fx_alcatraz_blue_flame_vm            # the tempered gun's flame
 _copforthat/_zm_prison/fx_alcatraz_lockdown_wardens scale=1.0146,1.019   # the office lockdown: one effect outlining the door and walls
-_copforthat/_zm_prison/fx_alcatraz_magmagat_power           # the forge powered
-_copforthat/_zm_prison/fx_prison_magmagat_press_fire        # the press at work
+_copforthat/_zm_prison/fx_alcatraz_magmagat_power surface           # the forge powered, turned with the press
+_copforthat/_zm_prison/fx_prison_magmagat_press_fire surface        # the press at work, turned with the press
 _copforthat/_zm_prison/fx_prison_magmagat_aoe surface               # the lava pool, lying on the surface it hit
 _copforthat/_zm_prison/fx_prison_magmagat_impact_decal      # the blob's scorch
 harry/magmagat/fx_magmagat_trail_bolt                       # the lava blob in flight

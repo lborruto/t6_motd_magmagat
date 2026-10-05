@@ -99,6 +99,22 @@ mg_coords_init()
     p = press.angles[1];
     lever = press.origin + anglestoforward( ( 0, p, 0 ) ) * -28.1 + anglestoright( ( 0, p, 0 ) ) * 0.26 + ( 0, 0, 55.9 );
     mg_coord_set( "MG_LEVER", lever, ( 0, p, 0 ), mg_model( "press_lever" ) );
+
+    // where the machine's own effects play (its power, its fire): the machine's origin and turn by default, a beacon to
+    // fit them on it with `!mg grab MG_FORGE_FX` (the remaster's effects were made for its machine where it stood)
+    mg_coord_set( "MG_FORGE_FX", press.origin, press.angles, mg_model( "beacon" ) );
+
+    // the forge's ghouls, each at its grip of the lever: 53 along its shaft, 14 out of the machine, its origin (the
+    // ghoul's waist) 8 under the grip so its hands are on it, turned to it; `!mg grab MG_GHOUL_1` / `_2` places them
+    l = level.mg_coords["MG_LEVER"];
+    ly = ( 0, l.angles[1], 0 );
+    grip = l.origin + anglestoforward( ly ) * 8 + ( 0, 0, 10.5 );
+
+    foreach ( i, side in array( -1, 1 ) )
+    {
+        spot = grip - anglestoright( ly ) * ( side * 53 ) + anglestoforward( ly ) * 14 - ( 0, 0, 8 );
+        mg_coord_set( "MG_GHOUL_" + ( i + 1 ), spot, ( 0, l.angles[1] + 180, 0 ), mg_model( "ghoul" + ( i + 1 ) ) );
+    }
 }
 
 // Owner spots go here, one line each: mg_coord_override( "KEY", ( x, y, z ), ( pitch, yaw, roll ) );

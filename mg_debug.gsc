@@ -287,15 +287,20 @@ mg_debug_command( sub, arg, args )
             self thread mg_debug_press();
             return 1;
 
-        // the Machine's power step, as the quest plays it (it stays powered)
+        // the Machine's power step, as the quest plays it (it stays powered); once powered, its effects again (to fit
+        // MG_FORGE_FX)
         case "power":
-            if ( is_true( level.mg_forge_open ) || is_true( level.mg_forge_busy ) )
+            if ( is_true( level.mg_forge_busy ) )
             {
-                self mg_out( "MG: the Machine is already powered (or at work)" );
+                self mg_out( "MG: the forge is at work" );
                 return 1;
             }
 
-            self thread mg_forge_power( self );
+            if ( is_true( level.mg_forge_open ) )
+                level thread mg_forge_power_fx();
+            else
+                self thread mg_forge_power( self );
+
             return 1;
 
         case "tp":
