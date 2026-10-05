@@ -493,8 +493,8 @@ mg_is_boss( ai )
 
 // The lure of a pool, BO4's (function_7b25328b): vanilla's point of interest on the floor under the blob, 128 units
 // and 3 zombies (256 and 6 when its owner holds the Magmus Operandi or the Vitriolic Withering as it lands), only when
-// that floor is within 64 of the blob (a blob up a wall or on a ceiling draws no one) and in the playable area: every
-// zombie within its reach comes to it, as in BO4's play (below). Brutus ignores it. Returns its entity, or undefined.
+// that floor is within 64 of the blob (a blob up a wall or on a ceiling draws no one) and in the playable area; its
+// spots are in the fire, freed as their zombies die (below). Brutus ignores it. Returns its entity, or undefined.
 mg_blob_lure( blob, player )
 {
     trace = bullettrace( blob.origin, blob.origin - ( 0, 0, 1000 ), 0, blob );
@@ -509,13 +509,32 @@ mg_blob_lure( blob, player )
 
     lure = spawn( "script_origin", trace["position"] );
 
-    // BO4 asks for 3 attractors (the Magmus 6), but in play its pool draws nearly every zombie near it (the owner's
-    // test in BO4): as here, every zombie within its reach comes to the pool itself (attract_to_origin, no ring
-    // positions, so vanilla's can_attract never caps the count)
+    n = 3;
+    radius = 128;
+
     if ( isdefined( held ) && ( held == "magmagat_upgraded_zm" || held == "blundersplat_upgraded_zm" ) )
-        lure create_zombie_point_of_interest( 256, 6, 10000 );
-    else
-        lure create_zombie_point_of_interest( 128, 3, 10000 );
+    {
+        n = 6;
+        radius = 256;
+    }
+
+    // BO4's attractors (create_zombie_point_of_interest_attractor_positions): n spots on the navmesh nearest the
+    // pool's middle, 7.5 apart, so its zombies walk into the fire; one dying frees its spot (update_poi_on_death)
+    // and the next comes, so over the pool's 5 s it draws nearly every zombie near it, as in BO4's play. Vanilla's
+    // own layout puts its rings outside the pool (and hands out none under 4 a ring): the spots are laid here, one
+    // ring of n round the middle (add_poi_attractor reads attractor_positions[i] = ( spot, lure ) and last_index)
+    lure create_zombie_point_of_interest( radius, n, 10000 );
+    lure.attractor_positions = [];
+
+    for ( i = 0; i < n; i++ )
+    {
+        spot = lure.origin + anglestoforward( ( 0, i * 360 / n, 0 ) ) * 12;
+        lure.attractor_positions[i] = array( spot, lure );
+    }
+
+    lure.last_index = array( n, n, n, n );
+    lure.attract_to_origin = 0;
+    level notify( "attractor_positions_generated" );    // as vanilla's layout: zombies repath to it now (attractors_generated_listener)
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {

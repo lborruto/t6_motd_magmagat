@@ -64,13 +64,13 @@ player can forge his own.
 | | Magmagat | Magmus Operandi |
 |---|---|---|
 | Clip / start / max ammo | 1 / 30 / 36 | 2 / 25 / 30 |
-| Lure | the zombies near it, 128 units | the zombies near it, 256 units |
+| Lure | 3 at a time into its fire, 128 units | 6 at a time, 256 units |
 
 - **On a zombie**: half a second later it blows apart (or, if tough, burns, slowed, and dies 4 seconds later). When
   the Magmagat kills it, the blob bursts, tearing limbs off the zombies within 128 units and setting them on fire.
 - **On Brutus**: he burns for 5 seconds.
 - **Missed shot**: a lava pool for **5 seconds** (two at most). Zombies touching it catch fire, Brutus burns hard
-  until his flames catch; near the floor it lures the zombies near it. It only stings its owner, barely.
+  until his flames catch; near the floor it lures zombies into its fire, 3 at a time. It only stings its owner, barely.
 - **Burning zombies** die fast in early rounds, slower later, and fall dead. Twelve enemies burn at most at once.
 - **Points**: every hit pays as any weapon's; under Insta-Kill any Magmagat hit kills.
 - **Pack-a-Punch** turns it into the Magmus Operandi. The **Acid Gat kit** turns it back into an Acid Gat with the

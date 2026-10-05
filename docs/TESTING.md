@@ -174,8 +174,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       drawn to a blob on a zombie. Near a hungry wolf head (the Hell's Retriever's) the stuck zombie dies whole.
 - [ ] **Hit Brutus** (`!mg brutus` sends one): 0.5 s later 100, then he burns 5 s (torso flames) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured. Two blobs a second apart: both burns stop when the first blob goes.
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
-      turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws the zombies within about 160 units
-      (the Magmus Operandi about 290, while it is in hand) to the pool. High up a wall,
+      turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws zombies into its fire, 3 at a time
+      (the Magmus Operandi 6, while it is in hand), the next coming as each dies: nearly every zombie near it. High up a wall,
       or outside the playable area, it draws none. A zombie touching its fire (64 units, 32 high) catches fire and
       burns to death (in early rounds within about 2 s). Brutus walking through it loses a tenth of his health each
       frame until his flames light 2 s later (with the burn compensation he usually dies in it). Only its owner is

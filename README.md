@@ -47,7 +47,7 @@ next player can forge his own. For every detail and edge case, see the [full wal
 | | Magmagat | Magmus Operandi |
 |---|---|---|
 | Clip / start / max ammo | 1 / 30 / 36 | 2 / 25 / 30 |
-| Lure (lava pool near the floor) | the zombies near it, 128 units | the zombies near it, 256 units |
+| Lure (lava pool near the floor) | 3 at a time into its fire, 128 units | 6 at a time, 256 units |
 
 It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
 
