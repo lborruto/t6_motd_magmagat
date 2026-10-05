@@ -65,6 +65,7 @@ my @props = (
 # Greyhound names an xanim it cannot resolve xanim_<fnv1a-64 of the name, 60 bits>; ours are named after the scene.
 my $xm4 = "$gh/exported_files/black_ops_4_sp/xmodels";
 my $xi4 = "$gh/exported_files/black_ops_4_sp/ximages";
+my $bo4_skull_c = "$work/i_mg_skull_bo4_c.png";    # BO4's plain skull, its colour baked (below)
 my $xa4 = "$gh/exported_files/black_ops_4_sp/xanims";
 my $lever_scale = 0.755;
 my @bo4_props = (
@@ -74,11 +75,11 @@ my @bo4_props = (
         '--scale', $lever_scale, '--offset', join( ',', map { sprintf '%.3f', -$_ * $lever_scale } 100.71, 80.02, 59.49 ), '--stretch', '1,0.969,1' ],
     # BO4's mantle skulls (dvar mg_bo4 "skulls"): its quest stands three plain ones and swaps each for the Afterlife skull
     # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is our remaster skull's mesh. Pivot at mid height, as mg_skull's.
-    [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--offset', '0,0,-3.51' ],
+    [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--color', "skull_sgl=$bo4_skull_c", '--offset', '0,0,-3.51' ],
     [ 'mg_skull_bo4_lit', 'p8_zm_esc_skull_afterlife', '--offset', '0,0,-3.51' ],
     # BO4's skull piles by the fireplace (mg_bo4 "piles"), pivot on the floor under their middle
-    [ 'mg_skull_pile_sml', 'p8_zm_esc_skull_pile_sml', '--offset', '0.41,-13.60,3.82' ],
-    [ 'mg_skull_pile_med', 'p8_zm_esc_skull_pile_med', '--offset', '2.62,-0.61,0.16' ],
+    [ 'mg_skull_pile_sml', 'p8_zm_esc_skull_pile_sml', '--color', "skull_sgl=$bo4_skull_c", '--offset', '0.41,-13.60,3.82' ],
+    [ 'mg_skull_pile_med', 'p8_zm_esc_skull_pile_med', '--color', "skull_sgl=$bo4_skull_c", '--offset', '2.62,-0.61,0.16' ],
     # BO4's drum at the five barrel spots (mg_bo4 "barrels"), 44 in high as the remaster's: pivot at mid height as
     # mg_barrel_green's, the flame and the clip stand on its foot
     [ 'mg_barrel_bo4', 'p8_zm_esc_barrel_drum', '--offset', '0,0,-22.37' ],
@@ -99,8 +100,11 @@ for my $p (@paints) {
 }
 
 if ( -d $xi4 ) {
-    system( 'perl', "$FindBin::Bin/build_ghoul_mats.pl", $raw, $work, $xi4 ) == 0 or die "import_all.pl: the ghouls' materials failed
-";
+    system( 'perl', "$FindBin::Bin/build_ghoul_mats.pl", $raw, $work, $xi4 ) == 0 or die "import_all.pl: the ghouls' materials failed\n";
+    # BO4's plain skull draws its colour in its shader from a grey cavity mask (its exported colour map is a tiled
+    # concrete floor): the mask times a bone colour, the remaster skull's average (140 134 118 over the mask's 163)
+    system( 'perl', "$FindBin::Bin/paint_mask.pl", "$xi4/i_p8_zm_esc_skull_sgl_m.png", $bo4_skull_c, '--tint', '0.859,0.822,0.724' ) == 0
+        or die "import_all.pl: the BO4 skull's colour failed\n";
 }
 
 # a model Greyhound exported empty (import_prop.pl exits 3) is left out; what uses it falls back on a vanilla one
