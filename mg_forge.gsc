@@ -300,7 +300,7 @@ mg_forge_place( player, weapon )
 // The press at work on weapon, on BO4's timeline (its scene aib_vign_zm_mob_smelter_ghost: the smelter's start anim,
 // 11.4 s, then its finish; t from the gun laid down): two ghouls come out of the gun and pull the lever (t 3.4), the
 // ram comes down on the gun (t 4.0, the smelter_press notetrack) and works it 7.4 s in fire and sparks, then lifts on
-// the Magmagat (t 11.6, smelter_show), which glows on the bed in tiny flames until taken. The gun on the bed is held
+// the Magmagat (t 11.6, smelter_show), which floats over tiny flames on the bed until taken. The gun on the bed is held
 // in level.mg_forge_place_ents for a goto's cleanup. Returns the Magmagat on the bed. Also played by `!mg tour`.
 mg_press_show( weapon )
 {
@@ -358,7 +358,7 @@ mg_press_show( weapon )
     mg_fx_once( "explo", c.origin );
     body playsound( "mg_flame_burst" );
     body playsound( "zmb_buildable_complete" );
-    level thread mg_forge_glow( gun, c.origin );
+    level thread mg_forge_embers( gun, c.origin );
     gun thread mg_forge_gun_float( c.origin + ( 0, 0, 6 ) );
     return gun;
 }
@@ -373,16 +373,14 @@ mg_forge_gun_float( origin )
     self mg_hover( origin );
 }
 
-// BO4's reveal: the Magmagat glows on the bed (a glow, no flame) over tiny flames, while it lies there.
-mg_forge_glow( gun, origin )
+// BO4's reveal: tiny flames on the bed under the Magmagat, while it floats there (no glow: the owner's call).
+mg_forge_embers( gun, origin )
 {
-    glow = mg_fx_loop( "forge_glow", origin );
     embers = mg_fx_loop( "forge_embers", origin - ( 0, 0, 2 ) );
 
     while ( isdefined( gun ) )
         wait 0.2;
 
-    mg_fx_stop( glow );
     mg_fx_stop( embers );
 }
 
