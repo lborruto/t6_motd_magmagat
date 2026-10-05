@@ -148,10 +148,15 @@ mg_debug_command( sub, arg, args )
             self thread mg_debug_zone();
             return 1;
 
-        // a Brutus now, as vanilla's round logic sends one (_zm_ai_brutus.gsc brutus_spawning_logic), to try the weapon on
+        // a Brutus now, as vanilla's round logic sends one, to try the weapon on: through its own guard
+        // (_zm_ai_brutus.gsc attempt_brutus_spawn: brutus_count + 1 > brutus_max_count refuses), never the raw
+        // spawn_brutus notify, whose spawn on a full zombie count can end vanilla's only Brutus spawn thread for good
         case "brutus":
-            level notify( "spawn_brutus", 1 );
-            self mg_out( "MG: a Brutus is on his way" );
+            if ( maps\mp\zombies\_zm_ai_brutus::attempt_brutus_spawn( 1 ) )
+                self mg_out( "MG: a Brutus is on his way" );
+            else
+                self mg_out( "MG: a Brutus is already out (vanilla's limit): no other one spawns" );
+
             return 1;
 
         case "give":
@@ -467,9 +472,17 @@ mg_shock_loop()
 
     self.mg_shock_looping = 1;
 
-    while ( is_true( level.mg_shock ) )
+    // the dvar re-read before and after every shot: `set mg_debug 0` turns the pistol back into a plain pistol (the
+    // zap completes Afterlife puzzles for real), and the toggle off with it, so the next `!mg shock gun` turns it on
+    while ( is_true( level.mg_shock ) && getdvarint( "mg_debug" ) == 1 )
     {
         self waittill( "weapon_fired", weapon );
+
+        if ( getdvarint( "mg_debug" ) != 1 )
+        {
+            level.mg_shock = 0;
+            break;
+        }
 
         if ( !isdefined( weapon ) || weapon != level.mg_shock_weapon )
             continue;

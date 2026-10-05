@@ -394,9 +394,21 @@ mg_blob_land( blob, player, weapon, fire )
         if ( !is_true( host.no_gib ) )
             host thread maps\mp\zombies\_zm_spawner::zombie_head_gib( player, "MOD_IMPACT" );
 
+        // the owner's call over BO4 (which pools at the projectile, here the zombie's chest, 12 to 72 over his feet):
+        // the blob and its pool drop to the floor under him, as the teammate branch above, so no fire hangs in the
+        // air. The floor is traced while he still stands (his body ignored), and the pool stands on its normal.
+        floor = bullettrace( blob.origin + ( 0, 0, 8 ), blob.origin - ( 0, 0, 1000 ), 0, host );
         host dodamage( host.health + 666, blob.origin, player, player, "none", "MOD_IMPACT", 0, weapon );
         blob unlink();
-        shown = blob mg_blob_show( mg_up_angles( mg_blob_normal( dir, blob ) ), 0 );
+        up = ( 0, 0, 1 );
+
+        if ( floor["fraction"] < 1 )
+        {
+            blob.origin = floor["position"];
+            up = floor["normal"];
+        }
+
+        shown = blob mg_blob_show( mg_up_angles( up ), 0 );
         level thread mg_pool( blob, player, weapon, shown );
     }
     else
@@ -649,21 +661,32 @@ mg_blob_on_zombie( zombie )
 // BO4's one notify does (hash_556bad125b55e1a9). A Brutus dying meanwhile takes the blob with him at once.
 mg_blob_on_brutus( brutus, player, weapon )
 {
-    self endon( "death" );
+    // the blobs on him, counted: his flames go out only when nothing burns him any more (no blob left on him, and no
+    // pool or burst burn, mg_brutus_scorch's mg_burning), not at the first blob's end while a pool's 8 s still run.
+    // No endon on the blob: one removed early still takes its count off him (the loop sees it gone), so the count
+    // never sticks and his flames never stay lit for good.
+    if ( !isdefined( brutus.mg_blobs ) )
+        brutus.mg_blobs = 0;
+
+    brutus.mg_blobs++;
     brutus thread mg_brutus_blob_burn( player, weapon );
     brutus thread mg_burn_start();
     end = gettime() + 5000;
 
-    while ( gettime() < end && isdefined( brutus ) && isalive( brutus ) )
+    while ( gettime() < end && isdefined( self ) && isdefined( brutus ) && isalive( brutus ) )
         wait 0.05;
 
     if ( isdefined( brutus ) && isalive( brutus ) )
     {
+        brutus.mg_blobs--;
         brutus notify( "mg_blob_out" );
-        brutus thread mg_burn_end();
+
+        if ( !is_true( brutus.mg_burning ) && brutus.mg_blobs <= 0 )
+            brutus thread mg_burn_end();
     }
 
-    self delete();
+    if ( isdefined( self ) )
+        self delete();
 }
 
 // self = Brutus a blob stuck to (BO4's function_dc3470c5, function_78f754f7): 0.5 s on, 100 burn damage
@@ -711,6 +734,9 @@ mg_blob_burst( player, weapon, centre )
             continue;
         }
 
+        // lit now, not after its turn in the throttle (mg_zombie_ignite): a second burst before that turn passes it by,
+        // so it is hit once (400, its limbs, its fire, its points), not twice
+        ai.mg_lit = 1;
         ai thread mg_burst_hit( player, weapon, pos );
     }
 
@@ -729,29 +755,65 @@ mg_burst_hit( player, weapon, pos )
 }
 
 // BO4's throttle (zm_weap_blundergat level.var_214f6204: throttle_shared initialize( 2, 0.1 ), waitinqueue), shared by
-// every burst hit and burn tick: 2 go through each 0.1 s, the others wait their turn in order. Here each caller takes
-// the next free place in a window of 100 ms (level.mg_throttle_at, a time, with level.mg_throttle_n taken) and waits
-// till it opens.
+// every burst hit and burn tick: 2 go through each 0.1 s, the others wait their turn in order, in a queue. A zombie
+// that dies (or is removed) while it waits leaves the queue, its place going to the next, as BO4's _updatethrottle
+// drops the entities gone: no place is ever kept for a dead waiter, so nothing waits behind one. self = the zombie
+// waiting (its caller ends on its death, so its thread ends at once; mg_throttle_loop drops its ticket).
 mg_throttle_wait()
 {
-    now = gettime();
-
-    if ( !isdefined( level.mg_throttle_at ) || level.mg_throttle_at + 100 <= now )
+    if ( !isdefined( level.mg_throttle_q ) )
     {
-        level.mg_throttle_at = now;
-        level.mg_throttle_n = 0;
+        level.mg_throttle_q = [];
+        level.mg_throttle_free = 2;
+        level thread mg_throttle_loop();
     }
 
-    if ( level.mg_throttle_n >= 2 )
+    // a free place this 0.1 s and nobody before him: he goes at once
+    if ( level.mg_throttle_free > 0 && level.mg_throttle_q.size == 0 )
     {
-        level.mg_throttle_at = level.mg_throttle_at + 100;
-        level.mg_throttle_n = 0;
+        level.mg_throttle_free--;
+        return;
     }
 
-    level.mg_throttle_n++;
+    ticket = spawnstruct();    // one per wait: the same zombie may wait twice (a burn tick and a burst hit)
+    ticket.ent = self;
+    level.mg_throttle_q[level.mg_throttle_q.size] = ticket;
+    ticket waittill( "mg_throttle_go" );
+}
 
-    if ( level.mg_throttle_at > now )
-        wait( ( level.mg_throttle_at - now ) / 1000 );
+// Each 0.1 s: 2 places again, the dead waiters dropped, the first ones in line let through. The queue left is set
+// before they go: one let through may kill a zombie whose burst queues more, and those join this queue, not a lost one.
+mg_throttle_loop()
+{
+    level endon( "end_game" );
+
+    while ( true )
+    {
+        wait 0.1;
+        free = 2;
+        go = [];
+        q = [];
+
+        foreach ( ticket in level.mg_throttle_q )
+        {
+            if ( !isdefined( ticket.ent ) || !isalive( ticket.ent ) )
+                continue;
+
+            if ( free > 0 )
+            {
+                free--;
+                go[go.size] = ticket;
+            }
+            else
+                q[q.size] = ticket;
+        }
+
+        level.mg_throttle_q = q;
+        level.mg_throttle_free = free;
+
+        foreach ( ticket in go )
+            ticket notify( "mg_throttle_go" );
+    }
 }
 
 // self = zombie. BO4's gib_random_parts (zombie_utility): its head, each leg and each arm torn off one time in two,
@@ -928,7 +990,10 @@ mg_brutus_scorch( player, weapon, hit )
     wait 8;
     self.mg_burning = undefined;
     self notify( "mg_burn_out" );
-    self thread mg_burn_end();
+
+    // a blob still on him keeps his flames: the last blob's end puts them out (mg_blob_on_brutus)
+    if ( !is_true( self.mg_blobs ) )
+        self thread mg_burn_end();
 }
 
 // Magmagat damage, credited to its player while he is still here. Under his Insta-Kill it kills outright, the head

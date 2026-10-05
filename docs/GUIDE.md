@@ -15,13 +15,17 @@ as in Black Ops 4.
 ## 1. The fireplace
 
 1. In the Warden's Office, **use the fireplace** once (no gun needed).
-2. A second later, holding your Blundergat **in your hands**, **hold use** to place it in the fire.
+2. A second later, holding your Blundergat **in your hands**, **hold use** to place it in the fire. While the forge
+   is pressing a Magmagat, or one waits there for its owner, the fireplace takes no gun.
 
-The office **locks down**: nobody can walk through its door until the lockdown ends.
+The office **locks down**: nobody can walk through its door until the lockdown ends. Only while a teammate lies down
+inside (last stand, or his body there in Afterlife) does the door open, so he can be revived; it shuts again once
+he is up.
 
 ## 2. The souls
 
-- Every regular zombie that dies **inside the office** drops an **essence** over its body, whoever killed it.
+- Every regular zombie a player kills **inside the office** drops an **essence** over its body, whoever killed it
+  and with whatever weapon. A Nuke's kills drop none.
 - **Walk over it** (any player) to collect it.
 - You need **15 souls**.
 - An essence nobody takes **fades after 20 seconds**. Brutus drops none.
@@ -30,7 +34,7 @@ The office **locks down**: nobody can walk through its door until the lockdown e
 **It fails** only if the player who placed the gun **goes down** (last stand or Afterlife): the gun is lost. Place a
 new one to start again.
 
-The lockdown ends two seconds after the 15th soul.
+The lockdown ends two seconds after the 15th soul. From the 15th soul on, it can no longer fail.
 
 ## 3. The deposit
 
@@ -46,6 +50,9 @@ Only the player who placed the gun can use the fireplace now, with no time limit
   15 seconds when you walk up to one, **once each per run**.
 - Firing is fine. Switching to another weapon (except a Blundergat), going down or running out of time **fails the
   run**: you get your gun back, and five seconds later the fireplace takes a gun again (back to step 1.2).
+- **Reviving a teammate counts as switching weapon** (the revive puts the syrette in your hands): it fails the run.
+- A Mystery Box or wall gun taken with your hands full replaces the tempered gun: the run fails, and your Blundergat
+  comes back only if you have a free slot.
 
 ## 5. The forge
 
@@ -55,9 +62,9 @@ In the Generator Room by the docks, while the temper still burns:
 2. **Hold use** to **place the Tempered Blundergat** on it. The run is won.
 3. After about 13 seconds, **take the Magmagat** within **15 seconds**, or it is lost.
 
-Taking it calls a **Brutus** into the Generator Room. Already own a Magmagat? Taking one refills its ammo (a
-Pack-a-Punched gun turns a plain Magmagat into the Magmus Operandi). The fireplace then takes a new gun, so every
-player can forge his own.
+Taking it calls a **Brutus**, sent by the game as its own Brutus are, unless one is already out. Already own a
+Magmagat? Taking one refills its ammo (a Pack-a-Punched gun turns a plain Magmagat into the Magmus Operandi). The
+fireplace then takes a new gun, so every player can forge his own.
 
 ## The weapon
 
@@ -73,7 +80,7 @@ player can forge his own.
   until his flames catch; near the floor it lures zombies into its fire, 3 at a time. It only stings its owner, barely.
 - **Burning zombies** die fast in early rounds, slower later, and fall dead. Twelve enemies burn at most at once.
 - **Points**: burns and bursts pay as any weapon's hits (the shot and the blob's impact pay none); under Insta-Kill
-  any Magmagat hit kills, a blob on contact (no burst, it pools there).
+  any Magmagat hit kills, a blob on contact (no burst, it pools on the floor under the zombie).
 - **Pack-a-Punch** turns it into the Magmus Operandi. The **Acid Gat kit** turns it back into an Acid Gat with the
   Magmagat's ammo, and the fireplace takes the Acid Gat again. The Mystery Box offers no Blundergat while you hold a
   Magmagat.

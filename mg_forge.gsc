@@ -458,12 +458,17 @@ mg_forge_take( player )
 }
 
 // The Magmagat taken calls its guardian, as BO4: a Brutus, through vanilla's own spawning (brutus_spawning_logic picks
-// a zone and a spot near the players; a zone named by hand may have none and leave a removed entity behind).
+// a zone and a spot near the players; a zone named by hand may have none and leave a removed entity behind). It goes
+// through vanilla's guard, as the round's and the box alarm's Brutus do (_zm_ai_brutus.gsc attempt_brutus_spawn:
+// brutus_count + 1 > brutus_max_count, 1 on MotD, refuses): with a Brutus already out, his is the guardian and no
+// second one comes, so four forged Magmagats never stack four Brutus on the map, nor hold back the round's.
 mg_forge_guardian()
 {
     level endon( "end_game" );
     wait 1;
-    level notify( "spawn_brutus", 1 );
+
+    if ( !maps\mp\zombies\_zm_ai_brutus::attempt_brutus_spawn( 1 ) )
+        mg_debug_print( "MG: a Brutus is already out: no guardian on top of him (vanilla's limit)" );
 }
 
 mg_forge_ready_clear()

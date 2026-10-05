@@ -294,14 +294,33 @@ mg_run_fail_do( reason )
     mg_state_set( "ready" );
 }
 
-// The carrier's tempered gun back to the Blundergat he placed.
+// The carrier's tempered gun back to the Blundergat he placed. A Mystery Box or wall gun taken with a full hand has
+// replaced the tempered gun (vanilla weapon_give takes the gun in hand, the only one he could hold): the Blundergat
+// comes back too, in a free slot (Mule Kick's, or one freed since), as GUIDE.md promises; with none, the new gun
+// replaced it for good (the docs say so). Not while he is down or in Afterlife: the gun is then in his loadout, and
+// mg_tempered_watch hands it back once he is up.
 mg_run_give_back()
 {
-    if ( !isdefined( level.mg_carrier ) || !isdefined( level.mg_run_weapon ) )
+    p = level.mg_carrier;
+
+    if ( !isdefined( p ) || !isdefined( level.mg_run_weapon ) )
         return;
 
-    if ( level.mg_carrier hasweapon( level.mg_run_weapon ) )
-        level.mg_carrier mg_tempered_give_back( level.mg_run_weapon );
+    if ( p hasweapon( level.mg_run_weapon ) )
+    {
+        p mg_tempered_give_back( level.mg_run_weapon );
+        return;
+    }
+
+    original = p.mg_tempered_from;
+
+    if ( !isdefined( original ) || !is_player_valid( p ) || p hasweapon( original ) )
+        return;
+
+    if ( p getweaponslistprimaries().size < get_player_weapon_limit( p ) )
+        p giveweapon( original );
+
+    p.mg_tempered_from = undefined;
 }
 
 // Everything the run created, destroyed from one place (the loops may have been killed by a notify); a flame still

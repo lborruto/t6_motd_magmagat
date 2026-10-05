@@ -34,10 +34,12 @@ opens when someone sits in the chair on the Golden Gate Bridge after the first t
 5. **Take the Tempered Blundergat.** Hold use again: you now carry the tempered gun.
 6. **Run to the forge.** You have **15 seconds** before the temper burns out. Five drums burning blue along the way
    (the office exit, the stairs, the Citadel, the tunnels, the docks) each refill it to 15 seconds **once per run**.
-   Don't switch to another weapon and don't go down, or the run fails and you start again from step 2.
+   Don't switch to another weapon (reviving a teammate counts as one) and don't go down, or the run fails and you
+   start again from step 2.
 7. **Use the forge** in the Generator Room by the docks: first **power the Machine**, then **place the Tempered
    Blundergat** on it.
-8. **Take the Magmagat** from the forge within 15 seconds. Taking it calls a **Brutus**, so be ready.
+8. **Take the Magmagat** from the forge within 15 seconds. Taking it calls a **Brutus** (unless one is already out),
+   so be ready.
 
 A Sweeper or a Vitriolic Withering comes out as the **Magmus Operandi**. The fireplace then takes a new gun, so the
 next player can forge his own. For every detail and edge case, see the [full walkthrough](docs/GUIDE.md).
@@ -60,7 +62,7 @@ It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
 - **Burning zombies** take a share of their health every second (fast in early rounds, slower later) for up to 8
   seconds, and fall dead. Twelve enemies burn at most at once.
 - **Points and power-ups:** burns and bursts pay points as any weapon's hits (the shot and the blob's impact pay
-  none); under Insta-Kill any Magmagat hit kills, a blob on contact (no burst, it pools there).
+  none); under Insta-Kill any Magmagat hit kills, a blob on contact (no burst, it pools on the floor under it).
 - **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, keeping its ammo, and the fireplace takes the Acid
   Gat again.
 

@@ -6,7 +6,7 @@ The Magmagat, 1:1 with Black Ops 4's own script:
 
 - One blob kills Brutus in a few seconds in early rounds; a lava pool burns him hard.
 - Burns and bursts pay points (the shot and the blob's impact pay none), and Insta-Kill works with the Magmagat: a blob
-  kills a zombie on contact, with no burst, and pools there.
+  kills a zombie on contact, with no burst, and pools on the floor under it.
 - In co-op a zombie's burst goes to the player who killed it.
 - A lava pool draws zombies into its fire 3 at a time (the Magmus Operandi 6), the next coming as each dies.
 - Twelve enemies burn at most at once.
@@ -14,6 +14,18 @@ The Magmagat, 1:1 with Black Ops 4's own script:
   again, and a tough one slows to 60 % of its speed.
 - The Acid Gat kit keeps the Magmagat's ammo, and the Mystery Box offers no Blundergat while you hold a Magmagat.
 - Chains on the forge machine's feet.
+
+Fixes:
+
+- Bursts and burns no longer land seconds late in heavy co-op fire, and a zombie caught in two bursts is hit once.
+- Brutus keeps his flames while a blob or a pool still burns him.
+- Pressing use twice while depositing the essence no longer takes the gun before the fire burns blue.
+- The placer going down right after the 15th soul no longer fails the lockdown.
+- The office door opens while a teammate is down inside, so he can be revived, and no longer shuts on a player in
+  the doorway.
+- A box or wall gun bought during the run gives your Blundergat back when you have a free slot.
+- The fireplace takes no gun while the forge is still busy with the last Magmagat.
+- The forge's Brutus no longer comes on top of one already out.
 
 ## 1.0.3 - 2026-10-05
 

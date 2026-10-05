@@ -72,8 +72,16 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       at y 9183), from either side; zombies still come through. No gap above or below, nobody stuck. `!mg lockdown` puts
       the outline and clip up for 10 s at any time: the lines must sit on that doorway and along the walls (report any
       floating in the room or outside).
+- [ ] **Door clip, a player in the doorway** (co-op): P2 stands in that doorway as P1 places the gun. P2 is not stuck:
+      the pillar on him comes up only once he has stepped out (the others at once). Then the doorway is shut.
+- [ ] **Door, a teammate down inside** (co-op): P2, with no Afterlife left, goes down in the office during the
+      lockdown: the door clip goes (console `MG: a teammate is down in the office: the door opens until he is up`),
+      P3 walks in and revives him; once he is up the clip comes back (`the door shuts again`), never on a player.
+      Again with P2 going into Afterlife in the office: if his ghost spawns outside, he can walk back in to his body.
+      Report whether a ghost is held by the clip at all, and whether the Afterlife spawn lies outside the office.
 - [ ] **Kill zone**: `!mg zone` marks its sides for 15 s (the remaster's soul catcher volume: x -1070 to -440, y 8493
       to 9187, the fireplace room and the office north of it up to that doorway). They must run along the blue walls.
+- [ ] A Nuke in the office: its kills drop no essence (console `MG: kill not counted: no player attacker`).
 - [ ] Kill regular zombies in the zone (the killer inside or outside, any weapon): the soul-kill sound at the body, and
       an essence (the remaster's blue skull flame) rises off the body over 2 s and waits there, humming. It does not count yet:
       `!mg status` shows no change. No blood.
@@ -89,6 +97,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] **Fail**: the placer goes down (last stand or Afterlife) during the lockdown: the skulls go out at once, no
       sound; the essences lying there vanish; 2 s later the outline and clip go, the gun is lost, the place hint is back,
       state `ready`. Another player going down, or the placer leaving the office for any time, changes nothing.
+- [ ] **No fail after the 15th soul**: the placer goes down in the second between the 15th soul's arrival and the
+      laugh (`!mg goto souls`, take the 15th essence, then let a zombie down you): the lockdown is still won.
 - [ ] **The BO3 effects** (`!mg tour`): the blue flames (fireplace, drums, skulls, tempered gun), the essences, the
       press fire, the lava blob's trail / impact / burst and the lava pool are the remaster's own. Report any drawn as a
       black or white square, a wrong colour, or invisible.
@@ -100,6 +110,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       fabricates this with you as the placer.)
 - [ ] Deposit: three souls streak from you into the gun in the fire (about 0.75 s), then the flame-burst sound, a flare
       and the fire burns blue, over the map's own fire. The three skull flames go out.
+- [ ] **Double press**: press use twice quickly to deposit. The second press does nothing: the fire still turns blue,
+      the skull flames go out, the gun stays in the fire until a press after that.
 - [ ] The fire stays blue while nobody takes the gun (wait a minute), and the hint is now "Hold [use] to take the
       Tempered Blundergat", for the placer only.
 - [ ] The take is refused while drinking a perk or holding a grenade, claymore or revive tool. With two primaries the
@@ -126,9 +138,13 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Switching to another weapon (a perk drink, a box weapon) ends the run within about 0.1 s. Switching to a
       Blundergat, Sweeper, Acid Gat or Vitriolic Withering does not. The run does not fail at the pickup while the
       tempered gun is being raised (try with one and with two primaries).
-- [ ] **Failure paths**: the timer runs out (do nothing for 15 s), you switch weapon, you go down. Each: silent, the flame
+- [ ] **Failure paths**: the timer runs out (do nothing for 15 s), you switch weapon, you go down, you revive a
+      teammate (co-op: the syrette in your hands counts as a switch, the remaster's rule). Each: silent, the flame
       and the barrels go out, you get your Blundergat back, the skulls go dark; 5 s later the state is `ready` and the
       fireplace takes a gun again.
+- [ ] **Box or wall gun, hands full**: with two primaries (the tempered gun in hand), take a Mystery Box gun or buy a
+      wall gun: the run fails and the new gun has replaced the tempered one; no Blundergat comes back. With Mule Kick
+      and a free slot: the Blundergat comes back next to the new gun.
 
 ## 5. The forge
 
@@ -147,7 +163,11 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       roaring. At about 11.6 s the ram and lever lift and the Magmagat floats over the bed over tiny flames, with the
       "build complete" chime; the ghouls are gone through the roof.
 - [ ] At about 13 s "Hold [use] to take the Magmagat" shows, for the placer only.
-- [ ] Taking it: a Brutus spawns in the Generator Room about 1 s later.
+- [ ] Taking it: a Brutus spawns about 1 s later, where vanilla's Brutus spawning puts him. With a Brutus already
+      out (`!mg brutus` first), none comes (console `MG: a Brutus is already out`), and the next round's Brutus is not
+      held back by a guardian on top of the cap.
+- [ ] While a Magmagat is pressed or waits on the bed, the fireplace shows no place hint (co-op: P2 cannot start a
+      run that would reach a busy forge); it comes back once the Magmagat is taken or lost.
 - [ ] Every forge hint (power the Machine, place the Tempered Blundergat, take the Magmagat) and every fireplace hint shows the
       use key in yellow and the rest in white (`^3` / `^7`), like vanilla's.
 - [ ] Take it: the weapon is `magmagat_zm` ("Magmagat" on the HUD). A Pack-a-Punched gun (Sweeper, Vitriolic
@@ -172,7 +192,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       the zombies within 128 units of it lose limbs (some crawl on), catch fire, take 400 and burn to death. Killed
       by another weapon (or a trap), it falls whole and the blob just goes. No player is hurt. Other zombies are not
       drawn to a blob on a zombie. Near a hungry wolf head (the Hell's Retriever's) the stuck zombie dies whole.
-- [ ] **Hit Brutus** (`!mg brutus` sends one): 0.5 s later 100, then he burns 5 s (torso flames) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured. Two blobs a second apart: both burns stop when the first blob goes.
+- [ ] **Hit Brutus** (`!mg brutus` sends one): 0.5 s later 100, then he burns 5 s (torso flames) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured. Two blobs a second apart: both burns stop when the first blob goes, but his flames stay until the last blob goes. A blob ending while a pool's burn still runs on him leaves his flames on until that burn ends (and the reverse).
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
       turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws zombies into its fire, 3 at a time
       (the Magmus Operandi 6, while it is in hand), the next coming as each dies: nearly every zombie near it. High up a wall,
@@ -190,11 +210,15 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       the blob's impact pay nothing (shoot a zombie point-blank, the blob blocked: no points); kills give the normal
       kill points (a burst kill +10 torso bonus); Brutus pays none per hit, as for any weapon.
 - [ ] **Insta-Kill**: from round 10 (zombies over 1000 health), a blob kills the zombie it hits on contact, its head
-      gibbed, with no burst and no splash on its neighbours, and pools where it is; any pool or burn kills at once too.
+      gibbed, with no burst and no splash on its neighbours, and its blob drops to the floor under it and pools there
+      (never in the air at its chest); any pool or burn kills at once too.
       Brutus is not killed by it.
 - [ ] **Co-op burst**: player A sticks a blob on a tough zombie, player B a second one: when B's blob kills it (0.5 s
       on), the burst's kills and points go to B (to A when A's burn kills it first).
 - [ ] A burst in a crowd: its gibs and 400s land two by two, 0.1 s apart (BO4's throttle), not all in one frame.
+- [ ] **Throttle under load** (co-op): two players burst trains back to back into a dozen burning zombies: the
+      bursts' gibs and 400s still land within a second or so of the burst effect, never seconds later. A zombie
+      caught in two bursts before its hit lands takes one 400, not two.
 - [ ] **Spoon**: stuck-blob kills in the showers count.
 - [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
 - [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and
@@ -232,6 +256,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       at an Afterlife shock box - it should zap as if hit by the real Afterlife interaction.
 - [ ] **Shock pistol on a power panel**: same toggle, aim at an Afterlife power panel instead - it should
       zap that too. Toggle `!mg shock gun` off afterward and confirm shots no longer zap anything.
+- [ ] **Shock pistol and mg_debug**: toggle `!mg shock gun` on, then console `set mg_debug 0`: the next shot (and
+      every one after) zaps nothing. Back to `set mg_debug 1`, `!mg shock gun` turns it on again (not off).
+- [ ] `!mg brutus` with a Brutus already out: "MG: a Brutus is already out (vanilla's limit)", and no second one.
 - [ ] `!mg grab MG_LEVER` pins the lever: `!mg move <forward> <right> <up>` nudges it from where you look; `!mg press`
       then shows the ghouls at its grips.
 - [ ] `!mg goto locked|ready|souls|pickup|run|forge|done` puts the stations in the matching state (`souls` starts a real

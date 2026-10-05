@@ -26,6 +26,7 @@ mg_hearth_init()
     level.mg_hearth_session = 0;
     level.mg_hearth_burnt = 0;
     level.mg_lock_gen = 0;
+    level.mg_lock_clip_gen = 0;
     level.mg_lock_fx = [];
     level.mg_lock_clips = [];
 
@@ -105,6 +106,12 @@ mg_hearth_prompt_text( player )
         if ( !mg_is_blundergat( player getcurrentweapon() ) )
             return undefined;
 
+        // the forge's bed is taken while the press works the last tempered gun (mg_forge_place, about 13 s) and while
+        // its Magmagat waits for its placer (15 s): a new run then would reach a Machine that offers its carrier
+        // nothing, and burn out there. The fireplace waits for the bed (no hint, so no press) instead.
+        if ( is_true( level.mg_forge_busy ) || isdefined( level.mg_forge_ready_gun ) )
+            return undefined;
+
         return "Hold ^3[{+activate}]^7 to place Blundergat";
     }
 
@@ -133,8 +140,8 @@ mg_hearth_press( player )
         mg_hearth_place( player );
     else if ( mg_state_is( "pickup" ) && !is_true( level.mg_hearth_charged ) && !is_true( level.mg_hearth_depositing ) )
         level thread mg_hearth_deposit( player );    // its own thread: a goto ending it must not leave the fireplace busy
-    else if ( mg_state_is( "pickup" ) )
-        mg_hearth_take( player );
+    else if ( mg_state_is( "pickup" ) && is_true( level.mg_hearth_charged ) )
+        mg_hearth_take( player );    // only once the fire burns blue: a second press during the deposit's 0.9 s does nothing
 
     level.mg_hearth_busy = 0;
 }
@@ -217,6 +224,7 @@ mg_lockdown( placer )
     level.mg_souls_on = 1;
     mg_death_listen_add( "mg_hearth", ::mg_hearth_zombie_died );
     level thread mg_lockdown_fail_watch( placer );
+    level thread mg_lockdown_door_watch( placer );
     level waittill( "mg_lockdown_end", won );
     level.mg_souls_on = 0;
     mg_death_listen_remove( "mg_hearth" );
@@ -263,6 +271,7 @@ mg_lockdown_fail_watch( placer )
     level endon( "end_game" );
     level endon( "mg_goto" );
     level endon( "mg_lockdown_end" );
+    level endon( "mg_souls_full" );    // the 15th soul (mg_soul): won, nothing fails it any more
     wait 0.05;    // mg_lockdown is waiting for the end before any fail is sent
 
     while ( true )
@@ -283,6 +292,58 @@ mg_lockdown_fail_watch( placer )
     }
 
     level notify( "mg_lockdown_end", 0 );
+}
+
+// The door for a teammate down in the office (not the remaster's: its clip shuts the zone for good, but T6's MotD has
+// real last stand and Afterlife ghosts that spawn away from their bodies). While a player other than the placer lies
+// in last stand in the office, or is in Afterlife with his body there (afterlife_get_spawnpoint may put his ghost
+// outside, on the wrong side of the clip), the four pillars go, so his rescuers or his own ghost can reach him; they
+// stand again once nobody is down there, each as soon as no player stands in it (mg_lockdown_pillar). Polled every
+// 0.1 s, as the fail watch, until the lockdown ends.
+mg_lockdown_door_watch( placer )
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    level endon( "mg_lockdown_end" );
+    level.mg_lock_open = 0;
+
+    while ( true )
+    {
+        wait 0.1;
+        down = mg_lockdown_teammate_down( placer );
+
+        if ( down && !is_true( level.mg_lock_open ) )
+        {
+            level.mg_lock_open = 1;
+            mg_lockdown_clip_off();
+            mg_debug_print( "MG: a teammate is down in the office: the door opens until he is up" );
+        }
+        else if ( !down && is_true( level.mg_lock_open ) )
+        {
+            level.mg_lock_open = 0;
+            mg_lockdown_clip_on();
+            mg_debug_print( "MG: nobody is down in the office: the door shuts again" );
+        }
+    }
+}
+
+// 1 when a player other than the placer is in last stand in the office, or in Afterlife with his body there
+// (_zm_afterlife.gsc: self.afterlife, self.e_afterlife_corpse, the corpse he must revive)
+mg_lockdown_teammate_down( placer )
+{
+    foreach ( p in getplayers() )
+    {
+        if ( isdefined( placer ) && p == placer )
+            continue;
+
+        if ( p maps\mp\zombies\_zm_laststand::player_is_in_laststand() && mg_ent_in_office( p ) )
+            return 1;
+
+        if ( is_true( p.afterlife ) && isdefined( p.e_afterlife_corpse ) && mg_ent_in_office( p.e_afterlife_corpse ) )
+            return 1;
+    }
+
+    return 0;
 }
 
 // The 15th soul (MG.gsc:492-500): 1 s later the laugh and the success.
@@ -378,8 +439,13 @@ mg_soul( pos, session )
     if ( n % 5 == 0 )
         level thread mg_skull_light( int( n / 5 ) - 1 );
 
+    // the 15th soul in, the lockdown is won: the fail watch stops now, not as the win is sent 1 s later (the placer
+    // going down in that second no longer loses the gun, as GUIDE.md says)
     if ( n >= 15 )
+    {
+        level notify( "mg_souls_full" );
         level thread mg_lockdown_won();
+    }
 }
 
 // self = an essence. The player who steps on it (within 40 units, feet near it), or undefined when nobody does within
@@ -554,6 +620,10 @@ mg_hearth_take( player )
     if ( !mg_state_is( "pickup" ) || !isdefined( level.mg_hearth_owner ) || player != level.mg_hearth_owner )
         return;
 
+    // the essence deposited first: taken mid-deposit, the blue fire would never light and the skulls stay lit
+    if ( !is_true( level.mg_hearth_charged ) )
+        return;
+
     if ( !is_player_valid( player ) || is_true( player.is_drinking ) || !mg_can_replace_current( player ) )
         return;
 
@@ -609,16 +679,68 @@ mg_lockdown_wall( origin, angles )
 
 // T6's office has no wardens_playerclip: four player-only collision pillars (32 x 32 x 128, centred) stand where the
 // remaster's clip closes the zone, the inner doorway its blue wall frames (BO3 x -4469 to -4363 at y 4124: BO2 x -991
-// to -884 at y 9183). Players can neither leave nor come in; zombies walk through.
+// to -884 at y 9183). Players can neither leave nor come in; zombies walk through. A pillar with a player standing in
+// it (a teammate in the doorway as the gun is placed, a rescuer as the door shuts again) waits until he has stepped
+// out: spawned solid around him, he could stay stuck there for the whole lockdown.
 mg_lockdown_clip_on()
 {
+    gen = level.mg_lock_clip_gen;
+
     foreach ( dx in array( -48, -16, 16, 48 ) )
+        level thread mg_lockdown_pillar( ( -938 + dx, 9183, 1400 ), gen );
+}
+
+// One pillar, at once when nobody stands in it (no wait: the door shuts as the gun is placed, as it always did),
+// otherwise as soon as he has stepped out; the door opened or the lockdown ended meanwhile (the generation changed),
+// it never comes.
+mg_lockdown_pillar( origin, gen )
+{
+    level endon( "end_game" );
+
+    while ( mg_lockdown_pillar_blocked( origin ) )
     {
-        clip = spawn( "script_model", ( -938 + dx, 9183, 1400 ) );
-        clip setmodel( mg_model( "player_clip" ) );
-        clip ghost();
-        level.mg_lock_clips[level.mg_lock_clips.size] = clip;
+        wait 0.1;
+
+        if ( gen != level.mg_lock_clip_gen )
+            return;
     }
+
+    clip = spawn( "script_model", origin );
+    clip setmodel( mg_model( "player_clip" ) );
+    clip ghost();
+    level.mg_lock_clips[level.mg_lock_clips.size] = clip;
+}
+
+// 1 when a playing player's body (about 15 units around his origin, 72 high from his feet) overlaps the 32 x 32 x 128
+// pillar centred on origin
+mg_lockdown_pillar_blocked( origin )
+{
+    foreach ( p in getplayers() )
+    {
+        if ( p.sessionstate != "playing" )
+            continue;
+
+        o = p.origin;
+
+        if ( abs( o[0] - origin[0] ) < 32 && abs( o[1] - origin[1] ) < 32 && o[2] < origin[2] + 64 && o[2] + 72 > origin[2] - 64 )
+            return 1;
+    }
+
+    return 0;
+}
+
+// The four pillars gone (the lockdown's end, or the door opened for a teammate down inside); a pillar still waiting
+// for its spot to clear sees the generation change and never comes.
+mg_lockdown_clip_off()
+{
+    foreach ( clip in level.mg_lock_clips )
+    {
+        if ( isdefined( clip ) )
+            clip delete();
+    }
+
+    level.mg_lock_clips = [];
+    level.mg_lock_clip_gen++;
 }
 
 mg_lockdown_off()
@@ -626,14 +748,8 @@ mg_lockdown_off()
     foreach ( wall in level.mg_lock_fx )
         mg_fx_stop( wall );
 
-    foreach ( clip in level.mg_lock_clips )
-    {
-        if ( isdefined( clip ) )
-            clip delete();
-    }
-
+    mg_lockdown_clip_off();
     level.mg_lock_fx = [];
-    level.mg_lock_clips = [];
     level.mg_lock_gen++;
 }
 
