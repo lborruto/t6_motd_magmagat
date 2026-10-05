@@ -13,6 +13,7 @@ mg_models_init()
     level.mg_models = [];
     level.mg_models["skull"] = "mg_skull"; // mod.ff (tools/import_all.pl): the BO3 remaster's skull
     level.mg_models["barrel"] = "mg_barrel_green"; // mod.ff: the remaster's drum at its five barrel spots (dark green; the flame is blue)
+    level.mg_models["barrel_fill"] = "mg_barrel_fill"; // mod.ff (tools/barrel_fill.pl): its filling, BO4's ash and burnt splinters 2/3 up
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
     level.mg_models["ball"] = "mg_magma_blob"; // mod.ff (tools/import_all.pl): BO4's own lava blob, p8_fxp_magma_blob, as the weapon files ($blob in tools/build_weapon.pl)
     level.mg_models["press_body"] = "mg_press_body"; // mod.ff: the remaster's press (p8_zm_esc_machinery_01) without its ram

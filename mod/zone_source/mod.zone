@@ -18,6 +18,7 @@ xmodel,mg_skull_pile_sml
 xmodel,mg_skull_pile_med
 xmodel,mg_ghoul1
 xmodel,mg_ghoul2
+xmodel,mg_barrel_fill
 xanim,mg_ghoul_smelter_1
 xanim,mg_ghoul_smelter_2
 rawfile,animtrees/fxanim_props.atr

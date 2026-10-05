@@ -27,6 +27,12 @@ mg_run_init()
         barrel.angles = c.angles;
         level.mg_barrels[i - 1] = barrel;
 
+        // filled 2/3 up with ash and burnt wood, as BO4's (the owner's call: nothing seen of the drum's inside)
+        fill = spawn( "script_model", c.origin );
+        fill setmodel( mg_model( "barrel_fill" ) );
+        fill.angles = c.angles;
+        barrel.mg_fill = fill;
+
         // players walk through a bare script_model: a collision clip stands inside the barrel (owner 2026-09-20), 128
         // high from its foot so nobody jumps onto it
         clip = spawn( "script_model", mg_barrel_base( barrel ) + ( 0, 0, 64 ) );

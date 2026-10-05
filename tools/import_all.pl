@@ -65,6 +65,7 @@ my @props = (
 # Greyhound names an xanim it cannot resolve xanim_<fnv1a-64 of the name, 60 bits>; ours are named after the scene.
 my $xm4 = "$gh/exported_files/black_ops_4_sp/xmodels";
 my $xi4 = "$gh/exported_files/black_ops_4_sp/ximages";
+my $splinters = 'p8_zm_esc_debris_wood_pile_splinter_40x40x4_burnt';    # BO4's burnt splinters, the drums' filling
 my $bo4_skull_c = "$work/i_mg_skull_bo4_c.png";    # BO4's plain skull, its colour baked (below)
 my $xa4 = "$gh/exported_files/black_ops_4_sp/xanims";
 my $lever_scale = 0.755;
@@ -102,11 +103,17 @@ if ( -d $xi4 ) {
     # concrete floor): the mask times a bone colour, the remaster skull's average (140 134 118 over the mask's 163)
     system( 'perl', "$FindBin::Bin/paint_mask.pl", "$xi4/i_p8_zm_esc_skull_sgl_m.png", $bo4_skull_c, '--tint', '0.859,0.822,0.724' ) == 0
         or die "import_all.pl: the BO4 skull's colour failed\n";
+    # the temper drums' filling, 2/3 up (tools/barrel_fill.pl): BO4's ash and burnt splinters
+    system( 'perl', "$FindBin::Bin/barrel_fill.pl", "$xm4/$splinters", "$work/made/mg_barrel_fill" ) == 0 or die "import_all.pl: the drums' filling failed\n";
 }
+# the props we make (above), as Greyhound exports: the drums' filling stands in the drum, its pivot as mg_barrel_green's;
+# the splinters' colour is their burnt map (their export names a light wood that BO4 burns in its shader)
+my @made_props = ( [ 'mg_barrel_fill', 'mg_barrel_fill', '--offset', '0,0,-22.37', '--color',
+    "debris_wood_burnt=$xm4/$splinters/_images/mtl_p8_zm_zod_debris_wood_burnt/i_mtl_p8_zm_zod_debris_wood_burnt_c.png" ] );
 
 # a model Greyhound exported empty (import_prop.pl exits 3) is left out; what uses it falls back on a vanilla one
 my @built;
-for my $p ( ( map { [ $xm, $xi, @$_ ] } @props ), ( map { [ $xm4, $xi4, @$_ ] } @bo4_props ) ) {
+for my $p ( ( map { [ $xm, $xi, @$_ ] } @props ), ( map { [ $xm4, $xi4, @$_ ] } @bo4_props ), ( map { [ "$work/made", $xi4, @$_ ] } @made_props ) ) {
     my ( $models, $images, $name, $model, @opt ) = @$p;
     if ( !-d "$models/$model" ) { warn "import_all.pl: $name left out (no $model in $models)\n"; next }
     my $rc = system( 'perl', "$FindBin::Bin/import_prop.pl", @opt, "$models/$model", $name, $images ) >> 8;
