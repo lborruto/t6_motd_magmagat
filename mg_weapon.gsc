@@ -695,24 +695,8 @@ mg_pool( blob, player, weapon, shown )
     pool = spawn( "trigger_radius", origin, 0, 64, 32 );
     pool.owner = player;
     pool.weapon = weapon;
+    fire = mg_fx_loop( "patch_fire", pos, shown.angles );
     lure = mg_blob_lure( blob, weapon );
-    puddle = undefined;
-
-    // mg_bo4 "pool": BO4's lava more than fire, a puddle of molten lava (the remaster's splat mesh, flat, in the mod's
-    // lava) on the surface (turned at random on a floor), embers on it; else the remaster's fire
-    if ( mg_bo4( "pool" ) )
-    {
-        puddle = spawn( "script_model", pos );
-        puddle.angles = shown.angles;
-
-        if ( anglestoup( shown.angles )[2] > 0.7 )    // on a floor its angles are a yaw alone
-            puddle.angles = ( 0, randomint( 360 ), 0 );
-
-        puddle setmodel( mg_model( "puddle" ) );
-        fire = mg_fx_loop( "embers", pos, shown.angles );
-    }
-    else
-        fire = mg_fx_loop( "patch_fire", pos, shown.angles );
 
     // counted once its fire is up: the oldest may still be in that wait and miss the notify
     if ( level.mg_pools.size >= 2 )
@@ -723,9 +707,6 @@ mg_pool( blob, player, weapon, shown )
     arrayremovevalue( level.mg_pools, pool );
     pool delete();
     mg_fx_stop( fire );
-
-    if ( isdefined( puddle ) )
-        puddle delete();
 
     if ( isdefined( shown ) )
         shown delete();

@@ -226,11 +226,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 8b. BO4 or the remaster (1.0.3 work)
 
 The dvar `mg_bo4` lists the parts to play BO4's way; set it in the console **before loading the map**
-(`set mg_bo4 "skulls hover pool"`, or `all`; empty = the remaster's).
+(`set mg_bo4 "skulls hover"`, or `all`; empty = the remaster's).
 
 - [ ] `skulls`: BO4's mantle skulls, plain until filled, then the Afterlife skull (its quest's own swap at 5 / 10 / 15).
 - [ ] `hover`: the gun in the fireplace floats up and down, BO4's 3.3 s loop.
-- [ ] `pool`: a missed blob leaves a puddle of molten lava with embers instead of the remaster's fire.
 - [ ] The forge (always BO4's now): `say !mg press` plays it on a Tempered Blundergat. The ghouls rise out of the bed
       to the lever's ends, the lever drops at 3.4 s, the ram strikes at 4 s and works 7.4 s in fire, the Magmagat
       floats over the bed. `!mg grab MG_LEVER` places the lever (the ghouls fly around it).
