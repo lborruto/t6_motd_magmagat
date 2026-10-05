@@ -22,8 +22,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 0. Load
 
 - [ ] No red error popup on map load.
-- [ ] The five route barrels are the remaster's dark-green drums and the three mantle skulls its skulls
-      (`!mg show` previews them; `!mg model mg_barrel_green` / `!mg model mg_skull` spawn one in front of you).
+- [ ] The five route barrels are the remaster's dark-green drums and the three mantle skulls BO4's plain skulls
+      (`!mg show` previews them; `!mg model mg_barrel_green` / `!mg model mg_skull_bo4` spawn one in front of you).
 - [ ] `!mg status` prints the version, the state (`locked` at boot), souls 0/15, no carrier, the gate flag and the
       forge (closed), and a resolved line for every anchor.
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
@@ -226,9 +226,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 8b. BO4 or the remaster (1.0.3 work)
 
 The dvar `mg_bo4` lists the parts to play BO4's way; set it in the console **before loading the map**
-(`set mg_bo4 "skulls hover"`, or `all`; empty = the remaster's).
+(`set mg_bo4 "hover"`, or `all`; empty = the remaster's).
 
-- [ ] `skulls`: BO4's mantle skulls, plain until filled, then the Afterlife skull (its quest's own swap at 5 / 10 / 15).
 - [ ] `hover`: the gun in the fireplace floats up and down, BO4's 3.3 s loop.
 - [ ] The forge (always BO4's now): `say !mg press` plays it on a Tempered Blundergat. The ghouls rise out of the bed
       to the lever's ends, the lever drops at 3.4 s, the ram strikes at 4 s and works 7.4 s in fire, the Magmagat

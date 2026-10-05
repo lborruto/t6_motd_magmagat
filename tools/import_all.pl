@@ -40,7 +40,6 @@ else { warn "import_all.pl: no $models_snap: the forge machine keeps Greyhound's
 my @props = (
     # the temper run's drums: the remaster stands this one at each of its five str_barrel_fire spots (only the flame is blue)
     [ 'mg_barrel_green', 'p7_zm_gen_barrel_metal_55gal_green_drk_lod', '--offset', '0,0,-22.37', '--color', "green_drk=$work/i_mtl_p7_barrel_metal_55gal_green_drk_c.png" ],    # p6_zm_al_wood_barrel_01 pivots at mid height
-    [ 'mg_skull', 'p7_zm_zod_skull', '--offset', '0,0,-3.51' ],    # BO2's own skull mesh; p6_zm_al_skull pivots at its centre
     # the lava splat meshes the remaster's magma effects throw (tools/bo3_fx.pl names them mg_<BO3 name>), and BO4's lava
     # blob: their BO3 shader is procedural, so they take the mod's own lava (mc/mg_lava, the BO3 lava texture)
     [ 'mg_fx_magma_splat02_mesh', 'fx_magma_splat02_mesh', '--material', 'mc/mg_lava' ],
@@ -74,8 +73,8 @@ my @bo4_props = (
     # the press's BO3 tints too; its grips drawn 2 units each closer to the middle (the owner's fit: 64.4 -> 62.4)
     [ 'mg_press_lever', 'p8_fxanim_zm_esc_smelter_ghost_mod', '--bones', 'handel_1_jnt,handel_1_release_jnt,handel_2_release_jnt', @press_decals,
         '--scale', $lever_scale, '--offset', join( ',', map { sprintf '%.3f', -$_ * $lever_scale } 100.71, 80.02, 59.49 ), '--stretch', '1,0.969,1' ],
-    # BO4's mantle skulls (dvar mg_bo4 "skulls"): its quest stands three plain ones and swaps each for the Afterlife skull
-    # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is our remaster skull's mesh. Pivot at mid height, as mg_skull's.
+    # BO4's mantle skulls: its quest stands three plain ones and swaps each for the Afterlife skull
+    # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is the remaster skull's mesh. Pivot at mid height.
     [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--color', "skull_sgl=$bo4_skull_c", '--offset', '0,0,-3.51' ],
     [ 'mg_skull_bo4_lit', 'p8_zm_esc_skull_afterlife', '--offset', '0,0,-3.51' ],
     [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--tail', '30,0.5,0.35', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],

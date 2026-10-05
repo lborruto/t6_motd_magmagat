@@ -11,7 +11,6 @@
 mg_models_init()
 {
     level.mg_models = [];
-    level.mg_models["skull"] = "mg_skull"; // mod.ff (tools/import_all.pl): the BO3 remaster's skull
     level.mg_models["barrel"] = "mg_barrel_green"; // mod.ff: the remaster's drum at its five barrel spots (dark green; the flame is blue)
     level.mg_models["barrel_fill"] = "mg_barrel_fill"; // mod.ff (tools/barrel_fill.pl): its filling, BO4's ash and burnt splinters 2/3 up
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
@@ -19,7 +18,7 @@ mg_models_init()
     level.mg_models["press_body"] = "mg_press_body"; // mod.ff: the remaster's press (p8_zm_esc_machinery_01) without its ram
     level.mg_models["press_ram"] = "mg_press_ram"; // its ram, which script brings down
     level.mg_models["beacon"] = "p6_zm_al_candle_tall_on"; // visible stand-in for point anchors (no prop of their own)
-    level.mg_models["skull_bo4"] = "mg_skull_bo4"; // mod.ff: BO4's mantle skull, plain (dvar mg_bo4 "skulls")
+    level.mg_models["skull_bo4"] = "mg_skull_bo4"; // mod.ff: BO4's mantle skull, plain (its quest's three)
     level.mg_models["skull_bo4_lit"] = "mg_skull_bo4_lit"; // mod.ff: BO4's lit one, the Afterlife skull, once filled
     level.mg_models["press_lever"] = "mg_press_lever"; // mod.ff: BO4's smelter's lever on the press, pivot at its origin
     level.mg_models["ghoul1"] = "mg_ghoul1"; // mod.ff: BO4's ghouls, the ghosts that pull the lever (skinned, Afterlife ghost material)
@@ -64,9 +63,9 @@ mg_coords_init()
     // hearth ever moves again
     mg_coord_set( "MG_HEARTH", ( -767, 8662, 1372 ), ( 0, 180, 0 ), mg_model( "gun_world" ) );
     mg_coord_set( "MG_HEARTH_USE", ( -433, 8762, 1353 ), ( 0, 135, 0 ), mg_model( "beacon" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
-    mg_coord_set( "MG_SKULL_1", ( -495, 8784, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
-    mg_coord_set( "MG_SKULL_2", ( -475, 8804, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
-    mg_coord_set( "MG_SKULL_3", ( -455, 8824, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
+    mg_coord_set( "MG_SKULL_1", ( -495, 8784, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
+    mg_coord_set( "MG_SKULL_2", ( -475, 8804, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
+    mg_coord_set( "MG_SKULL_3", ( -455, 8824, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
 
     // barrels along the route (spec: office exit, top of the spiral stairs, bottom of the tunnels, generator door):
     // placeholders on the zone volume origins of tools/assets/zm_prison.d3dbsp.ents.txt
@@ -131,15 +130,15 @@ mg_apply_overrides()
 
     mg_coord_override( "MG_HEARTH_USE", ( -489, 8787, 1336 ), ( 0, 237, 0 ) );
 
-    mg_coord_override( "MG_BARREL_1", ( -468, 9403, 1360 ), ( 0, 248, 0 ) );
+    mg_coord_override( "MG_BARREL_1", ( -468, 9403, 1359 ), ( 0, 248, 0 ) ); // 1 down: it stood off the floor
 
-    mg_coord_override( "MG_BARREL_2", ( 270, 8855, 1152 ), ( 0, 248, 0 ) );
+    mg_coord_override( "MG_BARREL_2", ( 270, 8855, 1151 ), ( 0, 248, 0 ) ); // 1 down: it stood off the floor
 
     mg_coord_override( "MG_BARREL_3", ( 268, 8828, 856 ), ( 0, 351, 0 ) ); // 8 up: it sank into the floor
 
     mg_coord_override( "MG_BARREL_4", ( 85, 8697, 399 ), ( 0, 8, 0 ) );
 
-    mg_coord_override( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ) );
+    mg_coord_override( "MG_BARREL_5", ( -62, 7007, 87 ), ( 0, 184, 0 ) ); // 1 down: it stood off the floor
 
     // the forge: the machine stands where BO4's own fits, turned to face as the owner set it (his grab, 2026-10-04: press
     // -310 6358 64, yaw 101; the remaster's spot was 136 6655 72, yaw 190.7); the gun on its bed and the use trigger keep

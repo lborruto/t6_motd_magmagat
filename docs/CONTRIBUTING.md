@@ -92,7 +92,7 @@ and an environment variable to point elsewhere.
   without it the machine comes out light grey).
 - **Greyhound** (Scobalula; `MG_GREYHOUND`, the folder holding `exported_files`), with BO3 running on the map. Export
   these models (glTF + XMODEL_EXPORT) into `exported_files/black_ops_3_sp/xmodels`:
-  `p7_zm_gen_barrel_metal_55gal_green_drk_lod`, `p7_zm_zod_skull`, `fx_magma_splat02_mesh`, `fx_magma_splat03_mesh`,
+  `p7_zm_gen_barrel_metal_55gal_green_drk_lod`, `fx_magma_splat02_mesh`, `fx_magma_splat03_mesh`,
   `p8_fxp_magma_blob`, `p8_zm_esc_machinery_01`, `wpn_t8_zm_magmagat_view` and `wpn_t8_zm_blundergat_tempered_view`.
   BO3 streams meshes in: export a model while it is in view in game, or its LODs come out empty (`tools/import_prop.pl`
   leaves empty LODs out, and a model with none is left out of the mod). `p8_fxp_magma_blob` in particular exports only
@@ -256,7 +256,7 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | `!mg help` | full command list |
 | `!mg give` | give a plain Blundergat |
 | `!mg magma` | swap the Blundergat in hand for its Magmagat (the Sweeper for the Magmus Operandi) |
-| `!mg model <xmodel>` | spawn any precached model 80 units in front of you (the mod.ff props: `mg_barrel_green`, `mg_skull`) |
+| `!mg model <xmodel>` | spawn any precached model 80 units in front of you (the mod.ff props: `mg_barrel_green`, `mg_skull_bo4`) |
 | `!mg shock` | zap every Afterlife shock box and panel of the map at once (doors, generator panels) |
 | `!mg shock gun` | toggle the debug shock pistol (zaps the shock box or panel you shoot) |
 | `!mg fx [<n>\|<name>\|next\|prev\|stop]` | audition a registered effect where you aim, 8 s (no fx grid in this mod) |

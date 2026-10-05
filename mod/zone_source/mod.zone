@@ -5,7 +5,6 @@
 
 // props (tools/import_all.pl)
 xmodel,mg_barrel_green
-xmodel,mg_skull
 xmodel,mg_fx_magma_splat02_mesh
 xmodel,mg_fx_magma_splat03_mesh
 xmodel,mg_magma_blob

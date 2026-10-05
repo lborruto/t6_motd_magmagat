@@ -66,9 +66,9 @@ It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
   Kingslayer Kyle): the quest this mod follows and the quest's effects, released with copforthat's permission.
 - **Harry**: the Magmagat's blob and muzzle-flash effects, as that map ships them.
 - **Treyarch / Activision**: every model, texture and sound. From Black Ops 4: the Magmagat, the Tempered
-  Blundergat, the lava blob, the forge and, as far as we can tell, the quest's sounds. From Black Ops III: the drums,
-  the skulls, the lava and the effects' textures. From Black Ops II: Mob of the Dead itself and the Blundergat
-  animations.
+  Blundergat, the lava blob, the forge's lever and ghouls, the skulls, the drums' ash and burnt wood and, as far as
+  we can tell, the quest's sounds. From Black Ops III: the drums, the forge, the lava and the effects' textures. From
+  Black Ops II: Mob of the Dead itself and the Blundergat animations.
 - **Tools**: OpenAssetTools (Laupetin and contributors), Greyhound and HydraX (Scobalula).
 - **Plutonium**, for keeping Black Ops II alive.
 

@@ -414,13 +414,9 @@ mg_essence_fly( skull )
     wait 0.5;
 }
 
-// The mantle skull's model: the remaster's (its skull keeps one model, lit or not), or with mg_bo4 "skulls" BO4's,
-// a plain skull that becomes the Afterlife skull once lit.
+// The mantle skull's model, BO4's (the owner's pick for 1.0.3): a plain skull that becomes the Afterlife skull once lit.
 mg_skull_model( lit )
 {
-    if ( !mg_bo4( "skulls" ) )
-        return mg_model( "skull" );
-
     if ( lit )
         return mg_model( "skull_bo4_lit" );
 
