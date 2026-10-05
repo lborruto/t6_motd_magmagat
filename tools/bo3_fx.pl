@@ -63,8 +63,9 @@ open my $lh, '<', "$FindBin::Bin/assets/bo3_fx.tsv" or die "bo3_fx.pl: no tools/
 # surface turns its elements that run relative to the world (flags & 0xC0: 0x00) to its spawn (0x40), so it lies on the
 # surface it is played on (the lava pool on a wall: its ring of fire stayed level, across the wall); fullgain keeps the
 # whole HDR gain in the textures of its materials and of the effects it runs, colour and alpha, uncapped, as before the
-# cap (IMAGE_GAIN_CAP: the effects the owner had already tuned in game keep their look)
-my ( %scale, %surface, @copies, @fullgain );
+# cap (IMAGE_GAIN_CAP: the effects the owner had already tuned in game keep their look); nosmoke leaves its smoke
+# sprites out (a material named smk: BO3's lit smoke, drawn by T6's blend template, flashed white on the body fire)
+my ( %scale, %surface, @copies, @fullgain, %nosmoke );
 while (<$lh>) {
     s/\s*#.*//;
     my ( $n, @opt ) = split;
@@ -78,6 +79,7 @@ while (<$lh>) {
         elsif (/^size=([\d.]+)$/)                   { $o{size} = $1 }
         elsif (/^surface$/)                         { $surface{$n} = 1 }
         elsif (/^fullgain$/)                        { $o{fullgain} = 1 }
+        elsif (/^nosmoke$/)                         { $nosmoke{$n} = 1 }
         else                                        { die "bo3_fx.pl: bad option $_ for $n\n" }
     }
     die "bo3_fx.pl: tint=, spread= and size= make a copy: they need as= ($n)\n" if !$o{as} && ( $o{tint} || $o{spread} || $o{size} );
@@ -129,6 +131,15 @@ while ( my $job = shift @todo ) {
     my ( $n, $t6, $tint, $spread, $size ) = @$job;
     next if $done{$t6}++;
     my ( $fx, $need, $notes ) = $c->convert($n);
+    if ( $nosmoke{$n} ) {    # its smoke sprites go, the counts per kind (looping, one-shot, emission) with them
+        my @kind = ( ('elemDefCountLooping') x $fx->{elemDefCountLooping}, ('elemDefCountOneShot') x $fx->{elemDefCountOneShot}, ('elemDefCountEmission') x $fx->{elemDefCountEmission} );
+        my @keep = grep { my $e = $fx->{elemDefs}[$_]; $e->{elemType} > 6 || !grep { defined && /smk/ } @{ $e->{visuals} } } 0 .. $#{ $fx->{elemDefs} };
+        $fx->{$_} = 0 for qw(elemDefCountLooping elemDefCountOneShot elemDefCountEmission);
+        $fx->{ $kind[$_] }++ for @keep;
+        $fx->{elemDefs} = [ @{ $fx->{elemDefs} }[@keep] ];
+        my %used = map { $_ => 1 } grep {defined} map { @{ $_->{visuals} || [] } } grep { $_->{elemType} <= 6 } @{ $fx->{elemDefs} };
+        delete $need->{materials}{$_} for grep { /smk/ && !$used{$_} } keys %{ $need->{materials} };
+    }
     $kids{$t6} = [ map { t6fx($_) } keys %{ $need->{effects} } ];
     # a BO3 heat distortion draws with vanilla's own (a copy of its material crashed the game when drawn)
     my %as;
