@@ -187,14 +187,11 @@ mg_hearth_place( player )
     level thread mg_lockdown( player );
 }
 
-// The gun in the fire, at MG_HEARTH. With mg_bo4 "hover", BO4's: it floats there (mg_hover).
+// The gun in the fire, at MG_HEARTH.
 mg_hearth_gun_spawn( weapon )
 {
     c = mg_coord( "MG_HEARTH" );
     level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
-
-    if ( mg_bo4( "hover" ) )
-        level.mg_hearth_gun thread mg_hover( c.origin );
 }
 
 // The lockdown (MG.gsc:431-454): the office shut for players, its fire outline, the laugh, the laundry's defend music;

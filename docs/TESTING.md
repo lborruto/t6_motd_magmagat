@@ -228,13 +228,6 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] After a Magmagat, another player can temper his own: the fireplace takes a Blundergat again, and the powered
       Machine takes only his Tempered Blundergat (no plain Blundergat).
 
-## 8b. BO4 or the remaster
-
-The dvar `mg_bo4` lists the parts to play BO4's way; set it in the console **before loading the map**
-(`set mg_bo4 "hover"`, or `all`; empty = the remaster's).
-
-- [ ] `hover`: the gun in the fireplace floats up and down, BO4's 3.3 s loop.
-
 ## 9. Lints and syntax (before every deploy)
 
 - [ ] `perl tools/lint_includes.pl && perl tools/lint_calls.pl && perl tools/lint_sounds.pl && perl tools/check_links.pl .`

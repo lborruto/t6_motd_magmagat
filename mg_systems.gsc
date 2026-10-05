@@ -150,16 +150,8 @@ mg_fx_add( ent, key )
     mg_fx_add_tag( ent, key, "tag_origin" );
 }
 
-// Whether part plays BO4's way rather than the remaster's: the dvar mg_bo4 lists the parts (only "hover" now: the gun
-// floating in the fireplace), or "all". The owner's comparison knob, read as the gun is laid in the fire.
-mg_bo4( part )
-{
-    list = " " + getdvar( "mg_bo4" ) + " ";
-    return issubstr( list, " " + part + " " ) || issubstr( list, " all " );
-}
-
 // self = an entity floating at origin until it goes, BO4's way (its p8_fxanim_zm_esc_blundergat_fireplace_hover_anim:
-// up 3.7 cm, 1.5 in, and back over its 3.33 s loop, no turn): the gun in the fireplace, the Magmagat on the forge.
+// up 3.7 cm, 1.5 in, and back over its 3.33 s loop, no turn): the Magmagat on the forge.
 mg_hover( origin )
 {
     self endon( "death" );
