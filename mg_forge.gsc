@@ -24,7 +24,7 @@ mg_forge_init()
 }
 
 // The remaster's press (p8_zm_esc_machinery_01, mg_upgrade_machine) at its anchor MG_PRESS (mg_coords.gsc: pinned where
-// BO4's own fits).
+// the owner set it).
 mg_press_spawn()
 {
     c = mg_coord( "MG_PRESS" );

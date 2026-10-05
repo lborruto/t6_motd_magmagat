@@ -73,7 +73,7 @@ mg_coords_init()
     mg_coord_set( "MG_BARREL_4", ( -400, 6500, 72 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
     mg_coord_set( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ), mg_model( "barrel" ) ); // owner: five barrels on the route
 
-    // forge: placeholders near the Generator Room (the overrides stand it where BO4's own fits; mg_forge spawns the press)
+    // forge: placeholders near the Generator Room (the overrides stand it where the owner set it; mg_forge spawns the press)
     mg_coord_set( "MG_FORGE", ( -400, 6330, 72 ), ( 0, 190.7, 0 ), mg_model( "beacon" ) );
     mg_coord_set( "MG_FORGE_GUN", ( -449, 6307, 120 ), ( 0, 280, -90 ), mg_model( "gun_world" ) );
 
@@ -139,7 +139,7 @@ mg_apply_overrides()
 
     mg_coord_override( "MG_BARREL_5", ( -62, 7007, 87 ), ( 0, 184, 0 ) ); // 1 down: it stood off the floor
 
-    // the forge: the machine stands where BO4's own fits, turned to face as the owner set it (his grab, 2026-10-04: press
+    // the forge: the machine stands where the owner set it (his grab, 2026-10-04: press
     // -310 6358 64, yaw 101; the remaster's spot was 136 6655 72, yaw 190.7); the machine, its gun spot on the bed and its
     // lever are each pinned by the owner's grabs below
     mg_coord_override( "MG_FORGE", ( -315.9, 6383.5, 64 ), ( 0, 101, 0 ) );
