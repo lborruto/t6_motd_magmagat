@@ -42,7 +42,8 @@ mg_fx_table()
     // the forge
     t["sparks"] = "mg/fx_alcatraz_magmagat_power"; // the remaster's: the Machine powered
     t["forge_rise"] = "mg/fx_prison_magmagat_press_fire"; // the remaster's press at work
-    t["forge_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_sm"; // the gun burning under the ram while the press works it
+    t["forge_fire"] = "mg/fx_mg_forge_fire"; // the gun burning under the ram while the press works it: zm_prison's fx_alcatraz_fire_sm without its glow (tools/bo3_fx.pl)
+    t["forge_flare"] = "mg/fx_mg_forge_flare"; // the burst of flame as the ram strikes: its fx_alcatraz_falling_fire_impact, the same
     t["forge_embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat"; // BO4's tiny flames on the bed under it
     t["ghost_body"] = "maps/zombie_alcatraz/fx_alcatraz_ghost_body"; // vanilla's Afterlife glow, on the forge's ghouls
     t["ghost_head"] = "maps/zombie_alcatraz/fx_alcatraz_ghost_head";

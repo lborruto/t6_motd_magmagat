@@ -5,6 +5,7 @@
 #   - materials/mg_<material>.json: each BO3 effect material as a vanilla zm_prison effect material of the same kind
 #     (emissive, blend, cloud, decal; a heat distortion uses vanilla's gfx_distortion_heat) with the BO3 texture and flipbook grid
 #   - images/_mg_<image>.dds: the BO3 texture (Greyhound's PNG export), embedded ("*mg_<image>")
+#   - fx/mg/fx_mg_forge_fire, fx_mg_forge_flare: two zm_prison fires for the forge, their glow taken out
 # then the zone's fx list (// fx ... // end fx in mod/zone_source/mod.zone).
 #
 #   perl tools/bo3_fx.pl
@@ -164,6 +165,22 @@ while ( my $job = shift @todo ) {
     spit( "$raw/fx/$t6.json", $json->encode($fx) );
     $mats{$_} //= $need->{materials}{$_} for grep { !$as{$_} } keys %{ $need->{materials} };
     push @todo, map { [ $_, t6fx($_) ] } keys %{ $need->{effects} };
+}
+
+# zm_prison's own fires for the forge's press at work, without the glow at their heart (the owner's call): the
+# additive light haze (gfx_fxt_smk_light_add_*) and the light (element type 7) go, the flames, sparks and smoke stay
+my %glowless = ( 'maps/zombie_alcatraz/fx_alcatraz_fire_sm' => 'mg/fx_mg_forge_fire', 'maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact' => 'mg/fx_mg_forge_flare' );
+for my $src ( sort keys %glowless ) {
+    my $t6 = $glowless{$src};
+    my $fx = decode_json( slurp("$tdump/fx/$src.json") );
+    my @kinds = ( ('elemDefCountLooping') x $fx->{elemDefCountLooping}, ('elemDefCountOneShot') x $fx->{elemDefCountOneShot}, ('elemDefCountEmission') x $fx->{elemDefCountEmission} );
+    my @keep = grep { my $e = $fx->{elemDefs}[$_]; $e->{elemType} != 7 && !grep { defined && /smk_light_add/ } @{ $e->{visuals} } } 0 .. $#{ $fx->{elemDefs} };
+    $fx->{$_} = 0 for qw(elemDefCountLooping elemDefCountOneShot elemDefCountEmission);
+    $fx->{ $kinds[$_] }++ for @keep;
+    $fx->{elemDefs} = [ @{ $fx->{elemDefs} }[@keep] ];
+    $fx->{totalSize} = MgFx7::total_size( $t6, $fx );
+    spit( "$raw/fx/$t6.json", $json->encode($fx) );
+    $by_t6{$t6} = $src;
 }
 
 # materials
