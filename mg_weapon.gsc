@@ -1241,27 +1241,13 @@ mg_burn_start()
     self thread mg_burn_fx();
 }
 
-// self = zombie. Its flames, the remaster's own: BO3's body fire (arch_actor_fire_fx, archetype_damage_effects.csc:
-// fire/fx_fire_ai_human_<part>_loop) on four of the ten tags it lights, the chest (J_Spine4), the head and one arm and
-// one leg, until mg_burn_end, or 2 s after its death as it lies there. Four, not ten: each of BO3's is some 25 to 65
-// sprites (Mob's torso fire was 11), so ten on each of 12 burning zombies (mg_burn_start) would be some 4000 sprites
-// and 120 carriers, past what T6 draws beside the pools and the guns; these four are some 150 a zombie, on the 48
-// carriers the burn always had. The hips (the heaviest, 45 each) and the second arm and leg are the ones left out.
-// Brutus keeps his own (the owner's): Mob's torso fire up and down the spine and a small fire on an arm and a leg, as
-// vanilla's flame_death_fx lays a burning body's (zm_death).
+// self = zombie. Its flames, laid out as vanilla's flame_death_fx lays a burning body's (zm_death): Mob's torso fire up
+// and down the spine and a small fire on an arm and a leg, until mg_burn_end, or 2 s after its death as it lies there
+// (the owner's pick over the remaster's BO3 body fire).
 mg_burn_fx()
 {
-    arm = random( array( "le", "ri" ) );
-    leg = random( array( "le", "ri" ) );
-    tags = array( "j_spine4", "j_head", "j_elbow_" + arm, "j_knee_" + leg );
-    keys = array( "burn_torso", "burn_head", "burn_arm_" + arm, "burn_leg_" + leg );
-
-    if ( mg_is_boss( self ) )
-    {
-        tags = array( "j_spineupper", "j_spinelower", "j_elbow_" + arm, "j_knee_" + leg );
-        keys = array( "burn", "burn", "blob_fire", "blob_fire" );
-    }
-
+    tags = array( "J_SpineUpper", "J_SpineLower", random( array( "J_Elbow_LE", "J_Elbow_RI" ) ), random( array( "J_Knee_LE", "J_Knee_RI" ) ) );
+    keys = array( "burn", "burn", "blob_fire", "blob_fire" );
     fx = [];
 
     for ( i = 0; i < tags.size; i++ )

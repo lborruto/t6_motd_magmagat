@@ -86,12 +86,7 @@ BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effe
    `size=k` its sideways origins and its sprites scaled (the drums' flame and flare).
    (`scale=x,y` stretches an effect's element origins instead: the lockdown outline, fitted from the remaster's slightly
    smaller office to BO2's. `surface` turns the elements that run relative to the world to their spawn, so the effect
-   lies on the surface it is played on: the lava pool on a wall. `nosmoke` leaves out the elements drawn with a `smk`
-   material, BO3's lit smoke, and draws a glowing emissive blend that has an emission mask (its second texture,
-   `$white_reveal` when the whole texture glows) as its own `_emask` material, its texture's colour times the mask:
-   only the fire glows. Without it the torso's `fxt_exp_alpha_anim`, a fireball flipbook whose second half is grey
-   smoke, drew additive at a gain of 4 and every frame saturated to a white puff: the white flashing smoke on burning
-   zombies.)
+   lies on the surface it is played on: the lava pool on a wall.)
 
 A visual the snapshot missed is dropped (a null material crashes T6 when drawn), and so is an element left with none.
 
@@ -99,8 +94,7 @@ The effects in the mod are listed in `tools/assets/bo3_fx.tsv`; they become `mg/
 (`_copforthat/_zm_prison/*`: the blue flames, the lockdown, the press fire, the lava pool, the soul). The rest are
 Harry's effects, which the remaster ships: `harry/magmagat/*` (the blob's trail, impact and burst,
 `mg/fx_magmagat_trail_bolt`, `_impact`, `_explode`, which the Magmagat weapon files name) and `harry/blundersplat/*`
-(the fire-coloured Acid Gat muzzle flash the Magmagat fires with). `fire/fx_fire_ai_human_*_loop` are BO3's own
-body fire (its `arch_actor_fire_fx`), on a burning zombie's chest, head, an arm and a leg. Two more are Mob's
+(the fire-coloured Acid Gat muzzle flash the Magmagat fires with). Two more are Mob's
 own fires with their glow taken out, for the forge and the fireplace (`mg/fx_mg_forge_fire`, `mg/fx_mg_forge_flare`,
 from `fx_alcatraz_fire_sm` and `fx_alcatraz_falling_fire_impact`). The lava pool a miss
 lays is `mg/fx_prison_magmagat_aoe`. Not carried over: BO3's sound elements and spawn sounds (BO3 aliases; the mod

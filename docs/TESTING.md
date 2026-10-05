@@ -206,8 +206,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       hurt touching it: 1 every 0.4 s, with a light rumble (a pad's), down or not.
 - [ ] A blob fired into the sky (it never lands): a pool appears where it is after 5 s of flight. A blob on a corpse
       or the gondola pools where it stuck.
-- [ ] A burning zombie: the remaster's body fire on its chest, head, one arm and one leg, with no white smoke flash; the flames and the loop
-      sound stay on it until it dies or for 8 s. Brutus keeps Mob's torso flames.
+- [ ] A burning zombie: Mob's torso fire up its spine and a small fire on an arm and a leg; the flames and the loop
+      sound stay on it until it dies or for 8 s.
 - [ ] The blob's landing splash flies out of the surface it hit (floor: upward; wall: out of the wall), for the Magmus
       Operandi too; a zombie's burst sprays upward, not sideways.
 - [ ] **12 burning at most**: with 12 or more enemies burning (a big train through two pools), the next ones take

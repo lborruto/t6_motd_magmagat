@@ -19,7 +19,6 @@ The Magmagat, closer to Black Ops 4's own script:
 
 The look, mostly the Black Ops 3 remaster's:
 
-- Burning zombies burn with the remaster's own body fire, without its smoke; Brutus keeps his flames.
 - The flying blob's trail sparkles softly instead of popping like fireworks; the muzzle flash's and the landing's
   sparks are softer too.
 - The blob's landing splash flies out of the surface it hits, and a zombie's burst sprays upward.

@@ -52,12 +52,6 @@ fx,mg/fx_blundersplat_muzzleflash
 fx,mg/fx_blundersplat_muzzleflash_3p
 fx,mg/fx_blundersplat_muzzleflash_ug
 fx,mg/fx_blundersplat_muzzleflash_ug_3p
-fx,mg/fx_fire_ai_human_arm_left_loop
-fx,mg/fx_fire_ai_human_arm_right_loop
-fx,mg/fx_fire_ai_human_head_loop
-fx,mg/fx_fire_ai_human_leg_left_loop
-fx,mg/fx_fire_ai_human_leg_right_loop
-fx,mg/fx_fire_ai_human_torso_loop
 fx,mg/fx_magmagat_explode
 fx,mg/fx_magmagat_impact
 fx,mg/fx_magmagat_trail_bolt
