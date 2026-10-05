@@ -14,12 +14,11 @@
 // / snd audition (`!mg fx <n|name|next|prev|stop>`, `!mg snd <n|alias|next|prev>`, ported from the Dead Frequency
 // mod's audition tool without its grid).
 
-// self = player
-mg_debug_lockdown()
+// A level thread (`!mg lockdown`, the tour's step 2): the player who asked leaving cannot leave the office shut.
+mg_debug_lockdown( secs )
 {
-    self mg_out( "MG: lockdown on for 10 s (the office door and walls outlined)" );
     mg_lockdown_on();
-    wait 10;
+    wait secs;
 
     if ( !mg_state_is( "souls" ) )
         mg_lockdown_off();
@@ -108,6 +107,7 @@ mg_debug_press()
     level.mg_forge_place_ents = [];
     level.mg_forge_busy = 0;
     level.mg_press["press_ram"] moveto( mg_press_ram_rest(), 0.5, 0.1, 0.2 );
+    level notify( "mg_debug_press_done" );    // the tour goes on (mg_debug_tour)
 }
 
 // self = player. 1 when the command was ours.
@@ -140,7 +140,8 @@ mg_debug_command( sub, arg, args )
 
         // the office lockdown for 10 s, outside the quest
         case "lockdown":
-            self thread mg_debug_lockdown();
+            self mg_out( "MG: lockdown on for 10 s (the office door and walls outlined)" );
+            level thread mg_debug_lockdown( 10 );
             return 1;
 
         // the souls' kill zone marked along its sides, to check it against the lockdown's blue walls
@@ -296,7 +297,7 @@ mg_debug_command( sub, arg, args )
 
         // the forge's sequence, as the quest plays it, on a Tempered Blundergat (unless the forge is at work)
         case "press":
-            self thread mg_debug_press();
+            level thread mg_debug_press();    // a level thread: the player leaving must not leave the forge busy
             return 1;
 
         // the Machine's power step, as the quest plays it (it stays powered); once powered, its effects again (to fit
@@ -311,7 +312,7 @@ mg_debug_command( sub, arg, args )
             if ( is_true( level.mg_forge_open ) )
                 level thread mg_forge_power_fx();
             else
-                self thread mg_forge_power( self );
+                level thread mg_forge_power( self );    // a level thread: his leaving must not leave the forge busy
 
             return 1;
 
@@ -353,15 +354,12 @@ mg_debug_tour()
     self mg_tour_look( "2/7 The Blundergat placed: the laugh, the office outlined and shut", use, hearth );
     gun = spawn_weapon_model( "blundergat_zm", undefined, hearth, mg_coord( "MG_HEARTH" ).angles );
     self playsoundtoplayer( "zmb_easteregg_laugh", self );
-    lockdown = !mg_state_is( "souls" );
 
-    if ( lockdown )
-        mg_lockdown_on();
+    // a level thread: the touring player leaving in those 4 s must not leave the office shut
+    if ( !mg_state_is( "souls" ) )
+        level thread mg_debug_lockdown( 4 );
 
     wait 4;
-
-    if ( lockdown && !mg_state_is( "souls" ) )
-        mg_lockdown_off();
 
     // 3. a soul: the essence rising off the body
     spot = use + anglestoforward( ( 0, vectortoangles( use - hearth )[1], 0 ) ) * 90;
@@ -406,7 +404,19 @@ mg_debug_tour()
     // 6. the forge: powered, then a gun pressed into the Magmagat (the ram stays up while a real press runs)
     fc = mg_coord( "MG_FORGE_GUN" );
     self mg_tour_look( "6/7 The forge: the Machine powered, the Tempered Blundergat pressed", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
-    mg_debug_press();    // its power step first, the press closed until then
+
+    // its power step first, the press closed until then; a level thread, so the touring player leaving mid-press
+    // cannot leave mg_forge_busy set (the fireplace waits on it), followed here until it ends; a goto killing the press
+    // ends the tour too, as it always did (mg_goto clears mg_touring)
+    if ( is_true( level.mg_forge_busy ) || isdefined( level.mg_forge_ready_gun ) )
+        mg_debug_print( "MG: the forge is busy" );
+    else
+    {
+        level thread mg_debug_press();
+
+        if ( level waittill_any_timeout( 30, "mg_debug_press_done", "mg_goto" ) == "mg_goto" )
+            return;
+    }
 
     // 7. the Magmagat's shot, fired for real at the floor ahead: the blob flies and lays its pool
     self setorigin( back );
@@ -483,6 +493,10 @@ mg_shock_loop()
             level.mg_shock = 0;
             break;
         }
+
+        // toggled off (`!mg shock gun`) since the last shot: this one zaps nothing
+        if ( !is_true( level.mg_shock ) )
+            break;
 
         if ( !isdefined( weapon ) || weapon != level.mg_shock_weapon )
             continue;

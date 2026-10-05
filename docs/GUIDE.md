@@ -59,7 +59,8 @@ Only the player who placed the gun can use the fireplace now, with no time limit
 
 In the Generator Room by the docks, while the temper still burns:
 
-1. **Hold use** to **power the Machine** (once per game; the run goes on).
+1. **Hold use** to **power the Machine** (once per game). The temper stops burning out there, but the run goes on:
+   switching weapon or going down still fails it until the gun is placed.
 2. **Hold use** to **place the Tempered Blundergat** on it. The run is won.
 3. After about 13 seconds, **take the Magmagat** within **15 seconds**, or it is lost.
 
@@ -85,4 +86,4 @@ fireplace then takes a new gun, so every player can forge his own.
   any Magmagat hit kills, a blob on contact (no burst, it pools on the floor under the zombie).
 - **Pack-a-Punch** turns it into the Magmus Operandi. The **Acid Gat kit** turns it back into an Acid Gat with the
   Magmagat's ammo, and the fireplace takes the Acid Gat again. The Mystery Box offers no Blundergat while you hold a
-  Magmagat.
+  Magmagat, or while your Blundergat lies in the fireplace or on the forge.

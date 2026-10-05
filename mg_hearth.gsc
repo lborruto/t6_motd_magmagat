@@ -296,10 +296,10 @@ mg_lockdown_fail_watch( placer )
 
 // The door for a teammate down in the office (not the remaster's: its clip shuts the zone for good, but T6's MotD has
 // real last stand and Afterlife ghosts that spawn away from their bodies). While a player other than the placer lies
-// in last stand in the office, or is in Afterlife with his body there (afterlife_get_spawnpoint may put his ghost
-// outside, on the wrong side of the clip), the four pillars go, so his rescuers or his own ghost can reach him; they
-// stand again once nobody is down there, each as soon as no player stands in it (mg_lockdown_pillar). Polled every
-// 0.1 s, as the fail watch, until the lockdown ends.
+// in last stand in the office, or is in Afterlife with his body or his ghost there (afterlife_get_spawnpoint may put
+// his ghost on the other side of the clip from his body), the four pillars go, so his rescuers or his own ghost can
+// reach him; they stand again once nobody is down there, each as soon as no player stands in it (mg_lockdown_pillar).
+// Polled every 0.1 s, as the fail watch, until the lockdown ends.
 mg_lockdown_door_watch( placer )
 {
     level endon( "end_game" );
@@ -327,8 +327,8 @@ mg_lockdown_door_watch( placer )
     }
 }
 
-// 1 when a player other than the placer is in last stand in the office, or in Afterlife with his body there
-// (_zm_afterlife.gsc: self.afterlife, self.e_afterlife_corpse, the corpse he must revive)
+// 1 when a player other than the placer is in last stand in the office, or in Afterlife with his body or his ghost
+// there (_zm_afterlife.gsc: self.afterlife, self.e_afterlife_corpse, the corpse he must revive)
 mg_lockdown_teammate_down( placer )
 {
     foreach ( p in getplayers() )
@@ -339,7 +339,8 @@ mg_lockdown_teammate_down( placer )
         if ( p maps\mp\zombies\_zm_laststand::player_is_in_laststand() && mg_ent_in_office( p ) )
             return 1;
 
-        if ( is_true( p.afterlife ) && isdefined( p.e_afterlife_corpse ) && mg_ent_in_office( p.e_afterlife_corpse ) )
+        // his body in the office, or his ghost there (afterlife_get_spawnpoint may put it inside, his body outside)
+        if ( is_true( p.afterlife ) && isdefined( p.e_afterlife_corpse ) && ( mg_ent_in_office( p.e_afterlife_corpse ) || mg_ent_in_office( p ) ) )
             return 1;
     }
 

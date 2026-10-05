@@ -150,8 +150,8 @@ mg_goto( state )
 
     level notify( "mg_goto" );
 
-    // a tour in its press dies with the press on this notify (mg_press_show), before it clears its flag: cleared here,
-    // so `!mg tour` runs again
+    // a tour in its press ends with the press on this notify (mg_press_show, mg_debug_tour), before it clears its
+    // flag: cleared here, so `!mg tour` runs again
     foreach ( p in getplayers() )
         p.mg_touring = 0;
 
@@ -190,6 +190,10 @@ mg_status_lines()
 
 mg_temper_left_str()
 {
+    // the clock stops as the Machine is powered (mg_run_timer)
+    if ( isdefined( level.mg_carrier ) && is_true( level.mg_run_powered ) )
+        return "stopped (Machine powered)";
+
     if ( isdefined( level.mg_carrier ) && isdefined( level.mg_carrier.mg_temper_left ) )
         return "" + int( level.mg_carrier.mg_temper_left ) + " s";
 

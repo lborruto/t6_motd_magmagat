@@ -78,6 +78,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       lockdown: the door clip goes (console `MG: a teammate is down in the office: the door opens until he is up`),
       P3 walks in and revives him; once he is up the clip comes back (`the door shuts again`), never on a player.
       Again with P2 going into Afterlife in the office: if his ghost spawns outside, he can walk back in to his body.
+      And P2 going into Afterlife just outside the doorway: if his ghost spawns inside, the door opens too.
       Report whether a ghost is held by the clip at all, and whether the Afterlife spawn lies outside the office.
 - [ ] **Kill zone**: `!mg zone` marks its sides for 15 s (the remaster's soul catcher volume: x -1070 to -440, y 8493
       to 9187, the fireplace room and the office north of it up to that doorway). They must run along the blue walls.
@@ -149,12 +150,15 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] With the tempered gun at the forge, "Hold [use] to power the Machine" shows for the carrier only. Before that
       the press stands closed. Using it plays the power-panel sound and the sparks on the Machine; the press shudders and opens in fire;
-      the run goes on (the timer still counts) and the gun stays in your hands. About 2.5 s later the Warden's line
+      the run goes on but its timer stops (`!mg status`: `temper left stopped (Machine powered)`; waiting there past
+      15 s does not fail it, a weapon switch or going down still does) and the gun stays in your hands. A drum reached
+      after that does not flare. About 2.5 s later the Warden's line
       plays to that player only. (`!mg goto forge` fabricates a Magmagat
       waiting for you.)
 - [ ] Then "Hold [use] to place the Tempered Blundergat", for the carrier only: nobody else, and no plain Blundergat,
-      gets a prompt, and only while it is in his hands. Letting the temper run out before placing it fails the run as
-      anywhere else.
+      gets a prompt, and only while it is in his hands. Letting the temper run out before powering the Machine fails the
+      run as anywhere else; once it is powered, only a weapon switch, going down or leaving does. On a later run (the
+      Machine already powered) the timer runs until the gun is placed.
 - [ ] The Machine has collision: you cannot walk through it.
 - [ ] Place it: the run ends, the skulls go out and the fireplace takes a Blundergat again. The gun lies on the bed
       with a blue flare; two ghouls rise out of the bed to the lever's grips and pull it at about 3.4 s; the ram
@@ -192,7 +196,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       the zombies within 128 units of it lose limbs (some crawl on), catch fire, take 400 and burn to death. Killed
       by another weapon (or a trap), it falls whole and the blob just goes. No player is hurt. Other zombies are not
       drawn to a blob on a zombie. Near a hungry wolf head (the Hell's Retriever's) the stuck zombie dies whole.
-- [ ] **Hit Brutus** (`!mg brutus` sends one): 0.5 s later 100, then he burns 5 s (torso flames) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured. Two blobs a second apart: both burns stop when the first blob goes, but his flames stay until the last blob goes. A blob ending while a pool's burn still runs on him leaves his flames on until that burn ends (and the reverse).
+- [ ] **Hit Brutus** (`!mg brutus` sends one): 0.5 s later 100, then he burns 5 s (his torso flames light only 2.5 s after the blob sticks, as BO4's, and not while 12 enemies already burn) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured. Two blobs a second apart: both burns stop when the first blob goes, but his flames stay until the last blob goes. A blob ending while a pool's burn still runs on him leaves his flames on until that burn ends (and the reverse).
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
       turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws zombies into its fire, 3 at a time
       (the Magmus Operandi 6, while it is in hand), the next coming as each dies: nearly every zombie near it. High up a wall,
@@ -243,7 +247,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Losing the Magmagat (box swap, wall buy replacing it, death without Tombstone) loses it like any weapon;
       the open forge converts a fresh gun again.
 - [ ] The Mystery Box never offers a Magmagat, nor a Blundergat to a player holding a Magmagat (or a Tempered
-      Blundergat); a teammate without one can still get it (vanilla's one-Blundergat limit permitting).
+      Blundergat); a teammate without one can still get it (vanilla's one-Blundergat limit permitting). Nor to the
+      player whose Blundergat lies in the fireplace (lockdown, pickup) or on the forge (pressed, waiting): co-op, with
+      vanilla's limit free, he gets none while a teammate can.
 - [ ] Watch the console for "missing fx key" and script errors, especially from the burning zombies and the lure.
 
 ## 7. Debug tools

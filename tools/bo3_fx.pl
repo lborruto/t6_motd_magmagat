@@ -250,7 +250,10 @@ for my $mn ( sort keys %mats ) {
     my $gain = $kind eq 'emissive' ? hdr_gain( $mats{$mn} ) : 1;
     my $soft = $gain > 1 && !$fullgain_mat{$mn};
     $gain = min( $gain, IMAGE_GAIN_CAP ) if $soft;
-    my $img = "mg_" . lc($color) . ( $gain > 1 ? sprintf( $soft ? '_rgb%d' : '_x%d', $gain ) : '' );
+    # the gain written whole (%g, its dot as a p: 2.5 is _x2p5), so two gains never share a name; an integer gain reads
+    # as ever (_x2, _rgb2)
+    ( my $gtag = sprintf( '%g', $gain ) ) =~ tr/./p/;
+    my $img = "mg_" . lc($color) . ( $gain > 1 ? ( $soft ? '_rgb' : '_x' ) . $gtag : '' );
     $images{$img} = [ $png{ lc $color }, undef, $gain, $soft ];
     my @out = $kind eq 'decal' ? ( [ "mc/" . t6mat($mn), $tj{decal_mc} ], [ "wc/" . t6mat($mn), $tj{decal_wc} ] ) : ( [ t6mat($mn), $tj{$kind} ] );
     for my $o (@out) {

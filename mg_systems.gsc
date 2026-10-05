@@ -268,6 +268,16 @@ mg_prompt( show, text )
     self.mg_prompt_text = undefined;
 }
 
+// At game over the prompt loops end (their endon) with whatever line was up: every prompt goes, so none stays over
+// the end screen (hidewheninmenu does not cover it).
+mg_prompts_end_game()
+{
+    level waittill( "end_game" );
+
+    foreach ( p in getplayers() )
+        p mg_prompt( 0, undefined );
+}
+
 // self = player. 1 exactly once per press of the use key (300 ms debounce).
 mg_press_use()
 {
@@ -292,6 +302,7 @@ mg_press_use()
 mg_systems_boot()
 {
     level endon( "end_game" );
+    level thread mg_prompts_end_game();
 
     foreach ( player in getplayers() )
         player thread mg_hud_disconnect_watch();

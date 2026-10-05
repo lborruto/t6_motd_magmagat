@@ -36,8 +36,8 @@ opens when someone sits in the chair on the Golden Gate Bridge after the first t
    (the office exit, the stairs, the Citadel, the tunnels, the docks) each refill it to 15 seconds **once per run**.
    Don't switch to another weapon (reviving a teammate counts as one) and don't go down, or the run fails and you
    start again from step 2.
-7. **Use the forge** in the Generator Room by the docks: first **power the Machine**, then **place the Tempered
-   Blundergat** on it.
+7. **Use the forge** in the Generator Room by the docks: first **power the Machine** (the temper stops burning out
+   there, but a weapon switch or going down still fails the run), then **place the Tempered Blundergat** on it.
 8. **Take the Magmagat** from the forge within 15 seconds. Taking it calls a **Brutus** (unless one is already out),
    so be ready.
 
@@ -64,7 +64,8 @@ It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
 - **Points and power-ups:** burns and bursts pay points as any weapon's hits (the shot and the blob's impact pay
   none); under Insta-Kill any Magmagat hit kills, a blob on contact (no burst, it pools on the floor under it).
 - **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, keeping its ammo, and the fireplace takes the Acid
-  Gat again. The Mystery Box offers no Blundergat while you hold a Magmagat.
+  Gat again. The Mystery Box offers no Blundergat while you hold a Magmagat, or while your Blundergat lies in the
+  fireplace or on the forge.
 
 ## Credits
 

@@ -85,8 +85,8 @@ my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_worl
 
 # 5. weapon files: [ ours, the vanilla one it copies, field overrides ]. hideTags = the Acid Gat's: the plain shells and
 #    muzzle go, the lava set (the acid bones) shows. The remaster's Magmagat is the Acid Gat with fire, and ours fires as
-#    T6's Acid Gat does: a harmless hitscan shot with no tracer nor impact, the script fires the blob (magicbullet
-#    mg_magma_blob_zm, as _zm_weap_blundersplat.gsc fires its dart). Flashes and fire sounds as the remaster's own
+#    T6's Acid Gat does: a harmless hitscan shot with no tracer nor impact, the script lobs the blob (magicgrenadetype
+#    mg_magma_blob_zm, mg_blob_launch in mg_weapon.gsc). Flashes and fire sounds as the remaster's own
 #    t8_magmagat_zm / t8_magmagat_upgraded_zm (read from BO3's weapon pool): Harry's fire-coloured flash on the Magmagat
 #    and his _ug one on the Magmus (mod.ff's mg/fx_blundersplat_muzzleflash*), the plain Blundergat's shot on both. The
 #    ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob is a grenade, so it falls (T6 flies a projectile

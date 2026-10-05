@@ -11,8 +11,9 @@
 // seconds; each of the five barrels resets it to 15 once per run (a flare, then it keeps burning until the run ends);
 // from 0.5 s on (once the tempered gun first reaches his hands, 3 s at most), any weapon in hand but the tempered gun
 // or a Blundergat variant ends it (firing does not). It succeeds when the carrier lays the tempered gun on the powered
-// Machine at the forge (mg_forge; powering it does not end it); on failure, silent, the carrier gets his gun back, the
-// skulls go out and 5 s later the fireplace takes a Blundergat again.
+// Machine at the forge (mg_forge). Powering the Machine stops the temper's clock and the barrels, as the remaster's
+// power press ends its timer; the weapon rule, going down and leaving still fail the run until the gun is laid. On
+// failure, silent, the carrier gets his gun back, the skulls go out and 5 s later the fireplace takes a Blundergat again.
 
 mg_run_init()
 {
@@ -118,6 +119,7 @@ mg_run_start( player, weapon )
     level.mg_carrier = player;
     level.mg_run_weapon = weapon;
     level.mg_run_failing = 0;
+    level.mg_run_powered = 0;
     player.mg_temper_left = 15;
     // the state first: lighting the barrels takes 0.75 s, and outside a run mg_tempered_watch takes the gun back
     mg_state_set( "run" );
@@ -141,12 +143,14 @@ mg_run_carrier_watch( player )
 }
 
 // self = carrier. The remaster's function_7f32cc1f: a second off, a second's wait, out at 0 (15 s after the start or
-// the last barrel).
+// the last barrel). It stops as the carrier powers the Machine (mg_forge_power), as the remaster's ends there: the
+// temper no longer runs out in front of a powered Machine.
 mg_run_timer()
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
     level endon( "mg_run_over" );
+    level endon( "mg_run_powered" );
     self endon( "disconnect" );
 
     while ( mg_state_is( "run" ) )
@@ -189,7 +193,8 @@ mg_run_loop( weapon )
         if ( isdefined( current ) && current == weapon )
             in_hand = 1;
 
-        if ( is_player_valid( self ) )
+        // the clock stopped (the Machine powered), the barrels give nothing more, as the remaster's end there
+        if ( is_player_valid( self ) && !is_true( level.mg_run_powered ) )
         {
             // a barrel within reach resets the temper to full, once per run
             foreach ( barrel in level.mg_barrels )
@@ -332,6 +337,7 @@ mg_run_cleanup()
     if ( isdefined( level.mg_carrier ) )
         level.mg_carrier.mg_temper_left = undefined;
 
+    level.mg_run_powered = 0;
     mg_fx_stop( level.mg_run_flame );
     level.mg_run_flame = undefined;
     level.mg_carrier = undefined;

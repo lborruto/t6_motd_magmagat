@@ -14,7 +14,8 @@ The Magmagat, closer to Black Ops 4's own script:
 - A zombie with a blob bursts only when the Magmagat kills it, tearing limbs off its neighbours; a second blob hurts it
   again, and a tough one slows to 60 % of its speed.
 - The Acid Gat kit keeps the Magmagat's ammo and shows the Magmagat going in, and the Mystery Box offers no
-  Blundergat while you hold a Magmagat.
+  Blundergat while you hold a Magmagat, or while your Blundergat lies in the fireplace or on the forge.
+- A blob on Brutus sets his flames alight 2.5 seconds after it sticks, not at once.
 
 The look, mostly the Black Ops 3 remaster's:
 
@@ -36,6 +37,9 @@ Fixes:
 - A box or wall gun bought during the run gives your Blundergat back when you have a free slot.
 - The fireplace takes no gun while the forge is still busy with the last Magmagat.
 - The forge's Brutus no longer comes on top of one already out.
+- Powering the Machine stops the temper burning out: the run no longer fails in front of a powered Machine.
+- The office door also opens for a teammate whose Afterlife ghost appears inside while his body lies outside.
+- The fireplace and forge hints no longer stay on screen at game over.
 
 ## 1.0.3 - 2026-10-05
 

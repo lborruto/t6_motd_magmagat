@@ -10,9 +10,9 @@
 
 // The forge: the remaster's Machine (mg_upgrade_machine) in the dock Generator Room. The owner's rule, BO4's: only a
 // Tempered Blundergat still burning (its run not expired) is pressed. The first carrier to reach it powers it (the
-// remaster's power cue; the run and its timer go on, the gun stays his), and it stays powered; then the carrier lays
-// the tempered gun on its bed: the run ends in success and the press works it (11.6 s, BO4's: the ghouls pull the
-// lever, the ram down, the press fire, the Magmagat on the bed as the ram lifts); the placer alone takes the Magmagat within 15 s or it is lost, and a
+// remaster's power cue; the run's timer stops there, its weapon rule goes on, the gun stays his), and it stays
+// powered; then the carrier lays the tempered gun on its bed: the run ends in success and the press works it (11.6 s,
+// BO4's: the ghouls pull the lever, the ram down, the press fire, the Magmagat on the bed as the ram lifts); the placer alone takes the Magmagat within 15 s or it is lost, and a
 // guardian comes for it. The fireplace then takes a Blundergat again, for the next player's Magmagat.
 
 mg_forge_init()
@@ -205,11 +205,15 @@ mg_forge_press( player )
 }
 
 // The carrier powers the Machine (the remaster's function_b09dee70, its power sound and effect, then the Warden's line
-// to him). The press stands closed until then and opens as it wakes (mg_forge_power_fx); the run goes on (the owner's
-// rule: the tempered gun is what the forge takes); the Machine stays powered for good.
+// to him). The press stands closed until then and opens as it wakes (mg_forge_power_fx); the Machine stays powered for
+// good. The run goes on (the owner's rule: the tempered gun is what the forge takes), but its timer stops at the press,
+// as the remaster's power press ends it (tempered_step_success): a carrier powering it with seconds left no longer fails
+// in front of it. The weapon rule, going down and leaving still fail the run until the gun is laid (mg_run).
 mg_forge_power( player )
 {
     level endon( "mg_goto" );
+    level.mg_run_powered = 1;
+    level notify( "mg_run_powered" );
     level.mg_forge_busy = 1;
     level thread mg_forge_power_fx();
     wait 2.5;
@@ -449,7 +453,9 @@ mg_forge_take( player )
 // a zone and a spot near the players; a zone named by hand may have none and leave a removed entity behind). It goes
 // through vanilla's guard, as the round's and the box alarm's Brutus do (_zm_ai_brutus.gsc attempt_brutus_spawn:
 // brutus_count + 1 > brutus_max_count, 1 on MotD, refuses): with a Brutus already out, his is the guardian and no
-// second one comes, so four forged Magmagats never stack four Brutus on the map, nor hold back the round's.
+// second one comes, so forged Magmagats do not stack Brutus on the map, nor hold back the round's. The cap and its one
+// gap are vanilla's: brutus_count only rises in brutus_spawn after its prologue, so a call made while another Brutus is
+// still spawning (a round's or the box alarm's within a second or so) passes it, and two can be out.
 mg_forge_guardian()
 {
     level endon( "end_game" );

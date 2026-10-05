@@ -526,14 +526,21 @@ mg_is_boss( ai )
 // The lure of a pool, BO4's (function_7b25328b): vanilla's point of interest on the floor under the blob, 128 units
 // and 3 zombies (256 and 6 when its owner holds the Magmus Operandi or the Vitriolic Withering as it lands), only when
 // that floor is within 64 of the blob (a blob up a wall or on a ceiling draws no one) and in the playable area; its
-// spots are in the fire, freed as their zombies die (below). Brutus ignores it. Returns its entity, or undefined.
-mg_blob_lure( blob, player )
+// spots are in the fire, freed as their zombies die (below). Brutus ignores it (vanilla brutus_spawn sets his
+// ignore_all_poi, which get_zombie_point_of_interest honours). pos is where the pool lies, read as it started: a blob
+// still flying at 5 s pools there while its hidden grenade flies on (and may be gone). Returns its entity, or undefined.
+mg_blob_lure( pos, blob, player )
 {
-    trace = bullettrace( blob.origin, blob.origin - ( 0, 0, 1000 ), 0, blob );
+    ignore = undefined;
+
+    if ( isdefined( blob ) )
+        ignore = blob;
+
+    trace = bullettrace( pos, pos - ( 0, 0, 1000 ), 0, ignore );
 
     // BO4's in_playable_area, and its create_zombie_point_of_interest's is_point_inside_enabled_zone: no lure in a
     // zone not yet opened
-    if ( trace["fraction"] >= 1 || distance( trace["position"], blob.origin ) > 64 || !check_point_in_playable_area( trace["position"] ) || !check_point_in_enabled_zone( trace["position"] ) )
+    if ( trace["fraction"] >= 1 || distance( trace["position"], pos ) > 64 || !check_point_in_playable_area( trace["position"] ) || !check_point_in_enabled_zone( trace["position"] ) )
         return undefined;
 
     held = undefined;
@@ -569,13 +576,6 @@ mg_blob_lure( blob, player )
     lure.last_index = array( n, n, n, n );
     lure.attract_to_origin = 0;
     level notify( "attractor_positions_generated" );    // as vanilla's layout: zombies repath to it now (attractors_generated_listener)
-
-    foreach ( ai in getaiarray( level.zombie_team ) )
-    {
-        if ( isdefined( ai ) && mg_is_boss( ai ) )
-            ai thread add_poi_to_ignore_list( lure );
-    }
-
     return lure;
 }
 
@@ -670,9 +670,10 @@ mg_blob_on_brutus( brutus, player, weapon )
     if ( !isdefined( brutus.mg_blobs ) )
         brutus.mg_blobs = 0;
 
+    // no flames yet: as BO4's, he lights only through the scorch (mg_brutus_blob_burn's at 0.5 s, then damage_on_fire's
+    // 2 s), 2.5 s after the stick and while fewer than 12 enemies burn
     brutus.mg_blobs++;
     brutus thread mg_brutus_blob_burn( player, weapon );
-    brutus thread mg_burn_start();
     end = gettime() + 5000;
 
     while ( gettime() < end && isdefined( self ) && isdefined( brutus ) && isalive( brutus ) )
@@ -998,14 +999,19 @@ mg_brutus_scorch( player, weapon, hit )
         self thread mg_burn_end();
 }
 
-// Magmagat damage, credited to its player while he is still here. Under his Insta-Kill it kills outright, the head
-// gibbed, as BO4's on every hit, burns too (zm_powerups function_fe6d6eac; vanilla check_for_instakill's rules): not
-// Brutus (his instakill_func, BO4's instakill_override too). hitloc, "none" unless given, is BO4's where it names one
-// (torso_lower: function_ba9e077b's hit, the burst's 400, function_7f95d262's kill).
+// Magmagat damage, credited to its player while he is still here and alive. Under his Insta-Kill it kills outright,
+// the head gibbed, as BO4's on every hit, burns too (zm_powerups function_fe6d6eac; vanilla check_for_instakill's
+// rules): not Brutus (his instakill_func, BO4's instakill_override too). hitloc, "none" unless given, is BO4's where it
+// names one (torso_lower: function_ba9e077b's hit, the burst's 400, function_7f95d262's kill).
 mg_magma_dodamage( victim, amount, pos, player, mod, weapon, hitloc )
 {
     if ( !isdefined( hitloc ) )
         hitloc = "none";
+
+    // credited only to a living player, as BO4's burns (function_faa2e2e5, function_78f754f7: isalive); a dead one's
+    // burns land with no attacker, unscaled on Brutus as vanilla's (mg_brutus_unscaled)
+    if ( isdefined( player ) && !isalive( player ) )
+        player = undefined;
 
     if ( mg_insta_kill_on( player, victim ) )
     {
@@ -1103,7 +1109,7 @@ mg_pool( blob, player, weapon, shown )
     pool.owner = player;
     pool.weapon = weapon;
     fire = mg_fx_loop( "patch_fire", pos, shown.angles );
-    lure = mg_blob_lure( blob, player );
+    lure = mg_blob_lure( pos, blob, player );    // pos, not blob.origin: the blob may have flown on or gone in that wait
 
     // counted once its fire is up: the oldest may still be in that wait and miss the notify
     if ( level.mg_pools.size >= 2 )
@@ -1382,8 +1388,9 @@ mg_acid_stock_keep( kit, stock )
 }
 
 // The Mystery Box (vanilla treasure_chest_canplayerreceiveweapon) offers no Blundergat to a player holding any gun of
-// its family, the Magmagats and the tempered guns too, as BO4's Blood of the Dead (zm_escape.gsc function_3511e2af);
-// vanilla already refuses it beside a Blundergat or an Acid Gat. A hook set before ours runs first.
+// its family, the Magmagats and the tempered guns too, nor to one whose Blundergat lies in the quest (in the fireplace
+// or on the forge), as BO4's Blood of the Dead (zm_escape.gsc function_3511e2af, var_22b64976); vanilla already
+// refuses it beside a Blundergat or an Acid Gat. A hook set before ours runs first.
 mg_box_selection( weapon, player, pap_triggers )
 {
     if ( isdefined( level.mg_prev_box_selection ) && !( [[ level.mg_prev_box_selection ]]( weapon, player, pap_triggers ) ) )
@@ -1391,6 +1398,11 @@ mg_box_selection( weapon, player, pap_triggers )
 
     if ( weapon != "blundergat_zm" || !isdefined( player ) )
         return 1;
+
+    // his Blundergat is in the quest: in the fire (mg_hearth_place to the take or the loss) or on the forge's bed
+    // (mg_forge_place to the take or the 15 s loss, mg_forge_ready_clear)
+    if ( ( isdefined( level.mg_hearth_owner ) && level.mg_hearth_owner == player ) || ( isdefined( level.mg_forge_placer ) && level.mg_forge_placer == player ) )
+        return 0;
 
     return !isdefined( mg_has_magma( player ) ) && !player hasweapon( "mg_tempered_zm" ) && !player hasweapon( "mg_tempered_upgraded_zm" );
 }
