@@ -156,7 +156,7 @@ mg_apply_overrides()
     // the machine back from the gun
     mg_coord_override( "MG_FORGE", ( -315.9, 6383.5, 64 ), ( 0, 101, 0 ) );
 
-    mg_coord_override( "MG_FORGE_GUN", ( -318.1, 6365.3, 108 ), ( 0, 11, 0 ) );
+    mg_coord_override( "MG_FORGE_GUN", ( -311, 6367, 112 ), ( 0, 11, 0 ) );
 
     // its lever, fitted on the machine by the owner (2026-10-05)
     mg_coord_override( "MG_LEVER", ( -316, 6385, 131 ), ( 0, 101, 0 ) );    // its grips out, toward the player
