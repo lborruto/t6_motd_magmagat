@@ -709,7 +709,7 @@ mg_pool( blob, player, weapon, shown )
             puddle.angles = ( 0, randomint( 360 ), 0 );
 
         puddle setmodel( mg_model( "puddle" ) );
-        fire = mg_fx_loop( "forge_embers", pos, shown.angles );
+        fire = mg_fx_loop( "embers", pos, shown.angles );
     }
     else
         fire = mg_fx_loop( "patch_fire", pos, shown.angles );

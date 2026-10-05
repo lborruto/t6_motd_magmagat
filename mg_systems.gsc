@@ -36,15 +36,15 @@ mg_fx_table()
     t["hearth_blue"] = "mg/fx_alcatraz_blue_flame_loop"; // the fireplace burning blue once the essence is deposited
     // the run: fire in the barrels, the temper riding the gun
     t["barrel_fire"] = "mg/fx_mg_barrel_flame"; // the remaster's drum flame, held inside the rim (tools/assets/bo3_fx.tsv)
-    t["barrel_flare"] = "mg/fx_alcatraz_blue_flame_flare_up"; // the remaster's drum flare, full size: the forge's flare-up as the gun is laid down, the fireplace's awakening
+    t["barrel_flare"] = "mg/fx_alcatraz_blue_flame_flare_up"; // the remaster's drum flare, full size: the forge's flare-up as the gun is laid down and as the Machine wakes
     t["drum_flare"] = "mg/fx_mg_barrel_flare"; // the remaster's: a drum refilling the temper, held within its rim (tools/assets/bo3_fx.tsv)
     t["gun_flame"] = "mg/fx_alcatraz_blue_flame_vm"; // the remaster's tempered-gun flame
     // the forge
     t["sparks"] = "mg/fx_alcatraz_magmagat_power"; // the remaster's: the Machine powered
     t["forge_rise"] = "mg/fx_prison_magmagat_press_fire"; // the remaster's press at work
     t["forge_fire"] = "mg/fx_mg_forge_fire"; // the gun burning under the ram while the press works it: zm_prison's fx_alcatraz_fire_sm without its glow (tools/bo3_fx.pl)
-    t["forge_flare"] = "mg/fx_mg_forge_flare"; // the burst of flame as the ram strikes: its fx_alcatraz_falling_fire_impact, the same
-    t["forge_embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat"; // BO4's tiny flames on the bed under it
+    t["flame_burst"] = "mg/fx_mg_forge_flare"; // a burst of orange flame, no glow (zm_prison's fx_alcatraz_falling_fire_impact, tools/bo3_fx.pl): the ram striking, the fireplace waking
+    t["embers"] = "maps/zombie_alcatraz/fx_alcatraz_embers_flat"; // tiny flames: under the Magmagat on the bed (BO4's), spilt by the fireplace waking, a lava puddle's
     t["ghost_body"] = "maps/zombie_alcatraz/fx_alcatraz_ghost_body"; // vanilla's Afterlife glow, on the forge's ghouls
     t["ghost_head"] = "maps/zombie_alcatraz/fx_alcatraz_ghost_head";
     t["ghost_tport"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a ghoul appearing, vanishing

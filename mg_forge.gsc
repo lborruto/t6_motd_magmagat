@@ -257,7 +257,7 @@ mg_forge_power_fx()
     ram moveto( level.mg_press_rest, 0.9, 0.2, 0.4 );
     body playsound( "mg_press" );
     mg_fx_once( "forge_rise", fx.origin, 2, fx.angles );
-    mg_fx_once( "forge_embers", bed, 4 );
+    mg_fx_once( "embers", bed, 4 );
     wait 0.9;
     body playsound( "mg_flame_burst" );
 }
@@ -337,7 +337,7 @@ mg_press_show( weapon )
     // t 4.0 to 11.4: the press works the gun, the remaster's press fire through it, the gun burning under the ram after
     // a burst of flame, and sparks from the bed
     mg_fx_once( "forge_rise", fx.origin, 7.4, fx.angles );
-    mg_fx_once( "forge_flare", c.origin );
+    mg_fx_once( "flame_burst", c.origin );
     mg_fx_once( "forge_fire", c.origin, 7.4 );
 
     for ( i = 0; i < 5; i++ )
@@ -376,7 +376,7 @@ mg_forge_gun_float( origin )
 // BO4's reveal: tiny flames on the bed under the Magmagat, while it floats there (no glow: the owner's call).
 mg_forge_embers( gun, origin )
 {
-    embers = mg_fx_loop( "forge_embers", origin - ( 0, 0, 2 ) );
+    embers = mg_fx_loop( "embers", origin - ( 0, 0, 2 ) );
 
     while ( isdefined( gun ) )
         wait 0.2;

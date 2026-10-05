@@ -160,11 +160,15 @@ mg_hearth_burn()
 
 mg_hearth_boards_burn()
 {
-    // the remaster dissolves its planks (mg_wood_barrier); T6's boards are the map's own and stay. Over the map's own
-    // fire, any fire doubled it: a short blue flare instead, the fire the deposit will light, its burst at the bed
-    // (the flare draws 34 to 65 units over its origin)
+    // the remaster dissolves its planks (mg_wood_barrier); T6's boards are the map's own and stay. The owner's call: a
+    // burst of orange flame in the fire, the map's own colour (the blue comes with the deposit), and embers spilt on
+    // the floor before the fireplace, 14 from the fire toward its use spot
+    hearth = mg_coord( "MG_HEARTH" ).origin;
+    use = mg_coord( "MG_HEARTH_USE" ).origin;
+    out = vectornormalize( ( use[0] - hearth[0], use[1] - hearth[1], 0 ) ) * 14;
     wait 0.05;
-    mg_fx_once( "barrel_flare", ( -479, 8796, 1299 ), 4 );
+    mg_fx_once( "flame_burst", hearth - ( 0, 0, 20 ) );
+    mg_fx_once( "embers", ( hearth[0] + out[0], hearth[1] + out[1], use[2] + 1 ), 4 );
 }
 
 // ready -> souls (MG.gsc:128-153): the gun in the player's hands (any of the four; the owner's rule, the prompt shows
