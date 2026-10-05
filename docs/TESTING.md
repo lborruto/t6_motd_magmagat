@@ -202,7 +202,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       hurt touching it: 1 every 0.4 s, with a light rumble (a pad's), down or not.
 - [ ] A blob fired into the sky (it never lands): a pool appears where it is after 5 s of flight. A blob on a corpse
       or the gondola pools where it stuck.
-- [ ] A burning zombie: the remaster's body fire on its chest, head, one arm and one leg; the flames and the loop
+- [ ] A burning zombie: the remaster's body fire on its chest, head, one arm and one leg, with no white smoke flash; the flames and the loop
       sound stay on it until it dies or for 8 s. Brutus keeps Mob's torso flames.
 - [ ] The blob's landing splash flies out of the surface it hit (floor: upward; wall: out of the wall), for the Magmus
       Operandi too; a zombie's burst sprays upward, not sideways.
@@ -263,6 +263,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] **Shock pistol and mg_debug**: toggle `!mg shock gun` on, then console `set mg_debug 0`: the next shot (and
       every one after) zaps nothing. Back to `set mg_debug 1`, `!mg shock gun` turns it on again (not off).
 - [ ] `!mg brutus` with a Brutus already out: "MG: a Brutus is already out (vanilla's limit)", and no second one.
+- [ ] `!mg power` plays the Machine's power step (once powered, its effects again); `!mg press` the forge's sequence on a
+      Tempered Blundergat (the power step first if the Machine is not powered).
 - [ ] `!mg grab MG_LEVER` pins the lever: `!mg move <forward> <right> <up>` nudges it from where you look; `!mg press`
       then shows the ghouls at its grips.
 - [ ] `!mg goto locked|ready|souls|pickup|run|forge|done` puts the stations in the matching state (`souls` starts a real

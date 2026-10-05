@@ -40,7 +40,9 @@ only looks for in its own `.ipak` files).
   shader is procedural). `--color` swaps a colour map, such as the drum's, whose paint tint `tools/paint_mask.pl`
   bakes in. `--skinned` keeps a model's skeleton for its xanims (the ghouls), `--material-rename` puts their parts on
   the mod's ghost materials (`tools/build_ghoul_mats.pl`: Mob's Afterlife ghost with BO4's normal maps), `--tail`
-  shortens and tapers their ghost tail, `--stretch` fits the lever. `tools/barrel_fill.pl` builds the drums' filling
+  shortens and tapers their ghost tail, `--stretch` fits the lever. `--skip <regex>` drops surfaces by material name,
+  `--offset`, `--scale` move and scale the mesh about its pivot, `--tints` bakes in BO3's colour constants
+  (`tools/model_tints.pl`). `tools/barrel_fill.pl` builds the drums' filling
   (BO4's ash and burnt splinters) as a Greyhound-style export.
 
 ### The weapon (`tools/build_weapon.pl`, `tools/build_magmagat_model.pl`)
@@ -83,7 +85,9 @@ BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effe
    `mg/<name>` is shipped, with `tint=r,g,b` every colour replaced by its brightness times the tint, `spread=k` and
    `size=k` its sideways origins and its sprites scaled (the drums' flame and flare).
    (`scale=x,y` stretches an effect's element origins instead: the lockdown outline, fitted from the remaster's slightly
-   smaller office to BO2's.)
+   smaller office to BO2's. `surface` turns the elements that run relative to the world to their spawn, so the effect
+   lies on the surface it is played on: the lava pool on a wall. `nosmoke` leaves out the elements drawn with a `smk`
+   material: BO3's lit smoke flashed white in T6's blend on the zombies' body fire.)
 
 A visual the snapshot missed is dropped (a null material crashes T6 when drawn), and so is an element left with none.
 

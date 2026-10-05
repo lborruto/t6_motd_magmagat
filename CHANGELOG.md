@@ -1,28 +1,30 @@
 # Changelog
 
-## 1.0.4 - unreleased
+## 1.0.4 - 2026-10-05
 
-The Magmagat, 1:1 with Black Ops 4's own script:
+The Magmagat, closer to Black Ops 4's own script:
 
 - One blob kills Brutus in a few seconds in early rounds; a lava pool burns him hard.
-- Burns and bursts pay points (the shot and the blob's impact pay none), and Insta-Kill works with the Magmagat: a blob
-  kills a zombie on contact, with no burst, and pools on the floor under it.
+- Burns and bursts pay points (the shot and the blob's impact pay none). Under Insta-Kill a blob kills a zombie on
+  contact, with no burst, and pools on the floor under it.
 - In co-op a zombie's burst goes to the player who killed it.
-- A lava pool draws zombies into its fire 3 at a time (the Magmus Operandi 6), the next coming as each dies.
+- A lava pool near the floor draws zombies into its fire 3 at a time (the Magmus Operandi 6), the next coming as each
+  dies, but not in a zone not yet opened.
 - Twelve enemies burn at most at once.
 - A zombie with a blob bursts only when the Magmagat kills it, tearing limbs off its neighbours; a second blob hurts it
   again, and a tough one slows to 60 % of its speed.
-- The Acid Gat kit keeps the Magmagat's ammo, and the Mystery Box offers no Blundergat while you hold a Magmagat.
+- The Acid Gat kit keeps the Magmagat's ammo and shows the Magmagat going in, and the Mystery Box offers no
+  Blundergat while you hold a Magmagat.
 
 The look, mostly the Black Ops 3 remaster's:
 
-- The forge presses the gun in fire only: its electricity is kept for powering the Machine.
-- The flying blob's trail sparkles softly instead of popping like fireworks; the sparks of the muzzle flash and of the
-  blob's landing are softer too.
-- Burning zombies burn with the remaster's own body fire; Brutus keeps his flames.
+- Burning zombies burn with the remaster's own body fire, without its smoke; Brutus keeps his flames.
+- The flying blob's trail sparkles softly instead of popping like fireworks; the muzzle flash's and the landing's
+  sparks are softer too.
 - The blob's landing splash flies out of the surface it hits, and a zombie's burst sprays upward.
-- The Tempered Blundergat fires with the Blundergat's own muzzle flash (no more blue flash).
-- The Acid Gat kit shows the Magmagat going in, not a Blundergat.
+- The Tempered Blundergat fires with the Blundergat's own muzzle flash (no more blue flash), and the blob leaves no
+  scorch mark.
+- The forge presses the gun in fire only: its electricity is kept for powering the Machine.
 
 Fixes:
 
