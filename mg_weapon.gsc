@@ -509,13 +509,20 @@ mg_blob_lure( blob, player )
         held = player getcurrentweapon();
 
     lure = spawn( "script_origin", trace["position"] );
+    n = 3;
+    radius = 128;
 
     if ( isdefined( held ) && ( held == "magmagat_upgraded_zm" || held == "blundersplat_upgraded_zm" ) )
-        lure create_zombie_point_of_interest( 256, 6, 10000 );
-    else
-        lure create_zombie_point_of_interest( 128, 3, 10000 );
+    {
+        n = 6;
+        radius = 256;
+    }
 
-    lure thread create_zombie_point_of_interest_attractor_positions( undefined, undefined, 128 );
+    // vanilla's ring maths (add_poi_attractor) hands out no position under 4 attractors a ring: the rings are laid
+    // out for 4n (at 30 and 60 units, inside the pool), can_attract holds the lure to n
+    lure create_zombie_point_of_interest( radius, n * 4, 10000 );
+    lure thread create_zombie_point_of_interest_attractor_positions( 4, 30, 45 );
+    lure.num_poi_attracts = n;
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
@@ -555,7 +562,11 @@ mg_magma_stuck( player, weapon )
     // BO4's slowdown (hash_716657b9842cfd1b): 60 % of its speed whatever its gait, as vanilla's slowing weapons set
     // it (_zm_weap_slowgun, _zm_weap_staff_water: the anim rate, then a run update); it dies slowed
     self setentityanimrate( 0.6 );
-    self maps\mp\animscripts\zm_run::needsupdate();
+    self.preserve_asd_substates = 1;    // as vanilla's staff_water set_anim_rate: its own run kept, not a new one
+
+    if ( !is_true( self.is_traversing ) )
+        self maps\mp\animscripts\zm_run::needsupdate();
+
     wait 4;
     mg_magma_dodamage( self, self.health + 100, self.origin, player, "MOD_BURNED", weapon );
 }
@@ -660,7 +671,7 @@ mg_blob_burst( player, weapon, centre )
             continue;
         }
 
-        ai mg_gib_random_parts();
+        ai mg_gib_random_parts( player );
         ai mg_zombie_ignite( player, weapon );
         mg_magma_dodamage( ai, 400, pos, player, "MOD_EXPLOSIVE", weapon );
     }
@@ -671,13 +682,13 @@ mg_blob_burst( player, weapon, centre )
 // self = zombie. BO4's gib_random_parts (zombie_utility): its head, each leg and each arm torn off one time in two,
 // none with no_gib. T6 tears off one limb at a time (do_gib): the head apart (zombie_head_gib), then both legs, one
 // leg or one arm, a zombie left without legs crawling on as vanilla's zombie_gib_on_damage sets it.
-mg_gib_random_parts()
+mg_gib_random_parts( player )
 {
     if ( is_true( self.no_gib ) || !is_mature() )
         return;
 
     if ( randomint( 100 ) > 50 )
-        self thread maps\mp\zombies\_zm_spawner::zombie_head_gib();
+        self thread maps\mp\zombies\_zm_spawner::zombie_head_gib( player, "MOD_EXPLOSIVE" );    // its bleed credits him (damage_over_time)
 
     right_leg = randomint( 100 ) > 50;
     left_leg = randomint( 100 ) > 50;
@@ -743,7 +754,7 @@ mg_zombie_ignite( player, weapon, hit )
     if ( isdefined( hit ) )
         mg_magma_dodamage( self, int( hit ), self.origin, player, "MOD_BURNED", weapon );
 
-    if ( burn )
+    if ( burn && isalive( self ) )    // an Insta-Kill ignition kills: no burn on the corpse
         self thread mg_zombie_burn( player, weapon );
 }
 
@@ -851,7 +862,7 @@ mg_magma_dodamage( victim, amount, pos, player, mod, weapon )
     if ( isdefined( player ) && isalive( player ) && isplayer( player ) && ( level.zombie_vars[player.team]["zombie_insta_kill"] || is_true( player.personal_instakill ) ) && !isdefined( victim.instakill_func ) && !is_magic_bullet_shield_enabled( victim ) )
     {
         if ( !is_true( victim.no_gib ) )
-            victim thread maps\mp\zombies\_zm_spawner::zombie_head_gib();
+            victim thread maps\mp\zombies\_zm_spawner::zombie_head_gib( player, mod );
 
         amount = victim.health + 666;
     }
@@ -861,7 +872,7 @@ mg_magma_dodamage( victim, amount, pos, player, mod, weapon )
     if ( isdefined( player ) )
         victim dodamage( amount, pos, player, player, "none", mod, 0, weapon );
     else
-        victim dodamage( amount, pos );
+        victim dodamage( amount, pos, undefined, victim, "none", mod, 0, weapon );    // the weapon kept (the burst checks it), as vanilla zombie_damage
 }
 
 // The Magmagat's burns on Brutus land as BO4's do: vanilla brutus_damage_override (_zm_ai_brutus.gsc) keeps a tenth of

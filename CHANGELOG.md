@@ -2,21 +2,15 @@
 
 ## 1.0.4 - unreleased
 
-The Magmagat plays as Black Ops 4's own script:
+The Magmagat, 1:1 with Black Ops 4's own script:
 
-- The Magmagat hurts Brutus as in Black Ops 4: one blob kills him in a few seconds in early rounds.
-- Every Magmagat hit pays points, as any weapon's; Insta-Kill now kills with any blob, pool or burst.
-- A lava pool lures only 3 zombies (the Magmus Operandi 6) to spots around it, not every zombie near it, and none
-  outside the playable area. Brutus walking through one burns hard until his flames catch.
-- Twelve enemies burn at most at once; the next ones only take the first hit.
-- A zombie with a blob on it bursts only when the Magmagat kills it, and blows apart then; the burst tears limbs off
-  its neighbours. A second blob on a tough zombie hurts it again.
-- A tough zombie with a blob on it slows to 60 % of its speed instead of walking.
-- On Brutus, the blob's burn starts half a second after it sticks, and two blobs' burns end together.
-- A blob that never lands pools where it is after 5 seconds; one on a corpse or the gondola pools there.
-- The Acid Gat kit keeps the Magmagat's ammo, and takes it even when you already hold an Acid Gat (the Acid Gat is
-  refilled). The Mystery Box offers no Blundergat while you hold a Magmagat.
-- Standing in your own pool rumbles your pad.
+- One blob kills Brutus in a few seconds in early rounds; a lava pool burns him hard.
+- Every hit pays points, and Insta-Kill works with the Magmagat.
+- A lava pool lures 3 zombies (the Magmus Operandi 6), not every zombie near it.
+- Twelve enemies burn at most at once.
+- A zombie with a blob bursts only when the Magmagat kills it, tearing limbs off its neighbours; a second blob hurts it
+  again, and a tough one slows to 60 % of its speed.
+- The Acid Gat kit keeps the Magmagat's ammo, and the Mystery Box offers no Blundergat while you hold a Magmagat.
 - Chains on the forge machine's feet.
 
 ## 1.0.3 - 2026-10-05
