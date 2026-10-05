@@ -87,7 +87,11 @@ BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effe
    (`scale=x,y` stretches an effect's element origins instead: the lockdown outline, fitted from the remaster's slightly
    smaller office to BO2's. `surface` turns the elements that run relative to the world to their spawn, so the effect
    lies on the surface it is played on: the lava pool on a wall. `nosmoke` leaves out the elements drawn with a `smk`
-   material: BO3's lit smoke flashed white in T6's blend on the zombies' body fire.)
+   material, BO3's lit smoke, and draws a glowing emissive blend that has an emission mask (its second texture,
+   `$white_reveal` when the whole texture glows) as its own `_emask` material, its texture's colour times the mask:
+   only the fire glows. Without it the torso's `fxt_exp_alpha_anim`, a fireball flipbook whose second half is grey
+   smoke, drew additive at a gain of 4 and every frame saturated to a white puff: the white flashing smoke on burning
+   zombies.)
 
 A visual the snapshot missed is dropped (a null material crashes T6 when drawn), and so is an element left with none.
 

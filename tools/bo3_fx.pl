@@ -64,7 +64,8 @@ open my $lh, '<', "$FindBin::Bin/assets/bo3_fx.tsv" or die "bo3_fx.pl: no tools/
 # surface it is played on (the lava pool on a wall: its ring of fire stayed level, across the wall); fullgain keeps the
 # whole HDR gain in the textures of its materials and of the effects it runs, colour and alpha, uncapped, as before the
 # cap (IMAGE_GAIN_CAP: the effects the owner had already tuned in game keep their look); nosmoke leaves its smoke
-# sprites out (a material named smk: BO3's lit smoke, drawn by T6's blend template, flashed white on the body fire)
+# out: its lit smoke sprites (a material named smk) and the smoke in its fire flipbooks (an emissive material with an
+# emission mask draws only what the mask lets glow, see the images below)
 my ( %scale, %surface, @copies, @fullgain, %nosmoke );
 while (<$lh>) {
     s/\s*#.*//;
@@ -123,7 +124,8 @@ sub hdr_gain {
     my $h = $m && $m->{settings}{hdrScale} ? $m->{settings}{hdrScale}[0] : 0;
     return $h > HDR_WHITE ? $h / HDR_WHITE : 1;
 }
-sub t6mat { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; $b =~ s/\|.*//; "mg_$b" }
+# a material's T6 name; a nosmoke effect's masked glow (the key's |emask) is its own material, mg_<name>_emask
+sub t6mat { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; my $e = $b =~ /\|emask$/ ? '_emask' : ''; $b =~ s/\|.*//; "mg_$b$e" }
 
 my ( %done, %by_t6, %mats, @todo, $warn, %kids, %mats_of );
 @todo = ( ( map { [ $_, t6fx($_) ] } @roots ), @copies );
@@ -142,10 +144,21 @@ while ( my $job = shift @todo ) {
     }
     $kids{$t6} = [ map { t6fx($_) } keys %{ $need->{effects} } ];
     # a BO3 heat distortion draws with vanilla's own (a copy of its material crashed the game when drawn)
-    my %as;
+    my ( %as, %emask );
     for my $mn ( keys %{ $need->{materials} } ) {
         my $m = $c->material( $need->{materials}{$mn} );
         $as{$mn} = 'gfx_distortion_heat' if $m && $m->{techset} =~ /distort/;
+        # nosmoke: a glowing emissive blend with an emission mask (its second texture; $white_reveal glows whole) is
+        # a fire that turns to smoke, BO3 lighting what the mask leaves dark (fxt_exp_alpha_anim on the burning
+        # torso: an orange fireball whose last half is grey smoke). T6 has no such blend: drawn additive at its HDR
+        # gain the smoke saturated to white puffs, rotating and flipping through the frames, the white flashing smoke
+        # on burning zombies. Here it gets its own material (_emask), its texture's colour times the mask: the fire
+        # glows, the smoke draws nothing
+        my $mask = $m ? $m->{images}{'34614347'} : undef;
+        if ( $nosmoke{$n} && defined $mask && $mask !~ /^\$/ && !$as{$mn} && $m->{techset} =~ /emissive_blend/ && hdr_gain( $need->{materials}{$mn} ) > 1 ) {
+            $emask{$mn} = "$mn|emask";
+            $need->{materials}{"$mn|emask"} = delete $need->{materials}{$mn};
+        }
     }
     die "bo3_fx.pl: $n and $by_t6{$t6} both become $t6\n" if $by_t6{$t6} && $by_t6{$t6} ne $n;
     $by_t6{$t6} = $n;
@@ -153,7 +166,7 @@ while ( my $job = shift @todo ) {
     for my $e ( @{ $fx->{elemDefs} } ) {
         # BO3's HDR: a sprite's colour times its material's hdrScale, in LDR as far as a colour goes (see hdr_gain)
         if ( $e->{elemType} <= 6 ) {
-            my ($g) = sort { $b <=> $a } map { hdr_gain( $need->{materials}{$_} ) } grep {defined} @{ $e->{visuals} };
+            my ($g) = sort { $b <=> $a } map { hdr_gain( $need->{materials}{ $emask{$_} // $_ } ) } grep {defined} @{ $e->{visuals} };
             if ( $g && $g > 1 ) {
                 for my $v ( map { @$_{qw(base amplitude)} } @{ $e->{visSamples} } ) { $_ = min( 255, $_ * $g ) for @{ $v->{color} }[ 0 .. 2 ] }
             }
@@ -168,7 +181,7 @@ while ( my $job = shift @todo ) {
         if    ( $e->{elemType} == 12 ) { $_ = t6fx($_) for grep {defined} @{ $e->{visuals} } }
         elsif ( $e->{elemType} == 11 ) { $e->{visuals} = [ map { [ defined $_->[0] ? 'mc/' . t6mat( $_->[0] ) : undef, defined $_->[1] ? 'wc/' . t6mat( $_->[0] ) : undef ] } @{ $e->{visuals} } ] }
         elsif ( $e->{elemType} == 7 )  { $_ = "mg_$_" for grep {defined} @{ $e->{visuals} } }
-        elsif ( $e->{elemType} != 8 )  { $_ = $as{$_} // t6mat($_) for grep {defined} @{ $e->{visuals} } }
+        elsif ( $e->{elemType} != 8 )  { $_ = $as{$_} // t6mat( $emask{$_} // $_ ) for grep {defined} @{ $e->{visuals} } }
     }
     if ($spread) {
         for my $e ( @{ $fx->{elemDefs} } ) { $_ *= $spread for @{ $e->{spawnOrigin}[0] }, @{ $e->{spawnOrigin}[1] } }
@@ -250,11 +263,19 @@ for my $mn ( sort keys %mats ) {
     my $gain = $kind eq 'emissive' ? hdr_gain( $mats{$mn} ) : 1;
     my $soft = $gain > 1 && !$fullgain_mat{$mn};
     $gain = min( $gain, IMAGE_GAIN_CAP ) if $soft;
+    # an _emask material (nosmoke): its colour times the emission mask and the whole gain, its alpha as it is: only
+    # the fire glows (the mask is dark wherever BO3 draws lit smoke), so nothing can saturate to a white puff
+    my $emask = $mn =~ /\|emask$/ ? $m->{images}{'34614347'} : undef;
+    if ( defined $emask ) {
+        $png{ lc $emask } or do { warn "bo3_fx.pl: $mn: its emission mask $emask is not in Greyhound's export\n"; $warn++; next };
+        $gain = hdr_gain( $mats{$mn} );
+        $soft = 1;
+    }
     # the gain written whole (%g, its dot as a p: 2.5 is _x2p5), so two gains never share a name; an integer gain reads
     # as ever (_x2, _rgb2)
     ( my $gtag = sprintf( '%g', $gain ) ) =~ tr/./p/;
-    my $img = "mg_" . lc($color) . ( $gain > 1 ? ( $soft ? '_rgb' : '_x' ) . $gtag : '' );
-    $images{$img} = [ $png{ lc $color }, undef, $gain, $soft ];
+    my $img = "mg_" . lc($color) . ( defined $emask ? "_emask$gtag" : $gain > 1 ? ( $soft ? '_rgb' : '_x' ) . $gtag : '' );
+    $images{$img} = [ $png{ lc $color }, undef, $gain, $soft, defined $emask ? $png{ lc $emask } : undef ];
     my @out = $kind eq 'decal' ? ( [ "mc/" . t6mat($mn), $tj{decal_mc} ], [ "wc/" . t6mat($mn), $tj{decal_wc} ] ) : ( [ t6mat($mn), $tj{$kind} ] );
     for my $o (@out) {
         my ( $name, $tpl ) = @$o;
@@ -275,12 +296,18 @@ for my $mn ( sort keys %mats ) {
 
 # images: BC3 (the alpha matters), BC5 normals; a gain scales the colour, clamped, and the alpha only for a fullgain
 # material (an additive sprite draws colour times alpha: the two gains multiplied, and the faint alpha of a star's
-# rays and halo went solid)
+# rays and halo went solid); an _emask image's colour is also times its emission mask (the mask's grey, 0 to 1)
 for my $img ( sort keys %images ) {
-    my ( $src, $normal, $gain, $soft ) = @{ $images{$img} };
+    my ( $src, $normal, $gain, $soft, $mask ) = @{ $images{$img} };
     if ( $gain && $gain > 1 ) {
         my $p = MgPng::read($src);
         my $px = $p->{px};
+        if ( defined $mask ) {
+            my $q = MgPng::read($mask);
+            die "bo3_fx.pl: $mask is $q->{w}x$q->{h}, its texture $p->{w}x$p->{h}\n" if $q->{w} != $p->{w} || $q->{h} != $p->{h};
+            my $mp = $q->{px};
+            for ( my $i = 0; $i < @$px; $i += 4 ) { my $k = $mp->[$i] / 255; $px->[$_] *= $k for $i .. $i + 2 }
+        }
         for my $i ( 0 .. $#$px ) { $px->[$i] = min( 255, int( $px->[$i] * $gain + 0.5 ) ) unless $soft && $i % 4 == 3 }
         MgDds::write( "$raw/images/_$img.dds", $p, 'bc3' );
         next;
