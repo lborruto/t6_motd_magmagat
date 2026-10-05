@@ -13,6 +13,9 @@ mg_models_init()
     level.mg_models = [];
     level.mg_models["skull"] = "mg_skull"; // mod.ff (tools/import_all.pl): the BO3 remaster's skull
     level.mg_models["barrel"] = "mg_barrel_green"; // mod.ff: the remaster's drum at its five barrel spots (dark green; the flame is blue)
+
+    if ( mg_bo4( "barrels" ) )
+        level.mg_models["barrel"] = "mg_barrel_bo4"; // mod.ff: BO4's drum, p8_zm_esc_barrel_drum
     level.mg_models["gun_world"] = "t6_wpn_zmb_blundergat_world";
     level.mg_models["ball"] = "mg_magma_blob"; // mod.ff (tools/import_all.pl): BO4's own lava blob, p8_fxp_magma_blob, as the weapon files ($blob in tools/build_weapon.pl)
     level.mg_models["press_body"] = "mg_press_body"; // mod.ff: the remaster's press (p8_zm_esc_machinery_01) without its ram
@@ -24,6 +27,8 @@ mg_models_init()
     level.mg_models["press_lever"] = "mg_press_lever"; // mod.ff: BO4's smelter's lever on the press, pivot at its origin
     level.mg_models["ghoul1"] = "mg_ghoul1"; // mod.ff: BO4's ghouls, the ghosts that pull the lever (skinned, Afterlife ghost material)
     level.mg_models["ghoul2"] = "mg_ghoul2";
+    level.mg_models["skull_pile1"] = "mg_skull_pile_sml"; // mod.ff: BO4's skull piles by the fireplace (dvar mg_bo4 "piles")
+    level.mg_models["skull_pile2"] = "mg_skull_pile_med";
     level.mg_models["press_clip"] = "collision_clip_64x64x128"; // common_zm: the forge machine's collision for players and zombies, centred
     level.mg_models["clip"] = "collision_clip_32x32x128"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none), centred
     level.mg_models["player_clip"] = "collision_player_32x32x128"; // patch_zm, always loaded: blocks players only (the office door in the lockdown), centred
@@ -67,6 +72,10 @@ mg_coords_init()
     mg_coord_set( "MG_SKULL_1", ( -495, 8784, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
     mg_coord_set( "MG_SKULL_2", ( -475, 8804, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
     mg_coord_set( "MG_SKULL_3", ( -455, 8824, 1409 ), ( 0, 135, 0 ), mg_model( "skull" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
+    // BO4's skull piles (mg_bo4 "piles"): on the floor at each end of the mantle, 35 past the outer skulls and 20 out
+    // into the office (from the owner's skull overrides); adjust with !mg grab
+    mg_coord_set( "MG_SKULL_PILE_1", ( -517, 8830, 1336 ), ( 0, 315, 0 ), mg_model( "skull_pile1" ) );
+    mg_coord_set( "MG_SKULL_PILE_2", ( -422, 8735, 1336 ), ( 0, 315, 0 ), mg_model( "skull_pile2" ) );
 
     // barrels along the route (spec: office exit, top of the spiral stairs, bottom of the tunnels, generator door):
     // placeholders on the zone volume origins of tools/assets/zm_prison.d3dbsp.ents.txt

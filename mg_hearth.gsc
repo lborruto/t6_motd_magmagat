@@ -38,6 +38,18 @@ mg_hearth_init()
         level.mg_skulls[i - 1] = skull;
     }
 
+    // BO4's skull piles by the fireplace, only for show (dvar mg_bo4 "piles")
+    if ( mg_bo4( "piles" ) )
+    {
+        for ( i = 1; i <= 2; i++ )
+        {
+            c = mg_coord( "MG_SKULL_PILE_" + i );
+            pile = spawn( "script_model", c.origin );
+            pile setmodel( c.model );
+            pile.angles = c.angles;
+        }
+    }
+
     level thread mg_hearth_prompt_loop();
 }
 
