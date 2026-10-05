@@ -507,6 +507,7 @@ mg_forge_fabricate( state )
 mg_forge_ghouls( bed )
 {
     level endon( "mg_goto" );
+    floor = mg_coord( "MG_PRESS" ).origin[2];
     scriptmodelsuseanimtree( #animtree );
     anims = array( %mg_ghoul_smelter_1, %mg_ghoul_smelter_2 );
     ghouls = [];
@@ -515,7 +516,7 @@ mg_forge_ghouls( bed )
     {
         c = mg_coord( "MG_GHOUL_" + ( i + 1 ) );
         yaw = vectortoangles( c.origin - bed )[1];
-        g = spawn( "script_model", bed - ( 0, 0, 30 ) );    // inside the bed, under the Magmagat
+        g = spawn( "script_model", ( bed[0], bed[1], floor - 40 ) );    // under the floor, below the Magmagat
         g.angles = ( 0, yaw, 0 );
         g setmodel( mg_model( "ghoul" + ( i + 1 ) ) );
         g useanimtree( #animtree );
@@ -529,7 +530,7 @@ mg_forge_ghouls( bed )
 
     wait 0.05;    // an effect played in the frame an entity appears is dropped by the clients
 
-    // t 0 to 0.6: out of the bed head first
+    // t 0 to 0.6: up through the machine (hidden in it) and out of the bed where the Magmagat lies, head first
     foreach ( g in ghouls )
     {
         mg_fx_add_tag( g, "ghost_body", "j_spineupper" );
@@ -537,7 +538,7 @@ mg_forge_ghouls( bed )
         mg_fx_once( "ghost_tport", bed );
         playsoundatposition( "zmb_afterlife_object_apparate", bed );
         g playloopsound( "zmb_afterlife_ghost_loop", 0.5 );
-        g moveto( bed + ( 0, 0, 25 ), 0.55, 0.1, 0.2 );
+        g moveto( bed + ( 0, 0, 25 ), 0.55, 0.15, 0.15 );
     }
 
     // t 0.6 to 2.6: face first to its grip, leaning into the flight, then upright to it
