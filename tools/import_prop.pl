@@ -1,12 +1,14 @@
 #!/usr/bin/perl
-# Imports one Greyhound xmodel export (BO3 / T7, .XMODEL_EXPORT + .gltf per LOD) as a T6 rigid prop in mod/props (MG_RAW overrides):
+# Imports one Greyhound xmodel export (BO3 / BO4, .XMODEL_EXPORT + .gltf per LOD) as a T6 prop (rigid, or skinned with
+# --skinned) in mod/props (MG_RAW overrides):
 #   - every colour / normal texture it uses: PNG (Greyhound's ximages folder) -> DDS (tools/png2dds.pl),
 #     <raw>/images/_mg_<source name>.dds, used as image "*mg_<source name>": a '*' image is embedded in mod.ff
 #     (a plain name makes the Linker write a streamed image, which T6 only finds in its own .ipak files)
 #   - one material per surface, <raw>/materials/mc/<prop>_m<n>.json, cloned from the vanilla zm_prison wood barrel (dumped by tools/dump_game.pl)
 #     material (techset mc_lit_sm_r0c0n0x0_q361191u = colour + normal, lit; the Linker resolves it from zm_prison.ff)
-#   - every LOD (at most 4) as a rigid glTF (buffer embedded) with its materials renamed to those, <raw>/model_export/<prop>_lod<k>
-#   - <raw>/xmodel/<prop>.json (rigid, the LOD list); tools/import_all.pl lists it in mod/zone_source/mod.zone
+#   - every LOD (at most 4) as a glTF (buffer embedded; rigid, or skinned with --skinned) with its materials renamed to
+#     those, <raw>/model_export/<prop>_lod<k>
+#   - <raw>/xmodel/<prop>.json (the LOD list, the lighting origin); tools/import_all.pl lists it in mod/zone_source/mod.zone
 # A texture Greyhound only gave as a $placeholder becomes the engine's own: global_normal_flat_16x16 / $white.
 # Textures are looked up in the ximages folder, then in the model's own _images/<material>/ folder.
 #
@@ -19,7 +21,7 @@
 #                                 model that script moves on its own, e.g. a press's ram)
 #     --skinned                   keep the skeleton and the vertex weights (an animated model: script plays its xanims
 #                                 on it), instead of making the model rigid
-#     --material <name>          every surface uses this existing material (e.g. mc/mg_lava, built by tools/build_weapon.pl)
+#     --material <name>           every surface uses this existing material (e.g. mc/mg_lava, tools/gen_lava_mat.pl)
 #     --material-rename FROM=TO   a surface whose material matches FROM (a regex) uses the existing material TO, $1..
 #                                 from FROM's groups (e.g. a ghoul part on mc/mg_ghoul_$1, tools/build_ghoul_mats.pl)
 #     --stretch x,y,z             after --offset, scale each game axis about the pivot (the lever's shaft drawn in;
@@ -28,7 +30,9 @@
 #                                 tapered to that width at its tip (the ghouls' ghost tail shorter, fading to a wisp)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
-#   e.g. perl tools/import_prop.pl --offset 0,0,-3.51 C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_3_sp/xmodels/p7_zm_zod_skull mg_skull
+#     --scale <f>                 scale the mesh about its pivot (before --offset)
+#     --tints <tsv>               the BO3 colour constants baked into the colour maps (tools/model_tints.pl)
+#   e.g. perl tools/import_prop.pl --offset 0,0,-3.51 C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_4_sp/xmodels/p8_zm_esc_skull_afterlife mg_skull_bo4_lit C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_4_sp/ximages
 # Env: MG_TEMPLATE_MTL (the template material json).
 use strict;
 use warnings;
@@ -62,7 +66,7 @@ my @st_gl = ( $st[0], $st[2], $st[1] );    # game Z-up -> the Linker's Y-up (an 
 my @tail = split /,/, $tail // '';
 die "import_prop.pl: --tail takes h,length,width\n" if defined $tail && @tail != 3;
 my ( $src, $prop, $ximages ) = @ARGV;
-die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--material name] [--offset x,y,z] [--tints tsv] [--scale f] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
+die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--skinned] [--material name] [--material-rename FROM=TO] [--offset x,y,z] [--stretch x,y,z] [--tail h,len,width] [--tints tsv] [--scale f] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
 our %mat;
 sub skipped {
     my $name = shift;
@@ -90,7 +94,7 @@ die "import_prop.pl: no *_LOD<n>.XMODEL_EXPORT in $src\n" unless @lods;
 unless (@lods) { warn "import_prop.pl: every LOD in $src is empty (re-export it with the model streamed in)\n"; exit 3 }
 # most detailed first: Greyhound's LOD numbers are not a detail order (p8_zm_esc_machinery_01's LOD0 is its coarsest)
 @lods = sort { -s "$src/$b" <=> -s "$src/$a" } @lods;
-# the Linker takes at most 65535 vertices in a rigid LOD (p8_zm_esc_skull_pile_med's LOD0 has more): those go
+# the Linker takes at most 65535 vertices in a rigid LOD: a denser LOD goes (warned), the next one draws instead
 @lods = grep {
     ( my $gl = $_ ) =~ s/\.XMODEL_EXPORT$/.gltf/;
     my $g = decode_json( slurp("$src/$gl") );
@@ -109,21 +113,21 @@ for my $lod (@lods) {
     ( my $gl = $lod ) =~ s/\.XMODEL_EXPORT$/.gltf/;
     my $j = decode_json( slurp("$src/$gl") );
     for my $m ( @{ $j->{materials} } ) {
-    next if $mat{ $m->{name} };
-    my %t = ( dir => $m->{name} );
-    my $ci = $m->{pbrMetallicRoughness}{baseColorTexture}{index};
-    my $ni = $m->{normalTexture}{index};
-    for ( [ color => $ci ], [ normal => $ni ] ) {
-        my ( $k, $ti ) = @$_;
-        next unless defined $ti;
-        my $uri = $j->{images}[ $j->{textures}[$ti]{source} ]{uri};
-        $uri =~ s{.*[\\/]}{};
-        $uri =~ s/\.png$//i;
-        $t{$k} = $uri;
+        next if $mat{ $m->{name} };
+        my %t = ( dir => $m->{name} );
+        my $ci = $m->{pbrMetallicRoughness}{baseColorTexture}{index};
+        my $ni = $m->{normalTexture}{index};
+        for ( [ color => $ci ], [ normal => $ni ] ) {
+            my ( $k, $ti ) = @$_;
+            next unless defined $ti;
+            my $uri = $j->{images}[ $j->{textures}[$ti]{source} ]{uri};
+            $uri =~ s{.*[\\/]}{};
+            $uri =~ s/\.png$//i;
+            $t{$k} = $uri;
+        }
+        $mat{ $m->{name} } = \%t;
+        push @mat_order, $m->{name} unless skipped( $m->{name} );
     }
-    $mat{ $m->{name} } = \%t;
-    push @mat_order, $m->{name} unless skipped( $m->{name} );
-  }
 }
 
 # textures: PNG -> DDS, once each
@@ -208,7 +212,7 @@ for my $idx ( 0 .. $#mat_order ) {
     my $m = decode_json( encode_json($tmpl) );
     my ($ckey) = grep { $srcname =~ /$_/ } sort keys %color_for;
     if ( defined $ckey ) {
-        ( $t->{color} = $color_for{$ckey} ) =~ s{.*[\/]}{};
+        ( $t->{color} = $color_for{$ckey} ) =~ s{.*[\\/]}{};
         $t->{color} =~ s/\.png$//i;
     }
     for my $tex ( @{ $m->{textures} } ) {
@@ -293,9 +297,11 @@ my @lodjson;
 my @dist = ( 300, 700, 1500, 3000 );
 $dist[$#lods] = 10000;
 my $root;
+my @lmn = ( 1e9, 1e9, 1e9 );    # LOD0's drawn bounds, game axes (filled in the loop)
+my @lmx = ( -1e9, -1e9, -1e9 );
 for my $k ( 0 .. $#lods ) {
     ($root) = slurp("$src/$lods[$k]") =~ /^BONE 0 -1 "([^"]+)"/m if $k == 0;
-    # the Linker reads glTF, not XMODEL_EXPORT: Greyhound's glTF of the same LOD, made rigid (no skin) with our material names
+    # the Linker reads glTF, not XMODEL_EXPORT: Greyhound's glTF of the same LOD, made rigid (no skin; --skinned keeps it) with our material names
     ( my $gl = $lods[$k] ) =~ s/\.XMODEL_EXPORT$/.gltf/;
     my $g = decode_json( slurp("$src/$gl") );
     die "import_prop.pl: $gl has more than one buffer\n" if @{ $g->{buffers} } != 1;
@@ -391,24 +397,35 @@ for my $k ( 0 .. $#lods ) {
         }
         printf "import_prop.pl: the tail below %g drawn to %d%%, %d%% wide at its tip\n", $h, $len * 100, $wid * 100;
     }
+    # LOD0's bounds, for the lighting origin (below): the vertices its kept triangles draw (what --bones, --skip and
+    # --skip-color dropped is not lit for), as the Linker gets them (after --scale, --offset, --stretch and --tail),
+    # back in game axes: the Linker's (x, y, z) -> (x, -z, y)
+    if ( $k == 0 ) {
+        for my $p ( map { @{ $_->{primitives} } } @{ $g->{meshes} } ) {
+            my $a = $g->{accessors}[ $p->{attributes}{POSITION} ];
+            my $bv = $g->{bufferViews}[ $a->{bufferView} ];
+            my $stride = $bv->{byteStride} // 12;
+            my $base = ( $bv->{byteOffset} // 0 ) + ( $a->{byteOffset} // 0 );
+            my %drawn = map { $_ => 1 } defined $p->{indices} ? map { $_->[0] } read_acc( $g, \$buf, $p->{indices} ) : 0 .. $a->{count} - 1;
+            for my $v ( keys %drawn ) {
+                my ( $x, $y, $z ) = unpack( 'f<3', substr( $buf, $base + $v * $stride, 12 ) );
+                my @n = ( $x, -$z, $y );
+                for my $i ( 0 .. 2 ) { $lmn[$i] = $n[$i] if $n[$i] < $lmn[$i]; $lmx[$i] = $n[$i] if $n[$i] > $lmx[$i] }
+            }
+        }
+    }
     # the Linker only takes embedded buffers
     $g->{buffers}[0]{uri} = "data:application/octet-stream;base64," . encode_base64( $buf, "" );
     my $out = "model_export/${prop}_lod$k.gltf";
     spit( "$raw/$out", JSON::PP->new->pretty->canonical->encode($g) );
     push @lodjson, { distance => $dist[$k], file => $out };
 }
-# lighting origin = the centre of LOD0's vertex bounds, range = half its diagonal (the dumped vanilla props do the same)
-my @mn = ( 1e9, 1e9, 1e9 );
-my @mx = ( -1e9, -1e9, -1e9 );
-my $lod0 = slurp("$src/$lods[0]");
-while ( $lod0 =~ /^OFFSET (-?[\d.e+-]+), (-?[\d.e+-]+), (-?[\d.e+-]+)/mg ) {
-    my @v = ( $1, $2, $3 );
-    for my $i ( 0 .. 2 ) { $mn[$i] = $v[$i] if $v[$i] < $mn[$i]; $mx[$i] = $v[$i] if $v[$i] > $mx[$i] }
-}
-my @ctr = map { ( $mn[$_] + $mx[$_] ) / 2 * $size + $off[$_] } 0 .. 2;
-my $range = sqrt( ( $mx[0] - $mn[0] )**2 + ( $mx[1] - $mn[1] )**2 + ( $mx[2] - $mn[2] )**2 ) / 2 * $size;
+# lighting origin = the centre of LOD0's drawn bounds, range = half their diagonal (the dumped vanilla props do the same)
+die "import_prop.pl: LOD0 draws no vertex\n" if $lmn[0] > $lmx[0];
+my @ctr = map { ( $lmn[$_] + $lmx[$_] ) / 2 } 0 .. 2;
+my $range = sqrt( ( $lmx[0] - $lmn[0] )**2 + ( $lmx[1] - $lmn[1] )**2 + ( $lmx[2] - $lmn[2] )**2 ) / 2;
 my $xm = { '$schema' => 'http://openassettools.dev/schema/xmodel.v1.json', _game => 't6', _type => 'xmodel', _version => 2,
-    collLod => -1, flags => 0, lods => \@lodjson, type => 'rigid',
+    collLod => -1, flags => 0, lods => \@lodjson, type => 'rigid',    # the skinned ghouls too: validated in game so
     lightingOriginOffset => { x => 0 + sprintf( '%.3f', $ctr[0] ), y => 0 + sprintf( '%.3f', $ctr[1] ), z => 0 + sprintf( '%.3f', $ctr[2] ) },
     lightingOriginRange => 0 + sprintf( '%.3f', $range ) };
 $xm->{rootBoneName} = $root if $root;

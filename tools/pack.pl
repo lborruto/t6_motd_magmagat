@@ -216,13 +216,19 @@ if ( -x $GSC_TOOL || -f $GSC_TOOL ) {
 
         if ( $rc != 0 || !-f $bin ) {
             print "pack.pl: gsc-tool FAILED on " . basename( $file ) . ":\n";
-            system( "cat \"$tmp/log.txt\"" );
+            # read here, not with cat: a string system() goes through cmd.exe under Strawberry Perl, which has none
+            if ( open my $lh, '<', "$tmp/log.txt" ) { print while <$lh>; close $lh }
             $bad = 1;
             next;
         }
 
         my $hdr = `perl "$tools/gsc_header.pl" "$bin"`;
         my ( $real ) = $hdr =~ /string block\s+(\d+)/;
+        if ( !defined $real ) {    # unread, the file would pass the exact check unmeasured
+            print "pack.pl: could not read gsc_header.pl's output for " . basename( $file ) . "\n";
+            $bad = 1;
+            next;
+        }
         printf "pack.pl: %-34s compiled ok, real string block %d bytes (%s)\n", basename( $file ), $real, ( $real > 65535 ? 'OVER THE LIMIT' : 'under 65535' );
         $bad = 1 if $real > 65535;
     }

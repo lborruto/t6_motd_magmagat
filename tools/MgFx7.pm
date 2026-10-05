@@ -55,7 +55,8 @@ sub vis_state {
     return { color => \@c, rotationDelta => $rd * $rot, rotationTotal => $rt * $rot, size => [ $s0, $s1 ], scale => $sc };
 }
 
-# a snapshot + the names of effects already converted: convert(name) -> (json hash, [materials], [models], [effects])
+# new(snapshot): fxaddr maps every snapshot asset's address to its name; convert(name) -> (T6 effect json,
+# { materials => {name => address}, effects => {name => 1} } (the materials and child effects it draws), [notes])
 sub new { my ( $class, $snap ) = @_; bless { s => $snap, fxaddr => { map { $_->{addr} => $_->{name} } $snap->assets } }, $class }
 
 sub convert {
@@ -67,7 +68,7 @@ sub convert {
     my ( $nl, $no, $ne ) = unpack 's s s', substr( $h, 12, 6 );
     my ( $total, $life_l, $life_nl ) = unpack 'l l l', substr( $h, 20, 12 );
     my $elems = ptr( $h, 32 );
-    my %need = ( materials => {}, models => {}, effects => {}, lights => {} );
+    my %need = ( materials => {}, effects => {} );    # a model or light visual is only named (bo3_fx.pl renames the models, import_all.pl imports them)
     my $fx = {
         _type => 'fx', _version => 1, _game => 't6',
         # effect flags: T7 moved T6's 0x10 to 0x20
@@ -115,11 +116,10 @@ sub convert {
                 $need{materials}{ $m[$_] } = $q[$_] for grep { defined $m[$_] } 0, 1;
                 push @visuals, \@m;
             }
-            elsif ( $type == 7 ) { my $n = $s->name_at($p); $need{models}{$n} = 1 if defined $n; push @visuals, $n }
+            elsif ( $type == 7 ) { push @visuals, scalar $s->name_at($p) }
             elsif ( $type == 12 ) { my $n = $self->{fxaddr}{$p} // $s->name_at($p); $need{effects}{$n} = 1 if defined $n; push @visuals, $n }
-            elsif ( $type == 10 ) { push @visuals, $s->cstr($p) }
             elsif ( $type == 8 ) { }    # omni light: T6 keeps no visual
-            elsif ( $type == 9 ) { my $n = $s->name_at($p); $need{lights}{$n} = 1 if defined $n; push @visuals, $n }
+            elsif ( $type == 9 ) { push @visuals, scalar $s->name_at($p) }
             else { my $n = $s->name_at($p); $need{materials}{$n} = $p if defined $n; push @visuals, $n }
         }
         # a visual the snapshot did not capture (its name unread) would be a null material, model or effect, which T6

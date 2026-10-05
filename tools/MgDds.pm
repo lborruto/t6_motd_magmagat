@@ -2,8 +2,8 @@ package MgDds;
 # DDS reader / writer for the mod tools.
 #   my $img = MgDds::read($path);   # top mip as { w, h, px => [ r, g, b, a, ... ] }
 #                                   # (BC1 / BC3 / BC5 as FourCC or DX10, and uncompressed 32-bit)
-#   MgDds::write($path, $img);      # uncompressed A8B8G8R8 with a full box-filtered mip chain, which the
-#                                   # OpenAssetTools Linker embeds for a '*' image
+#   MgDds::write($path, $img [, 'rgba'|'bc1'|'bc3'|'bc5']);   # with a full box-filtered mip chain (default rgba),
+#                                   # which the OpenAssetTools Linker embeds for a '*' image
 use strict;
 use warnings;
 

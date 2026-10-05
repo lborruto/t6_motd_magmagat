@@ -1,10 +1,10 @@
 #!/usr/bin/perl
-# Recolours a texture (DDS or PNG in, uncompressed DDS out) for the Magmagat's reskin of the Blundergat.
+# Recolours a texture (DDS or PNG in, DDS out: uncompressed or block-compressed, --format) for the Magmagat's reskin of the Blundergat.
 #   --hue FROM:TO   pixels whose hue is within 70 degrees of FROM turn to TO (e.g. the Acid Gat's green 120 -> lava 22)
 #   --sat S         saturation factor, --gain G value factor, --tint R,G,B channel factors (applied last)
 #   --format F      rgba (default), bc1, bc3 or bc5 (tools/MgDds.pm)
 #
-#   perl tools/recolor.pl in.dds out.dds [--hue 120:22] [--sat 0.5] [--gain 0.7] [--tint 1.2,0.8,0.6]
+#   perl tools/recolor.pl in.dds out.dds [--hue 120:22] [--sat 0.5] [--gain 0.7] [--tint 1.2,0.8,0.6] [--format bc1]
 use strict;
 use warnings;
 use FindBin;

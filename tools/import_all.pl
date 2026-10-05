@@ -4,7 +4,8 @@
 # mod/props is generated (from game files, so never committed) and never edited by hand.
 #
 #   perl tools/import_all.pl
-# Env: MG_GREYHOUND (the Greyhound folder).
+# Env: MG_GREYHOUND (the Greyhound folder), MG_OAT (the OpenAssetTools folder), MG_BO2 (the BO2 install): those two
+# for the patch_zm animtree dump, as tools/dump_game.pl (which it runs) and tools/build_ghoul_mats.pl read them.
 use strict;
 use warnings;
 use FindBin;
@@ -74,7 +75,7 @@ my @bo4_props = (
     [ 'mg_press_lever', 'p8_fxanim_zm_esc_smelter_ghost_mod', '--bones', 'handel_1_jnt,handel_1_release_jnt,handel_2_release_jnt', @press_decals,
         '--scale', $lever_scale, '--offset', join( ',', map { sprintf '%.3f', -$_ * $lever_scale } 100.71, 80.02, 59.49 ), '--stretch', '1,0.969,1' ],
     # BO4's mantle skulls: its quest stands three plain ones and swaps each for the Afterlife skull
-    # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is the remaster skull's mesh. Pivot at mid height.
+    # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is the BO3 remaster's p7_zm_zod_skull mesh. Pivot at mid height.
     [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--color', "skull_sgl=$bo4_skull_c", '--offset', '0,0,-3.51' ],
     [ 'mg_skull_bo4_lit', 'p8_zm_esc_skull_afterlife', '--offset', '0,0,-3.51' ],
     [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--tail', '30,0.5,0.35', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
@@ -96,7 +97,7 @@ for my $p (@paints) {
 if ( -d $xi4 ) {
     system( 'perl', "$FindBin::Bin/build_ghoul_mats.pl", $raw, $work, $xi4 ) == 0 or die "import_all.pl: the ghouls' materials failed\n";
     # BO4's plain skull draws its colour in its shader from a grey cavity mask (its exported colour map is a tiled
-    # concrete floor): the mask times a bone colour, the remaster skull's average (140 134 118 over the mask's 163)
+    # concrete floor): the mask times a bone colour, the BO3 remaster skull's (p7_zm_zod_skull) average colour (140 134 118 over the mask's 163)
     system( 'perl', "$FindBin::Bin/paint_mask.pl", "$xi4/i_p8_zm_esc_skull_sgl_m.png", $bo4_skull_c, '--tint', '0.859,0.822,0.724' ) == 0
         or die "import_all.pl: the BO4 skull's colour failed\n";
     # the temper drums' filling, 2/3 up (tools/barrel_fill.pl): BO4's ash and burnt splinters
@@ -112,7 +113,8 @@ my @built;
 for my $p ( ( map { [ $xm, $xi, @$_ ] } @props ), ( map { [ $xm4, $xi4, @$_ ] } @bo4_props ), ( map { [ "$work/made", $xi4, @$_ ] } @made_props ) ) {
     my ( $models, $images, $name, $model, @opt ) = @$p;
     if ( !-d "$models/$model" ) { warn "import_all.pl: $name left out (no $model in $models)\n"; next }
-    my $rc = system( 'perl', "$FindBin::Bin/import_prop.pl", @opt, "$models/$model", $name, $images ) >> 8;
+    system( 'perl', "$FindBin::Bin/import_prop.pl", @opt, "$models/$model", $name, $images );
+    my $rc = $? & 127 ? -1 : $? >> 8;    # a child killed by a signal has an exit code of 0: a failure all the same
     if ( $rc == 3 ) { warn "import_all.pl: $name left out ($model exported empty)\n"; next }
     $rc == 0 or die "import_all.pl: $name failed\n";
     push @built, $name;

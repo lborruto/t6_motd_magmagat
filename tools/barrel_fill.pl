@@ -86,6 +86,9 @@ for my $dir ( glob("$src/_images/*") ) {
 copy( "$src/_images/xmaterial_8f9ea4d16282daa/${ash}_$_.png", "$out/_images/mg_barrel_ash/" ) or die "barrel_fill.pl: no ${ash}_$_.png\n" for qw(c n);
 spit( "$out/$stem.gltf", JSON::PP->new->canonical->encode($g) );
 spit( "$out/$stem.bin", $buf );
-# import_prop.pl reads its root bone and lighting centre from the XMODEL_EXPORT
-spit( "$out/$stem.XMODEL_EXPORT", "MODEL\nVERSION 6\n\nNUMBONES 1\nBONE 0 -1 \"tag_origin\"\n\nNUMVERTS 1\nVERT 0\nOFFSET 0.000000, 0.000000, " . sprintf( '%.6f', $top ) . "\n" );
+# import_prop.pl reads its root bone from the XMODEL_EXPORT (its lighting bounds come from the glTF); the disc's rim
+# stands in for the mesh, in game units (inches) as Greyhound writes them
+my @rim = map { sprintf '%.6f', $_ / 2.54 } -$radius, $radius, $top;
+spit( "$out/$stem.XMODEL_EXPORT", "MODEL\nVERSION 6\n\nNUMBONES 1\nBONE 0 -1 \"tag_origin\"\n\nNUMVERTS 2\n"
+    . "VERT 0\nOFFSET $rim[0], $rim[0], $rim[2]\nVERT 1\nOFFSET $rim[1], $rim[1], $rim[2]\n" );
 print "barrel_fill.pl: $out/$stem (an ash disc of $radius cm at $top cm, the splinters at ${\ ( $shrink * 100 )} %)\n";

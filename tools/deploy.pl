@@ -15,7 +15,8 @@
 # Why "one file if it fits": a T6 script addresses every function and import name as a 16-bit offset into its
 # string block, so that block cannot pass 65535 bytes (measured with tools/gsc_header.pl on the compiled binary;
 # over it the game reads names from the wrong place and refuses the file). pack.pl refuses an oversized file
-# (exit 3); this tool then packs the same sources as two files, then three.
+# (exit 3); this tool then packs the same sources as two files, then three. A duplicate function name (pack.pl's
+# exit 2) is in the sources, not a size problem: it stops at once, the game folder left alone.
 use strict;
 use warnings;
 use File::Basename qw(dirname basename);
@@ -39,7 +40,6 @@ my $forced_parts = 0;
 for ( my $i = 0; $i < @ARGV; $i++ ) {
     my $a = $ARGV[$i];
     if    ( $a eq '--multi' )  { $mode = 'multi' }
-    elsif ( $a eq '--single' ) { $mode = 'single' }
     elsif ( $a eq '--parts' && defined $ARGV[$i+1] ) { $mode = 'single'; $forced_parts = int( $ARGV[++$i] ) }
     elsif ( $a eq '--game' && defined $ARGV[$i+1] )  { $game = $ARGV[++$i]; $game =~ s/\x5c/\//g }
     else  { die "deploy.pl: unknown option $a\n" }
@@ -92,6 +92,7 @@ for my $parts ( @try ) {
     }
 
     unlink $_ for glob("$stage/$packed_base*.gsc");
+    last if ( $rc >> 8 ) == 2;    # a duplicate function name: more files will not help
     print "deploy.pl: $parts file(s) did not fit, trying " . ( $parts + 1 ) . "\n" if $parts < 3 && $forced_parts == 0;
 }
 

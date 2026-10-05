@@ -8,8 +8,8 @@
 #
 #   perl tools/build_mod.pl            build + install (tools/deploy.pl installs the scripts beside it)
 #   perl tools/build_mod.pl --no-install
-# mod/props, mod/weapon and mod/sound must exist: tools/import_all.pl, tools/build_weapon.pl and tools/import_sounds.pl
-# write them. The sound bank comes out as mod.all.sabl / mod.all.sabs beside mod.ff: they are installed with it.
+# mod/props, mod/weapon, mod/sound and mod/fx must exist: tools/import_all.pl, tools/build_weapon.pl,
+# tools/import_sounds.pl and tools/bo3_fx.pl write them. The sound bank comes out as mod.all.sabl / mod.all.sabs beside mod.ff: they are installed with it.
 # mod.json gets the version of mg_main.gsc (level.mg_version), written to mod/out/mod.json.
 #
 # mod/fx (tools/bo3_fx.pl) holds the BO3 effects: they need the mod's OpenAssetTools build, whose Linker loads T6

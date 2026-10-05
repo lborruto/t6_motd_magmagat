@@ -103,7 +103,7 @@ for my $r (@rows) {
     }
     printf "import_sounds.pl: %-16s <- %-30s %d variant(s), %s\n", $r->{ours}, $r->{bo3}, scalar @e, $r->{storage};
 }
-open my $o, '>:raw', "$out/soundbank/mod.all.aliases.csv" or die;
+open my $o, '>:raw', "$out/soundbank/mod.all.aliases.csv" or die "import_sounds.pl: $out/soundbank/mod.all.aliases.csv: $!\n";
 print $o join( "\n", @csv ), "\n";
 close $o;
 
@@ -113,7 +113,7 @@ my $z = do { open my $h, '<:raw', $zf or die "$zf: $!\n"; local $/; <$h> };
 $z =~ s/\r\n/\n/g;    # a checkout may hand it over with CRLF endings
 my $block = "// sounds (tools/import_sounds.pl)\nsoundbank,mod.all\n// end sounds\n";
 if ( $z !~ s/\/\/ sounds \(tools\/import_sounds\.pl\).*?\/\/ end sounds\n/$block/s ) { $z =~ s/\s*\z/\n/; $z .= "\n$block" }
-open $o, '>:raw', $zf or die;
+open $o, '>:raw', $zf or die "import_sounds.pl: $zf: $!\n";
 print $o $z;
 close $o;
 printf "import_sounds.pl: %d aliases, %d files\n", scalar @rows, $files;

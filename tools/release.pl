@@ -24,6 +24,7 @@ sub winpath { my $p = shift; return $p if $p =~ /^[A-Za-z]:/; chomp( my $w = `cy
 
 system( 'perl', "$FindBin::Bin/build_mod.pl", '--no-install' ) == 0 or die "release.pl: build_mod.pl failed\n";
 my ($version) = do { open my $h, '<', "$repo/mod/out/mod.json" or die "release.pl: no mod/out/mod.json\n"; local $/; <$h> } =~ /"version"\s*:\s*"([^"]+)"/;
+die "release.pl: no version in mod/out/mod.json\n" unless $version;
 
 remove_tree($mods);
 make_path($scripts);
@@ -33,7 +34,8 @@ for my $bank (qw(mod.all.sabl mod.all.sabs)) {
     copy( "$repo/mod/out/$bank", "$dir/$bank" ) or die "release.pl: $bank: $!\n";
 }
 
-# one packed file if it fits, else two, else three (as tools/deploy.pl)
+# one packed file if it fits, else two, else three (as tools/deploy.pl; a duplicate function name, pack.pl's exit 2,
+# stops at once)
 my $parts = 0;
 for my $n ( 1 .. 3 ) {
     if ( system( 'perl', "$FindBin::Bin/pack.pl", '--out', "$scripts/zm_prison_magmagat.gsc", '--parts', $n ) == 0 ) {
@@ -41,6 +43,7 @@ for my $n ( 1 .. 3 ) {
         last;
     }
     unlink glob("$scripts/zm_prison_magmagat*.gsc");
+    last if ( $? >> 8 ) == 2;
 }
 die "release.pl: the scripts did not pack\n" unless $parts;
 

@@ -193,7 +193,7 @@ my $view_weights = sub {
         if ( !defined $t6_joint{$t} ) { $unmapped{ $names->[$k] }++; $t = 'j_gun' }
         $sum{ $t6_joint{$t} } += $w->[$k];
     }
-    my @j = sort { $sum{$b} <=> $sum{$a} } keys %sum;
+    my @j = sort { $sum{$b} <=> $sum{$a} || $a <=> $b } keys %sum;    # equal weights by joint index: the same bytes every run
     @j = @j[ 0 .. 3 ] if @j > 4;
     my $tot = 0;
     $tot += $sum{$_} for @j;

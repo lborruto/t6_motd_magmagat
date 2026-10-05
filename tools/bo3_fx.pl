@@ -9,7 +9,8 @@
 # then the zone's fx list (// fx ... // end fx in mod/zone_source/mod.zone).
 #
 #   perl tools/bo3_fx.pl
-# Env: MG_GREYHOUND (the Greyhound folder), MG_OAT_FX (the OpenAssetTools build with the T6 effect dumper).
+# Env: MG_GREYHOUND (the Greyhound folder), MG_OAT_FX (the OpenAssetTools build with the T6 effect dumper), MG_BO2
+# (the BO2 install: zm_prison's effects are dumped from it).
 use strict;
 use warnings;
 use FindBin;
@@ -241,15 +242,17 @@ for my $img ( sort keys %images ) {
     system( 'perl', "$FindBin::Bin/png2dds.pl", $src, "$raw/images/_$img.dds", $normal ? 'bc5' : 'bc3' ) == 0 or die "bo3_fx.pl: png2dds failed on $src\n";
 }
 
-# the zone: our fx block replaces the previous one
+# the zone: our fx block replaces the previous one, in place when it exists (the zone keeps its order, as the other
+# tools' blocks do), else appended at the end; a CRLF checkout of the zone stays CRLF
 my $zone = "$repo/mod/zone_source/mod.zone";
 my $z = slurp($zone);
 my $crlf = $z =~ /\r\n/;
 $z =~ s/\r\n/\n/g;
 my $block = "// fx (tools/bo3_fx.pl)\n" . join( '', map {"fx,$_\n"} sort keys %by_t6 ) . "// end fx\n";
-$z =~ s{// fx \(tools/bo3_fx\.pl\)\n.*?// end fx\n}{}s;
-$z .= "\n" unless $z =~ /\n$/;
-$z .= $block;
+if ( $z !~ s{// fx \(tools/bo3_fx\.pl\)\n.*?// end fx\n}{$block}s ) {
+    $z .= "\n" unless $z =~ /\n$/;
+    $z .= $block;
+}
 $z =~ s/\n/\r\n/g if $crlf;
 spit( $zone, $z );
 printf "bo3_fx.pl: %d effects, %d materials, %d images%s\n", scalar keys %by_t6, scalar keys %mats, scalar keys %images, $warn ? ", $warn warnings" : '';
