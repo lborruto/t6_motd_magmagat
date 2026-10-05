@@ -60,7 +60,7 @@ Only the player who placed the gun can use the fireplace now, with no time limit
 In the Generator Room by the docks, while the temper still burns:
 
 1. **Hold use** to **power the Machine** (once per game). The temper stops burning out there, but the run goes on:
-   switching weapon or going down still fails it until the gun is placed.
+   you have 60 seconds to place the gun, and switching weapon or going down still fails it until then.
 2. **Hold use** to **place the Tempered Blundergat** on it. The run is won.
 3. After about 13 seconds, **take the Magmagat** within **15 seconds**, or it is lost.
 

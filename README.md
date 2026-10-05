@@ -37,7 +37,8 @@ opens when someone sits in the chair on the Golden Gate Bridge after the first t
    Don't switch to another weapon (reviving a teammate counts as one) and don't go down, or the run fails and you
    start again from step 2.
 7. **Use the forge** in the Generator Room by the docks: first **power the Machine** (the temper stops burning out
-   there, but a weapon switch or going down still fails the run), then **place the Tempered Blundergat** on it.
+   there: you then have 60 seconds to place the gun, and a weapon switch or going down still fails the run), then
+   **place the Tempered Blundergat** on it.
 8. **Take the Magmagat** from the forge within 15 seconds. Taking it calls a **Brutus** (unless one is already out),
    so be ready.
 

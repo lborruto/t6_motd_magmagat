@@ -144,21 +144,31 @@ mg_run_carrier_watch( player )
 
 // self = carrier. The remaster's function_7f32cc1f: a second off, a second's wait, out at 0 (15 s after the start or
 // the last barrel). It stops as the carrier powers the Machine (mg_forge_power), as the remaster's ends there: the
-// temper no longer runs out in front of a powered Machine.
+// temper no longer runs out in front of a powered Machine. He then has 60 s to lay the gun on it (the owner's call:
+// in co-op a carrier keeping it in hand would hold the quest for everyone), or the run fails.
 mg_run_timer()
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
     level endon( "mg_run_over" );
-    level endon( "mg_run_powered" );
     self endon( "disconnect" );
 
     while ( mg_state_is( "run" ) )
     {
+        if ( is_true( level.mg_run_powered ) )
+        {
+            wait 60;
+
+            if ( mg_state_is( "run" ) )
+                mg_run_fail( "the gun was not laid within 60 s of powering the Machine" );
+
+            return;
+        }
+
         self.mg_temper_left--;
         wait 1;
 
-        if ( self.mg_temper_left <= 0 )
+        if ( self.mg_temper_left <= 0 && !is_true( level.mg_run_powered ) )    // powered in its last second: it holds
         {
             mg_run_fail( "the flame died" );
             return;

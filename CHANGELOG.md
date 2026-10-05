@@ -37,7 +37,7 @@ Fixes:
 - A box or wall gun bought during the run gives your Blundergat back when you have a free slot.
 - The fireplace takes no gun while the forge is still busy with the last Magmagat.
 - The forge's Brutus no longer comes on top of one already out.
-- Powering the Machine stops the temper burning out: the run no longer fails in front of a powered Machine.
+- Powering the Machine stops the temper burning out: you then have 60 seconds to place the gun.
 - The office door also opens for a teammate whose Afterlife ghost appears inside while his body lies outside.
 - The fireplace and forge hints no longer stay on screen at game over.
 

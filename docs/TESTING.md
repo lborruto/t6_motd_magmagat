@@ -151,7 +151,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] With the tempered gun at the forge, "Hold [use] to power the Machine" shows for the carrier only. Before that
       the press stands closed. Using it plays the power-panel sound and the sparks on the Machine; the press shudders and opens in fire;
       the run goes on but its timer stops (`!mg status`: `temper left stopped (Machine powered)`; waiting there past
-      15 s does not fail it, a weapon switch or going down still does) and the gun stays in your hands. A drum reached
+      15 s does not fail it, 60 s without placing the gun does, and a weapon switch or going down still does) and the gun stays in your hands. A drum reached
       after that does not flare. About 2.5 s later the Warden's line
       plays to that player only. (`!mg goto forge` fabricates a Magmagat
       waiting for you.)
