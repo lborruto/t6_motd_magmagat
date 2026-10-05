@@ -78,9 +78,6 @@ my @bo4_props = (
     # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is our remaster skull's mesh. Pivot at mid height, as mg_skull's.
     [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--color', "skull_sgl=$bo4_skull_c", '--offset', '0,0,-3.51' ],
     [ 'mg_skull_bo4_lit', 'p8_zm_esc_skull_afterlife', '--offset', '0,0,-3.51' ],
-    # BO4's skull piles by the fireplace (mg_bo4 "piles"), pivot on the floor under their middle
-    [ 'mg_skull_pile_sml', 'p8_zm_esc_skull_pile_sml', '--color', "skull_sgl=$bo4_skull_c", '--offset', '0.41,-13.60,3.82' ],
-    [ 'mg_skull_pile_med', 'p8_zm_esc_skull_pile_med', '--color', "skull_sgl=$bo4_skull_c", '--offset', '2.62,-0.61,0.16' ],
     [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--tail', '30,0.5,0.35', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
     [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned', '--tail', '30,0.5,0.35', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
 );
