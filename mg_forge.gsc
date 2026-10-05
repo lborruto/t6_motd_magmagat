@@ -334,8 +334,11 @@ mg_press_show( weapon )
     body playloopsound( "zmb_fire_loop", 0.5 );
     gun delete();
 
-    // t 4.0 to 11.4: the press works the gun, the remaster's press fire through it and sparks from the bed
+    // t 4.0 to 11.4: the press works the gun, the remaster's press fire through it, the gun burning under the ram after
+    // a burst of flame, and sparks from the bed
     mg_fx_once( "forge_rise", fx.origin, 7.4, fx.angles );
+    mg_fx_once( "hearth_flare", c.origin );
+    mg_fx_once( "forge_fire", c.origin, 7.4 );
 
     for ( i = 0; i < 5; i++ )
     {
