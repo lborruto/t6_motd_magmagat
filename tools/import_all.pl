@@ -60,6 +60,8 @@ my @props = (
 # and its two grips (handel_1/2_release_jnt), pivot at handel_1_jnt (100.71, 80.02, 59.49 in, BO4's centimetres / 2.54)
 # moved to the origin. The ghouls are skinned (script plays their xanims); BO4's ghost shader does not exist in T6, so
 # their parts wear Mob's Afterlife ghost with BO4's own normal maps (tools/build_ghoul_mats.pl, mc/mg_ghoul_<part>).
+# Their ghost tail (below 30 in, the waist) is drawn to half its length and tapers to a wisp: Mob's ghost shader has no
+# fade of its own to hide it with.
 # Greyhound names an xanim it cannot resolve xanim_<fnv1a-64 of the name, 60 bits>; ours are named after the scene.
 my $xm4 = "$gh/exported_files/black_ops_4_sp/xmodels";
 my $xi4 = "$gh/exported_files/black_ops_4_sp/ximages";
@@ -74,8 +76,8 @@ my @bo4_props = (
     # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is our remaster skull's mesh. Pivot at mid height, as mg_skull's.
     [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--offset', '0,0,-3.51' ],
     [ 'mg_skull_bo4_lit', 'p8_zm_esc_skull_afterlife', '--offset', '0,0,-3.51' ],
-    [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
-    [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
+    [ 'mg_ghoul1', 'c_t8_zmb_mob_ghoul_body1', '--skinned', '--tail', '30,0.5,0.35', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
+    [ 'mg_ghoul2', 'c_t8_zmb_mob_ghoul_body2', '--skinned', '--tail', '30,0.5,0.35', '--material-rename', 'mtl_c_t8_zmb_mob_ghoul_(\w+)=mc/mg_ghoul_$1' ],
 );
 my @bo4_anims = (    # [ our xanim, Greyhound's (Direct XAnim, BO1 compatibility: the version 19 OpenAssetTools reads) ]
     [ 'mg_ghoul_smelter_1', 'xanim_2d21557dbf41b9b' ],   # the scene's fakeactor 1, 11.4 s (the smelter's start: its levers at 3.4 s, its smasher down at 4.0 s)

@@ -24,6 +24,8 @@
 #                                 from FROM's groups (e.g. a ghoul part on mc/mg_ghoul_$1, tools/build_ghoul_mats.pl)
 #     --stretch x,y,z             after --offset, scale each game axis about the pivot (the lever's shaft drawn in;
 #                                 its normals are left as they are, fine for a stretch close to 1)
+#     --tail h,length,width       below height h (game units, after --offset) the mesh is drawn up to that length and
+#                                 tapered to that width at its tip (the ghouls' ghost tail shorter, fading to a wisp)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
 #   e.g. perl tools/import_prop.pl --offset 0,0,-3.51 C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_3_sp/xmodels/p7_zm_zod_skull mg_skull
@@ -48,7 +50,8 @@ my $bones_opt;
 my $size = 1;    # --scale: the mesh scaled about its pivot (the Magmagat's blob a little smaller than BO4's)
 my $stretch = '1,1,1';    # --stretch x,y,z: then each game axis about the pivot (the lever's grips drawn in)
 my $skinned;
-GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'material-rename=s' => \@rename, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size, 'stretch=s' => \$stretch, 'skinned' => \$skinned ) or die "import_prop.pl: bad options\n";
+my $tail;    # --tail h,length,width: the ghost tail below h shortened and tapered
+GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'material-rename=s' => \@rename, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size, 'stretch=s' => \$stretch, 'skinned' => \$skinned, 'tail=s' => \$tail ) or die "import_prop.pl: bad options\n";
 die "import_prop.pl: --skinned and --bones exclude each other (--bones makes a rigid part)\n" if $skinned && defined $bones_opt;
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
@@ -56,6 +59,8 @@ my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
 my @st = split /,/, $stretch;
 die "import_prop.pl: --stretch takes x,y,z\n" unless @st == 3;
 my @st_gl = ( $st[0], $st[2], $st[1] );    # game Z-up -> the Linker's Y-up (an axis scale: no sign)
+my @tail = split /,/, $tail // '';
+die "import_prop.pl: --tail takes h,length,width\n" if defined $tail && @tail != 3;
 my ( $src, $prop, $ximages ) = @ARGV;
 die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--material name] [--offset x,y,z] [--tints tsv] [--scale f] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
 our %mat;
@@ -341,6 +346,40 @@ for my $k ( 0 .. $#lods ) {
                 @$a{qw(min max)} = ( \@mn, \@mx ) if $a->{min};
             }
         }
+    }
+    if (@tail) {    # the tail: below h, drawn up toward h and tapered toward its own axis (its vertices' centre)
+        my ( $h, $len, $wid ) = @tail;
+        my %pos = map { $_->{attributes}{POSITION} => 1 } map { @{ $_->{primitives} } } @{ $g->{meshes} };
+        my @acc = map {
+            my $a = $g->{accessors}[$_];
+            my $bv = $g->{bufferViews}[ $a->{bufferView} ];
+            [ $a, ( $bv->{byteOffset} // 0 ) + ( $a->{byteOffset} // 0 ), $bv->{byteStride} // 12 ]
+        } keys %pos;
+        my ( $cx, $cz, $n, $low ) = ( 0, 0, 0, $h );
+        for my $c (@acc) {
+            my ( $a, $base, $stride ) = @$c;
+            for my $v ( 0 .. $a->{count} - 1 ) {
+                my ( $x, $y, $z ) = unpack( 'f<3', substr( $buf, $base + $v * $stride, 12 ) );
+                next if $y >= $h;
+                ( $cx, $cz, $n ) = ( $cx + $x, $cz + $z, $n + 1 );
+                $low = $y if $y < $low;
+            }
+        }
+        die "import_prop.pl: --tail: nothing below $h\n" unless $n;
+        ( $cx, $cz ) = ( $cx / $n, $cz / $n );
+        for my $c (@acc) {
+            my ( $a, $base, $stride ) = @$c;
+            for my $v ( 0 .. $a->{count} - 1 ) {
+                my ( $x, $y, $z ) = unpack( 'f<3', substr( $buf, $base + $v * $stride, 12 ) );
+                if ( $y < $h ) {
+                    my $w = 1 - ( 1 - $wid ) * ( $h - $y ) / ( $h - $low );
+                    ( $x, $y, $z ) = ( $cx + ( $x - $cx ) * $w, $h - ( $h - $y ) * $len, $cz + ( $z - $cz ) * $w );
+                    substr( $buf, $base + $v * $stride, 12 ) = pack( 'f<3', $x, $y, $z );
+                }
+            }
+            $a->{min}[1] = $h - ( $h - $a->{min}[1] ) * $len if $a->{min} && $a->{min}[1] < $h;    # the tip came up
+        }
+        printf "import_prop.pl: the tail below %g drawn to %d%%, %d%% wide at its tip\n", $h, $len * 100, $wid * 100;
     }
     # the Linker only takes embedded buffers
     $g->{buffers}[0]{uri} = "data:application/octet-stream;base64," . encode_base64( $buf, "" );
