@@ -50,16 +50,6 @@ mg_press_spawn()
     lever setmodel( mg_model( "press_lever" ) );
     level.mg_press["press_lever"] = lever;
 
-    // its chains (mg_coords.gsc MG_CHAIN_1..4), part of the machine: they go and come back with it
-    for ( i = 1; i <= 4; i++ )
-    {
-        ch = mg_coord( "MG_CHAIN_" + i );
-        chain = spawn( "script_model", ch.origin );
-        chain.angles = ch.angles;
-        chain setmodel( ch.model );
-        level.mg_press["chain_" + i] = chain;
-    }
-
     // a script_model stops no player: four clip boxes 64 x 64 x 128, two along the machine's length and two across,
     // overlapping so their outer faces meet its sides (77 x 134, 116 high), sunk 12 into the floor so they top out with
     // it (bullets pass through: a script_model of a mod.ff prop has no bullet collision)
@@ -316,7 +306,7 @@ mg_forge_place( player, weapon )
 
 // The press at work on weapon, on BO4's timeline (its scene aib_vign_zm_mob_smelter_ghost: the smelter's start anim,
 // 11.4 s, then its finish; t from the gun laid down): two ghouls come out of the gun and pull the lever (t 3.4), the
-// ram comes down on the gun (t 4.0, the smelter_press notetrack) and works it 7.4 s in fire and sparks, then lifts on
+// ram comes down on the gun (t 4.0, the smelter_press notetrack) and works it 7.4 s in fire, then lifts on
 // the Magmagat (t 11.6, smelter_show), which floats over tiny flames on the bed until taken. The gun on the bed is held
 // in level.mg_forge_place_ents for a goto's cleanup. Returns the Magmagat on the bed. Also played by `!mg tour`.
 mg_press_show( weapon )
@@ -346,13 +336,12 @@ mg_press_show( weapon )
     body playsound( "mg_press" );
     wait 0.43;
     fx = mg_coord( "MG_FORGE_FX" );
-    mg_fx_once( "sparks", fx.origin, undefined, fx.angles );
-    body playsound( "zmb_hellbox_slam_shake" );
+    body playsound( "zmb_hellbox_slam_shake" );    // no electricity while it presses (the owner's call): the power step keeps it
     body playloopsound( "zmb_fire_loop", 0.5 );
     gun delete();
 
     // t 4.0 to 11.4: the press works the gun, the remaster's press fire through it, the gun burning under the ram after
-    // a burst of flame, and sparks from the bed
+    // a burst of flame, a slam every 1.4 s
     mg_fx_once( "forge_rise", fx.origin, 7.4, fx.angles );
     mg_fx_once( "flame_burst", c.origin );
     mg_fx_once( "forge_fire", c.origin, 7.4 );
@@ -360,7 +349,6 @@ mg_press_show( weapon )
     for ( i = 0; i < 5; i++ )
     {
         wait 1.4;
-        mg_fx_once( "sparks", fx.origin, undefined, fx.angles );
         body playsound( "zmb_hellbox_slam_shake" );
     }
 

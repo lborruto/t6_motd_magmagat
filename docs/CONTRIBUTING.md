@@ -63,7 +63,7 @@ Anchor keys (all in `mg_coords.gsc`): `MG_HEARTH` (gun rest in the fire), `MG_HE
 stands to press), `MG_SKULL_1`, `MG_SKULL_2`, `MG_SKULL_3`, `MG_BARREL_1..5`, `MG_FORGE` (use point at the
 Machine), `MG_FORGE_GUN` (gun rest on its bed), `MG_PRESS` (the Machine's foot), `MG_LEVER` (the lever's pivot),
 `MG_FORGE_FX` (where the Machine's effects play), `MG_GHOUL_1` / `MG_GHOUL_2` (the ghouls at the lever's
-grips), `MG_CHAIN_1..4` (the chains on the Machine's feet). Defaults are placeholders near the vanilla free
+grips). Defaults are placeholders near the vanilla free
 Blundergat desk struct and the dock generator; the owner replaces them through `mg_apply_overrides()` (see
 "Coordinate workflow" below).
 
@@ -306,9 +306,9 @@ mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), "mg_barrel_
 Paste the `mg_coord_override(...)` line into `mg_apply_overrides()` in `mg_coords.gsc` to make it permanent
 (the 4th, model, argument is only printed when the anchor carries a prop of its own). An override always wins
 over the placeholder default. The anchor keys to fill in are `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`,
-`MG_BARREL_1..5`, `MG_FORGE`, `MG_FORGE_GUN`, `MG_PRESS`, `MG_LEVER`, `MG_FORGE_FX`, `MG_GHOUL_1`, `MG_GHOUL_2`, `MG_CHAIN_1..4`.
+`MG_BARREL_1..5`, `MG_FORGE`, `MG_FORGE_GUN`, `MG_PRESS`, `MG_LEVER`, `MG_FORGE_FX`, `MG_GHOUL_1`, `MG_GHOUL_2`.
 
-The forge's `MG_LEVER`, `MG_CHAIN_1..4`, `MG_FORGE_GUN`, `MG_FORGE_FX` and `MG_GHOUL_1` / `_2` are pinned when grabbed: they ignore the
+The forge's `MG_LEVER`, `MG_FORGE_GUN`, `MG_FORGE_FX` and `MG_GHOUL_1` / `_2` are pinned when grabbed: they ignore the
 crosshair, and `!mg move <forward> <right> <up>` nudges them from where you look.
 
 The cheats script (`cheats_zm.gsc`) and its old `!place` / `!spot` placement flow are not part of this

@@ -13,10 +13,10 @@ The Magmagat, 1:1 with Black Ops 4's own script:
 - A zombie with a blob bursts only when the Magmagat kills it, tearing limbs off its neighbours; a second blob hurts it
   again, and a tough one slows to 60 % of its speed.
 - The Acid Gat kit keeps the Magmagat's ammo, and the Mystery Box offers no Blundergat while you hold a Magmagat.
-- Chains on the forge machine's feet.
 
-Closer to the Black Ops 3 remaster's look:
+The look, mostly the Black Ops 3 remaster's:
 
+- The forge presses the gun in fire only: its electricity is kept for powering the Machine.
 - The flying blob's trail sparkles softly instead of popping like fireworks; the sparks of the muzzle flash and of the
   blob's landing are softer too.
 - Burning zombies burn with the remaster's own body fire; Brutus keeps his flames.

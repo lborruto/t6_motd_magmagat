@@ -27,7 +27,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] `!mg status` prints the version, the state (`locked` at boot), souls 0/15, no carrier, the gate flag and the
       forge (closed).
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
-      `MG_FORGE_GUN`, `MG_PRESS`, `MG_LEVER`, `MG_FORGE_FX`, `MG_GHOUL_1`, `MG_GHOUL_2`, `MG_CHAIN_1..4`; none say
+      `MG_FORGE_GUN`, `MG_PRESS`, `MG_LEVER`, `MG_FORGE_FX`, `MG_GHOUL_1`, `MG_GHOUL_2`; none say
       "undefined".
 - [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `tour`, `press`, `power`, `lockdown`, `zone`, `bridge`, `give`, `magma`, `brutus`, `shock`
       (all at once) / `shock gun`, `fx`, `snd`, and the placement commands.
@@ -158,7 +158,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] The Machine has collision: you cannot walk through it.
 - [ ] Place it: the run ends, the skulls go out and the fireplace takes a Blundergat again. The gun lies on the bed
       with a blue flare; two ghouls rise out of the bed to the lever's grips and pull it at about 3.4 s; the ram
-      strikes the gun at 4 s in sparks with a slam (the gun disappears) and works it for 7.4 s in fire, the fire loop
+      strikes the gun at 4 s with a slam, no electricity (the gun disappears) and works it for 7.4 s in fire, the fire loop
       roaring. At about 11.6 s the ram and lever lift and the Magmagat floats over the bed over tiny flames, with the
       "build complete" chime; the ghouls are gone through the roof.
 - [ ] At about 13 s "Hold [use] to take the Magmagat" shows, for the placer only.

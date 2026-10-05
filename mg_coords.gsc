@@ -23,12 +23,6 @@ mg_models_init()
     level.mg_models["press_lever"] = "mg_press_lever"; // mod.ff: BO4's smelter's lever on the press, pivot at its origin
     level.mg_models["ghoul1"] = "mg_ghoul1"; // mod.ff: BO4's ghouls, the ghosts that pull the lever (skinned, Afterlife ghost material)
     level.mg_models["ghoul2"] = "mg_ghoul2";
-    level.mg_models["chain_wrap"] = "p6_zm_al_chain_pipe_wrap_01"; // zm_prison's: a chain wrapped round the forge machine's foot
-    level.mg_models["chain_loop"] = "p6_zm_al_chain_loop"; // zm_prison's: a chain looped round its foot
-    // zm_prison's other short chains, precached so `!mg model` shows them to pick from (its drop_long runs metres)
-    level.mg_models["chain_short"] = "p6_zm_al_chain_short_low";
-    level.mg_models["chain_hook"] = "p6_zm_al_chain_hook_short";
-    level.mg_models["chain_hang_low"] = "p6_zm_al_chain_hang_low";
     level.mg_models["press_clip"] = "collision_clip_64x64x128"; // common_zm: the forge machine's collision for players and zombies, centred
     level.mg_models["clip"] = "collision_clip_32x32x128"; // common_zm, always loaded: player collision for the barrels (a script_model alone has none), centred
     level.mg_models["player_clip"] = "collision_player_32x32x128"; // patch_zm, always loaded: blocks players only (the office door in the lockdown), centred
@@ -118,17 +112,6 @@ mg_coords_init()
     {
         spot = grip - anglestoright( ly ) * ( side * 53 ) + anglestoforward( ly ) * 14 - ( 0, 0, 8 );
         mg_coord_set( "MG_GHOUL_" + ( i + 1 ), spot, ( 0, l.angles[1] + 180, 0 ), mg_model( "ghoul" + ( i + 1 ) ) );
-    }
-
-    // chains on the machine's feet, as BO4's forge wears them (the owner's wish): zm_prison's own, two wrapped and
-    // two looped round its feet, at the corners of its foot (77 x 134); `!mg grab MG_CHAIN_1..4`
-    // places them on it
-    kinds = array( "chain_wrap", "chain_loop" );
-
-    foreach ( i, corner in array( ( 34, 60, 30 ), ( 34, -60, 12 ), ( -30, 60, 30 ), ( -30, -60, 12 ) ) )
-    {
-        spot = press.origin + anglestoforward( ( 0, p, 0 ) ) * corner[0] - anglestoright( ( 0, p, 0 ) ) * corner[1] + ( 0, 0, corner[2] );
-        mg_coord_set( "MG_CHAIN_" + ( i + 1 ), spot, ( 0, p, 0 ), mg_model( kinds[i % 2] ) );
     }
 }
 
