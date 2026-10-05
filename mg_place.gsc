@@ -83,9 +83,17 @@ mg_place_grab( key )
     self.mg_place_start_org = c.origin;
     self.mg_place_start_ang = c.angles;
     self.mg_place_frozen = 0;
+    // the lever is fitted onto the machine, which the crosshair goes through (a script_model stops no trace): it stays
+    // where it is and moves by !mg move, !mg rot, !mg up and 1-4 only
+    self.mg_place_pinned = key == "MG_LEVER";
+    self.mg_place_nudge = ( 0, 0, 0 );
 
     self thread mg_place_think();
-    self mg_out( "MG: holding " + key + " (" + model + "). FIRE = place, MELEE = cancel, ADS = freeze, 1/2 turn, 3/4 raise, F = surface/float, jump = reset, !mg drop / !mg cancel" );
+
+    if ( self.mg_place_pinned )
+        self mg_out( "MG: holding " + key + ", pinned: !mg move <forward> <right> <up> (from where you look), !mg rot <deg>, !mg up <units>, 1/2 turn, 3/4 raise; FIRE = place, MELEE = cancel" );
+    else
+        self mg_out( "MG: holding " + key + " (" + model + "). FIRE = place, MELEE = cancel, ADS = freeze, 1/2 turn, 3/4 raise, F = surface/float, jump = reset, !mg drop / !mg cancel" );
     mg_debug_print( "MG: place mode on for " + key + " (" + model + ")" );
 }
 
@@ -107,7 +115,9 @@ mg_place_think()
 
         self.mg_place_frozen = self adsbuttonpressed();
 
-        if ( !self.mg_place_frozen )
+        if ( self.mg_place_pinned )
+            self mg_place_pinned_update();
+        else if ( !self.mg_place_frozen )
             self mg_place_follow();
 
         if ( gettime() - last > 200 )
@@ -331,6 +341,28 @@ mg_place_rot( deg )
     self.mg_place_yaw += deg;
     self mg_place_hud();
     self mg_out( "MG: turn " + int( self.mg_place_yaw ) + " deg" );
+}
+
+// self = player. A pinned prop (mg_place_pinned): its anchor, nudged, raised and turned, never the crosshair.
+mg_place_pinned_update()
+{
+    a = self.mg_place_start_ang;
+    self.mg_place_ent.origin = self.mg_place_start_org + self.mg_place_nudge + ( 0, 0, self.mg_place_lift );
+    self.mg_place_ent.angles = ( a[0], a[1] + self.mg_place_yaw, a[2] );
+}
+
+// self = player. "!mg move <forward> <right> <up>": a pinned prop nudged in units, from where the player looks
+mg_place_move( f, r, u )
+{
+    if ( !isdefined( self.mg_place_ent ) || !is_true( self.mg_place_pinned ) )
+    {
+        self mg_out( "MG: !mg move needs a pinned prop held (!mg grab MG_LEVER)" );
+        return;
+    }
+
+    yaw = ( 0, self getplayerangles()[1], 0 );
+    self.mg_place_nudge = self.mg_place_nudge + anglestoforward( yaw ) * f + anglestoright( yaw ) * r + ( 0, 0, u );
+    self mg_place_hud();
 }
 
 mg_place_up( units )

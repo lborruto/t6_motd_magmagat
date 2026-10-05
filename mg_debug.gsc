@@ -236,6 +236,17 @@ mg_debug_command( sub, arg, args )
             self mg_place_up( int( arg ) );
             return 1;
 
+        // a pinned prop (the lever) nudged, from where you look: forward, right, up
+        case "move":
+            if ( args.size < 5 )
+            {
+                self mg_out( "Usage: !mg move <forward> <right> <up>   e.g. !mg move 10 0 0 (away from you), !mg move 0 -5 0 (left)" );
+                return 1;
+            }
+
+            self mg_place_move( float( args[2] ), float( args[3] ), float( args[4] ) );
+            return 1;
+
         case "show":
             if ( isdefined( arg ) && !isdefined( mg_coord( arg ) ) )
             {
