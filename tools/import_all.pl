@@ -66,8 +66,10 @@ my $xi4 = "$gh/exported_files/black_ops_4_sp/ximages";
 my $xa4 = "$gh/exported_files/black_ops_4_sp/xanims";
 my $lever_scale = 0.755;
 my @bo4_props = (
-    [ 'mg_press_lever', 'p8_fxanim_zm_esc_smelter_ghost_mod', '--bones', 'handel_1_jnt,handel_1_release_jnt,handel_2_release_jnt', @press_decals[ 0, 1 ],
-        '--scale', $lever_scale, '--offset', join( ',', map { sprintf '%.3f', -$_ * $lever_scale } 100.71, 80.02, 59.49 ) ],
+    # the lever's materials are the press's (the two machines share them: xmaterial_88a8bd4005d4b05, ...), so it takes
+    # the press's BO3 tints too; its grips drawn 2 units each closer to the middle (the owner's fit: 64.4 -> 62.4)
+    [ 'mg_press_lever', 'p8_fxanim_zm_esc_smelter_ghost_mod', '--bones', 'handel_1_jnt,handel_1_release_jnt,handel_2_release_jnt', @press_decals,
+        '--scale', $lever_scale, '--offset', join( ',', map { sprintf '%.3f', -$_ * $lever_scale } 100.71, 80.02, 59.49 ), '--stretch', '1,0.969,1' ],
     # BO4's mantle skulls (dvar mg_bo4 "skulls"): its quest stands three plain ones and swaps each for the Afterlife skull
     # as it fills (script_2ba3951675c7ee1c, function_9689b55c); that one is our remaster skull's mesh. Pivot at mid height, as mg_skull's.
     [ 'mg_skull_bo4', 'p8_zm_esc_skull_sgl', '--offset', '0,0,-3.51' ],

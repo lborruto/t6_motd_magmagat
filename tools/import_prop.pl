@@ -22,6 +22,8 @@
 #     --material <name>          every surface uses this existing material (e.g. mc/mg_lava, built by tools/build_weapon.pl)
 #     --material-rename FROM=TO   a surface whose material matches FROM (a regex) uses the existing material TO, $1..
 #                                 from FROM's groups (e.g. a ghoul part on mc/mg_ghoul_$1, tools/build_ghoul_mats.pl)
+#     --stretch x,y,z             after --offset, scale each game axis about the pivot (the lever's shaft drawn in;
+#                                 its normals are left as they are, fine for a stretch close to 1)
 #     --offset x,y,z              move the mesh (game units, Z up), e.g. to put its pivot where the vanilla prop it
 #                                 replaces had it (the owner's anchors were placed with that one)
 #   e.g. perl tools/import_prop.pl --offset 0,0,-3.51 C:/Games/t6/Greyhound-1.49.4.0/exported_files/black_ops_3_sp/xmodels/p7_zm_zod_skull mg_skull
@@ -44,12 +46,16 @@ my $use_material;
 my @rename;    # --material-rename FROM=TO: a surface whose material matches FROM (a regex) uses TO ($1.. from FROM)
 my $bones_opt;
 my $size = 1;    # --scale: the mesh scaled about its pivot (the Magmagat's blob a little smaller than BO4's)
+my $stretch = '1,1,1';    # --stretch x,y,z: then each game axis about the pivot (the lever's grips drawn in)
 my $skinned;
-GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'material-rename=s' => \@rename, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size, 'skinned' => \$skinned ) or die "import_prop.pl: bad options\n";
+GetOptions( 'skip=s' => \@skip, 'skip-color=s' => \@skip_color, 'color=s' => \%color_for, 'offset=s' => \$offset, 'material=s' => \$use_material, 'material-rename=s' => \@rename, 'bones=s' => \$bones_opt, 'tints=s' => \$tints_file, 'scale=f' => \$size, 'stretch=s' => \$stretch, 'skinned' => \$skinned ) or die "import_prop.pl: bad options\n";
 die "import_prop.pl: --skinned and --bones exclude each other (--bones makes a rigid part)\n" if $skinned && defined $bones_opt;
 my @off = split /,/, $offset;
 die "import_prop.pl: --offset takes x,y,z\n" unless @off == 3;
 my @off_gl = ( $off[0], $off[2], -$off[1] );    # game Z-up -> the Linker's Y-up
+my @st = split /,/, $stretch;
+die "import_prop.pl: --stretch takes x,y,z\n" unless @st == 3;
+my @st_gl = ( $st[0], $st[2], $st[1] );    # game Z-up -> the Linker's Y-up (an axis scale: no sign)
 my ( $src, $prop, $ximages ) = @ARGV;
 die "usage: import_prop.pl [--skip re] [--skip-color re] [--color re=png] [--bones b,..|!b,..] [--material name] [--offset x,y,z] [--tints tsv] [--scale f] <greyhound xmodel dir> <prop name> [ximages dir]\n" unless $src && $prop;
 our %mat;
@@ -328,7 +334,7 @@ for my $k ( 0 .. $#lods ) {
                 for my $v ( 0 .. $a->{count} - 1 ) {
                     my ( $x, $y, $z ) = unpack( 'f<3', substr( $buf, $base + $v * $stride, 12 ) );
                     my @n = ( $x * $scale, $z * $scale, -$y * $scale );
-                    @n = map { $n[$_] + $off_gl[$_] } 0 .. 2 if $name eq 'POSITION';
+                    @n = map { ( $n[$_] + $off_gl[$_] ) * $st_gl[$_] } 0 .. 2 if $name eq 'POSITION';
                     substr( $buf, $base + $v * $stride, 12 ) = pack( 'f<3', @n );
                     for my $i ( 0 .. 2 ) { $mn[$i] = $n[$i] if $n[$i] < $mn[$i]; $mx[$i] = $n[$i] if $n[$i] > $mx[$i] }
                 }
