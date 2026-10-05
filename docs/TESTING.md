@@ -29,7 +29,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
       `MG_FORGE_GUN`, `MG_PRESS`, `MG_LEVER`, `MG_FORGE_FX`, `MG_GHOUL_1`, `MG_GHOUL_2`; none say
       "undefined".
-- [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `tour`, `press`, `power`, `lockdown`, `zone`, `bridge`, `give`, `magma`, `shock`
+- [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `tour`, `press`, `power`, `lockdown`, `zone`, `bridge`, `give`, `magma`, `brutus`, `shock`
       (all at once) / `shock gun`, `fx`, `snd`, and the placement commands.
 
 ## 0a. The sound bank
@@ -169,7 +169,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       burns, walks, and dies 4 s later. When it dies the blob bursts in flame with the Acid Gat's explosion sound (no
       green smoke): the zombies within 128 units catch fire, take 400 and burn to death, falling dead (no gore). No
       player is hurt. Other zombies are not drawn to a blob on a zombie.
-- [ ] **Hit Brutus**: 100, then he burns 5 s (torso flames), then the blob is gone with no burst; zombies are not lured.
+- [ ] **Hit Brutus** (`!mg brutus` sends one): 100, then he burns 5 s (torso flames) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured.
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
       turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws 3 zombies (the Magmus 6);
       high up a wall it draws none. A zombie touching its fire (64 units, 32 high) catches fire and burns to death

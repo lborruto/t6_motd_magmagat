@@ -10,7 +10,7 @@
 #include scripts\zm\zm_prison\mg_weapon;
 #include scripts\zm\zm_prison\mg_place;
 
-// Debug tools (`!mg`, needs `set mg_debug 1`): give / magma / shock, the tour, the lockdown and zone checks, and the fx
+// Debug tools (`!mg`, needs `set mg_debug 1`): give / magma / brutus / shock, the tour, the lockdown and zone checks, and the fx
 // / snd audition (`!mg fx <n|name|next|prev|stop>`, `!mg snd <n|alias|next|prev>`, ported from the Dead Frequency
 // mod's audition tool without its grid).
 
@@ -146,6 +146,12 @@ mg_debug_command( sub, arg, args )
         // the souls' kill zone marked along its sides, to check it against the lockdown's blue walls
         case "zone":
             self thread mg_debug_zone();
+            return 1;
+
+        // a Brutus now, as vanilla's round logic sends one (_zm_ai_brutus.gsc brutus_spawning_logic), to try the weapon on
+        case "brutus":
+            level notify( "spawn_brutus", 1 );
+            self mg_out( "MG: a Brutus is on his way" );
             return 1;
 
         case "give":

@@ -265,6 +265,7 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | `!mg spots` | print every anchor (`[SPOT] KEY \| x y z \| p y r`) |
 | `!mg help` | full command list |
 | `!mg give` | give a plain Blundergat |
+| `!mg brutus` | send a Brutus now, as the round logic does |
 | `!mg magma` | swap the Blundergat in hand for its Magmagat (the Sweeper for the Magmus Operandi) |
 | `!mg model <xmodel>` | spawn any precached model 80 units in front of you (the mod.ff props: `mg_barrel_green`, `mg_skull_bo4`) |
 | `!mg shock` | zap every Afterlife shock box and panel of the map at once (doors, generator panels) |

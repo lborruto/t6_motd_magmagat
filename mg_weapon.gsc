@@ -543,8 +543,8 @@ mg_blob_on_zombie( zombie, player, weapon )
 }
 
 // self = blob on Brutus (BO4's boss: function_ba9e077b, function_78f754f7): 100 burn damage, then he burns each second
-// for 10 to 20 % of his maximum health (from round 15, 5 to 10 %) for 5 s, and the blob goes without a burst (vanilla
-// brutus_damage_override keeps a share of it). A Brutus dying meanwhile takes the blob with him at once.
+// for 10 to 20 % of his maximum health (from round 15, 5 to 10 %) for 5 s, and the blob goes without a burst (it lands
+// whole, as BO4's: mg_brutus_unscaled). A Brutus dying meanwhile takes the blob with him at once.
 mg_blob_on_brutus( brutus, player, weapon )
 {
     self endon( "death" );
@@ -669,10 +669,32 @@ mg_brutus_scorch( player, weapon, hit )
 // Magmagat damage, credited to its player while he is still here.
 mg_magma_dodamage( victim, amount, pos, player, mod, weapon )
 {
+    amount = mg_brutus_unscaled( victim, amount, player, mod, weapon );
+
     if ( isdefined( player ) )
         victim dodamage( amount, pos, player, player, "none", mod, 0, weapon );
     else
         victim dodamage( amount, pos );
+}
+
+// The Magmagat's burns on Brutus land as BO4's do: vanilla brutus_damage_override (_zm_ai_brutus.gsc) keeps a tenth of
+// any body hit (level.brutus_damage_percent, all of it under an insta-kill) and half again from a "spread" weapon,
+// where BO4's Brutus lets the Magmagat's burn through (a stuck blob kills him in 3 to 5 s before round 15). So a burn
+// (MOD_BURNED: never the override's explosive or head branches) is raised by what the override will take off it.
+mg_brutus_unscaled( victim, amount, player, mod, weapon )
+{
+    if ( mod != "MOD_BURNED" || !isdefined( victim.animname ) || victim.animname != "brutus_zombie" || !isdefined( level.brutus_damage_percent ) )
+        return amount;
+
+    scale = level.brutus_damage_percent;
+
+    if ( isdefined( player ) && isalive( player ) && isplayer( player ) && ( level.zombie_vars[player.team]["zombie_insta_kill"] || is_true( player.personal_instakill ) ) )
+        scale = 1.0;
+
+    if ( isdefined( weapon ) && weaponclass( weapon ) == "spread" && isdefined( level.brutus_shotgun_damage_mod ) )
+        scale = scale * level.brutus_shotgun_damage_mod;
+
+    return int( amount / scale );
 }
 
 // self = zombie (vanilla _zm_spawner::zombie_damage). Magmagat damage pays no points per hit and skips vanilla's
