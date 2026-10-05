@@ -22,8 +22,7 @@ The look, mostly the Black Ops 3 remaster's:
 - The flying blob's trail sparkles softly instead of popping like fireworks; the muzzle flash's and the landing's
   sparks are softer too.
 - The blob's landing splash flies out of the surface it hits, and a zombie's burst sprays upward.
-- The Tempered Blundergat fires with the Blundergat's own muzzle flash (no more blue flash), and the blob leaves no
-  scorch mark.
+- The Tempered Blundergat fires with the Blundergat's own muzzle flash (no more blue flash).
 - The forge presses the gun in fire only: its electricity is kept for powering the Machine.
 
 Fixes:
