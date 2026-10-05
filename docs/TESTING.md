@@ -126,8 +126,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       burn (no timer on screen: the flame is the only indicator; `!mg status` prints the seconds left).
 - [ ] In your hands the tempered gun is BO4's tempered Blundergat (a Sweeper gives the tempered Sweeper with its
       armour): its canisters glow blue; others see a blue flame on it.
-- [ ] Fire it: its muzzle flash burns blue (`mg/fx_mg_tempered_flash`, the Magmagat's flash recoloured), in first
-      person and as seen by another player.
+- [ ] Fire it: the plain Blundergat's muzzle flash (no blue flash), in first person and as seen by another player.
 - [ ] The five drums (the remaster's dark-green drums, filled 2/3 with ash and burnt wood) burn blue from inside, the flames rising out of the rim.
 - [ ] Each drum is solid: you cannot walk through it nor jump onto it (its clip stands 128 units high from its foot).
 - [ ] Stand at a lit drum's foot (within 64 units, feet 0-64 above its base): the temper is back to 15 s, with a 5 s
@@ -181,9 +180,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 6. The weapon (Magmagat / Magmus Operandi)
 
-- [ ] Fire it: one orange blob (a little smaller than BO4's) flies with a trail and a small fire riding it, the
-      remaster's fire-coloured muzzle flash (the Magmus: Harry's _ug one), no tracer streak, no bullet impact and no green
-      acid splash where it lands. The clip holds one (the Magmus two). Both fire with the plain Blundergat's shot, as
+- [ ] Fire it: one orange blob (a little smaller than BO4's) flies with a trail of soft glints and a small fire riding
+      it (no burst of solid star sparks round it, in first person too), the remaster's fire-coloured muzzle flash
+      (the Magmus: Harry's _ug one), no tracer streak, no bullet impact and no green acid splash where it lands. The
+      clip holds one (the Magmus two). Both fire with the plain Blundergat's shot, as
       the remaster's own t8_magmagat_zm does.
 - [ ] **Hit a zombie** (BO4's): 0.5 s later a zombie of 1000 health or less bursts in gore and dies; a tougher one
       burns, keeps its gait at about 60 % of its speed (a sprinter stays a slower sprinter, its legs not sliding), and
@@ -202,7 +202,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       hurt touching it: 1 every 0.4 s, with a light rumble (a pad's), down or not.
 - [ ] A blob fired into the sky (it never lands): a pool appears where it is after 5 s of flight. A blob on a corpse
       or the gondola pools where it stuck.
-- [ ] A burning zombie: the flames and the loop sound stay on it until it dies or for 8 s.
+- [ ] A burning zombie: the remaster's body fire on its chest, head, one arm and one leg; the flames and the loop
+      sound stay on it until it dies or for 8 s. Brutus keeps Mob's torso flames.
+- [ ] The blob's landing splash flies out of the surface it hit (floor: upward; wall: out of the wall), for the Magmus
+      Operandi too; a zombie's burst sprays upward, not sideways.
 - [ ] **12 burning at most**: with 12 or more enemies burning (a big train through two pools), the next ones take
       only the first hit (no flames, no burn): a pool keeps hitting them while they stand in it.
 - [ ] Spam 5 or more pools: never more than 2 at once (the oldest goes).
@@ -227,9 +230,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       same model. No flame rides the held gun.
 - [ ] **Pack-a-Punch**: a Magmagat comes back as `magmagat_upgraded_zm`, Magmus Operandi: the BO4 model with its
       armour kit, a 2-blob clip, the bigger pool and lure.
-- [ ] **Acid Gat kit takes a Magmagat**: holding only a Magmagat, use the Acid Gat station: it goes in as a
-      Blundergat and the Acid Gat comes out (a Magmus Operandi gives the Vitriolic Withering) with the Magmagat's
-      reserve ammo (fire a few first: the Acid Gat's reserve matches, up to its maximum).
+- [ ] **Acid Gat kit takes a Magmagat**: holding only a Magmagat, use the Acid Gat station: the kit shows the
+      Magmagat going in (the Magmus Operandi for a Magmus), never a Blundergat, and the Acid Gat comes out (a Magmus
+      Operandi gives the Vitriolic Withering) with the Magmagat's reserve ammo (fire a few first: the Acid Gat's
+      reserve matches, up to its maximum).
 - [ ] A plain Blundergat still upgrades at the Acid Gat station normally. With a Magmagat and an Acid Gat already,
       the Magmagat goes in and the Acid Gat is refilled, as BO4's kit does.
 - [ ] **Back and forth**: Magmagat -> Acid Gat kit -> Acid Gat -> fireplace -> Magmagat again; the same with a

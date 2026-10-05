@@ -103,8 +103,6 @@ my $blob = 'mg_magma_blob';
 # the Acid Gat's dart and grenade hit with impact types (bolt, grenade_explode) that Mob's impact table draws as its
 # green acid splash and smoke: ours draw only their own effects (the burst sound is scripted, mg_blob_burst)
 my %no_acid = ( impactType => 'none' );
-# the tempered gun's muzzle flash burns blue (the remaster's flash recoloured, tools/assets/bo3_fx.tsv)
-my %tempered_flash = ( viewFlashEffect => 'mg/fx_mg_tempered_flash', worldFlashEffect => 'mg/fx_mg_tempered_flash_3p' );
 my @weapons = (
     [ 'magmagat_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MAGMAGAT', gunModel => 'mg_magmagat_view',
         worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, viewFlashEffect => 'mg/fx_blundersplat_muzzleflash',
@@ -118,12 +116,12 @@ my @weapons = (
         damage => 0, projExplosionEffect => '', projExplosionSound => '', %no_acid, fuseTime => 10, explosionRadius => 300,
         explosionInnerDamage => 0, explosionOuterDamage => 0,
         aifuseTime => 10, explosionTag => '' } ],
-    # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still
+    # the tempered Blundergat the fireplace hands back (BO4's model, its canisters burning blue): a Blundergat still,
+    # with the Blundergat's own muzzle flash, as the remaster's tempered gun fires
     [ 'mg_tempered_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MG_TEMPERED', gunModel => 'mg_tempered_view', worldModel => 'mg_tempered_world',
-        hideTags => $tank_tags, %tempered_flash } ],
+        hideTags => $tank_tags } ],
     [ 'mg_tempered_upgraded_zm', 'blundergat_upgraded_zm', { displayName => 'ZMWEAPON_MG_TEMPERED_UPGRADED', gunModel => 'mg_tempered_up_view',
-        worldModel => 'mg_tempered_up_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights",
-        %tempered_flash } ],
+        worldModel => 'mg_tempered_up_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights" } ],
 );
 for my $w (@weapons) {
     my ( $ours, $src, $set ) = @$w;

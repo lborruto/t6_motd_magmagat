@@ -349,7 +349,9 @@ mg_blob_land( blob, player, weapon, fire )
     // its own model flew it; from now a copy shows it, turned to what it stuck to (mg_blob_show)
     blob hide();
     mg_fx_stop( fire );
-    mg_fx_once( "impact", blob.origin, undefined, mg_up_angles( mg_blob_normal( dir, blob ) ) );    // turned to the surface, as the pool
+    // Harry's impact is built along its +X (its splash flies out along X): forward along the surface's normal, as the
+    // engine plays a projectile's impact (the pool and the blob's model stand on their +Z instead: mg_up_angles)
+    mg_fx_once( "impact", blob.origin, undefined, vectortoangles( mg_blob_normal( dir, blob ) ) );
     host = undefined;
 
     if ( !flying )
@@ -719,7 +721,7 @@ mg_brutus_blob_burn( player, weapon )
 mg_blob_burst( player, weapon, centre )
 {
     pos = self.origin;
-    mg_fx_once( "explo", pos );
+    mg_fx_once( "explo", pos, undefined, ( -90, 0, 0 ) );    // its +X up: Harry's burst is built along X, it sprayed sideways
     mg_fx_once( "burst_fire", pos );
     playsoundatposition( "wpn_blundersplat_explode", pos );
 
@@ -1233,12 +1235,27 @@ mg_burn_start()
     self thread mg_burn_fx();
 }
 
-// self = zombie. Its flames, laid out as vanilla's flame_death_fx lays a burning body's (zm_death): Mob's torso fire up
-// and down the spine and a small fire on an arm and a leg, until mg_burn_end, or 2 s after its death as it lies there.
+// self = zombie. Its flames, the remaster's own: BO3's body fire (arch_actor_fire_fx, archetype_damage_effects.csc:
+// fire/fx_fire_ai_human_<part>_loop) on four of the ten tags it lights, the chest (J_Spine4), the head and one arm and
+// one leg, until mg_burn_end, or 2 s after its death as it lies there. Four, not ten: each of BO3's is some 25 to 65
+// sprites (Mob's torso fire was 11), so ten on each of 12 burning zombies (mg_burn_start) would be some 4000 sprites
+// and 120 carriers, past what T6 draws beside the pools and the guns; these four are some 150 a zombie, on the 48
+// carriers the burn always had. The hips (the heaviest, 45 each) and the second arm and leg are the ones left out.
+// Brutus keeps his own (the owner's): Mob's torso fire up and down the spine and a small fire on an arm and a leg, as
+// vanilla's flame_death_fx lays a burning body's (zm_death).
 mg_burn_fx()
 {
-    tags = array( "J_SpineUpper", "J_SpineLower", random( array( "J_Elbow_LE", "J_Elbow_RI" ) ), random( array( "J_Knee_LE", "J_Knee_RI" ) ) );
-    keys = array( "burn", "burn", "blob_fire", "blob_fire" );
+    arm = random( array( "le", "ri" ) );
+    leg = random( array( "le", "ri" ) );
+    tags = array( "j_spine4", "j_head", "j_elbow_" + arm, "j_knee_" + leg );
+    keys = array( "burn_torso", "burn_head", "burn_arm_" + arm, "burn_leg_" + leg );
+
+    if ( mg_is_boss( self ) )
+    {
+        tags = array( "j_spineupper", "j_spinelower", "j_elbow_" + arm, "j_knee_" + leg );
+        keys = array( "burn", "burn", "blob_fire", "blob_fire" );
+    }
+
     fx = [];
 
     for ( i = 0; i < tags.size; i++ )
@@ -1326,8 +1343,27 @@ mg_acid_station_validation( player )
     player takeweapon( magma );
     player giveweapon( base );
     player switchtoweapon( base );
+    self thread mg_acid_station_show( magma, base );
     mg_debug_print( "MG: " + player.name + " hands a " + magma + " to the Acid Gat kit" );
     return 1;
+}
+
+// self = the Acid Gat kit's trigger a Magmagat was just handed to (mg_acid_station_validation). Vanilla's station lays
+// the gun it takes in the kit as a model of the Blundergat (blundergat_upgrade_station: m_upgrade_machine.worldgun,
+// spawn_weapon_model) right after this hook returns, in the same frame, then waits 0.5 s before its animations. At the
+// frame's end, before any client saw it, that model becomes the Magmagat (or the Magmus Operandi) going in, as the
+// remaster's kit shows (_zm_weap_blundersplat.gsc: spawn_weapon_model of the Magmagat); vanilla still deletes it for
+// the Acid Gat's model once the kit is done (blundergat_upgrade_station_inject), and deletes that at the pickup.
+mg_acid_station_show( magma, base )
+{
+    waittillframeend;
+    machine = self.m_upgrade_machine;
+
+    // only the Blundergat vanilla has just laid in: none when it took nothing after all
+    if ( !isdefined( machine ) || !isdefined( machine.worldgun ) || machine.worldgun.model != getweaponmodel( base ) )
+        return;
+
+    machine.worldgun useweaponmodel( magma, getweaponmodel( magma ) );
 }
 
 // self = player who handed a Magmagat to the Acid Gat kit (kit). The Acid Gat he takes from it keeps the Magmagat's

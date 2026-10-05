@@ -58,11 +58,13 @@ my @roots;
 open my $lh, '<', "$FindBin::Bin/assets/bo3_fx.tsv" or die "bo3_fx.pl: no tools/assets/bo3_fx.tsv\n";
 # a line: the BO3 effect, then options: scale=x,y stretches its element origins (an effect laid out in one of the
 # remaster's slightly smaller rooms, fitted to BO2's); as=<name> ships a copy instead, mg/<name>, with tint=r,g,b each
-# colour its brightness times the tint (the tempered gun's blue muzzle flash), spread=k its elements' sideways
+# colour its brightness times the tint, spread=k its elements' sideways
 # origins times k (the drums' flame held inside their rim) and size=k its sprites' sizes times k (the drums' flare);
 # surface turns its elements that run relative to the world (flags & 0xC0: 0x00) to its spawn (0x40), so it lies on the
-# surface it is played on (the lava pool on a wall: its ring of fire stayed level, across the wall)
-my ( %scale, %surface, @copies );
+# surface it is played on (the lava pool on a wall: its ring of fire stayed level, across the wall); fullgain keeps the
+# whole HDR gain in the textures of its materials and of the effects it runs, colour and alpha, uncapped, as before the
+# cap (IMAGE_GAIN_CAP: the effects the owner had already tuned in game keep their look)
+my ( %scale, %surface, @copies, @fullgain );
 while (<$lh>) {
     s/\s*#.*//;
     my ( $n, @opt ) = split;
@@ -75,11 +77,13 @@ while (<$lh>) {
         elsif (/^spread=([\d.]+)$/)                 { $o{spread} = $1 }
         elsif (/^size=([\d.]+)$/)                   { $o{size} = $1 }
         elsif (/^surface$/)                         { $surface{$n} = 1 }
+        elsif (/^fullgain$/)                        { $o{fullgain} = 1 }
         else                                        { die "bo3_fx.pl: bad option $_ for $n\n" }
     }
     die "bo3_fx.pl: tint=, spread= and size= make a copy: they need as= ($n)\n" if !$o{as} && ( $o{tint} || $o{spread} || $o{size} );
     if   ( $o{as} ) { push @copies, [ $n, "mg/$o{as}", $o{tint}, $o{spread}, $o{size} ] }
     else            { push @roots, $n }
+    push @fullgain, $o{as} ? "mg/$o{as}" : t6fx($n) if $o{fullgain};
 }
 close $lh;
 
@@ -103,7 +107,13 @@ sub t6fx { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; "mg/$b" }
 # material above it has its elements' colours scaled up by hdrScale / HDR_WHITE (saturating as BO3's tone map does)
 # and draws additive, so it glows; one at or below keeps its colours and BO3's alpha blend. A snapshot without the
 # material constants gives 1 (no change). Tune HDR_WHITE in game if the remaster's effects look too hot or too dim.
+# IMAGE_GAIN_CAP caps the gain a texture takes (its colour only, never its alpha: see the images below). The full gain
+# in colour and alpha squared it on an additive sprite and turned the faint rays and halo of Harry's trail stars
+# (fxt_spark_omni, x8; fxt_spark_blink_anim, x187) solid: 9 % and 34 % of their pixels saturated against BO3's
+# 0.1 % and 0 %, a firework round the flying blob. At 2 they saturate 0.8 % and 3 % and read as soft glints, as in
+# BO3 (4: 4 % and 14 %). A fullgain line of tools/assets/bo3_fx.tsv keeps the old full gain.
 use constant HDR_WHITE => 64;
+use constant IMAGE_GAIN_CAP => 2;
 use List::Util qw(min max);
 sub hdr_gain {
     my $p = shift;
@@ -113,12 +123,13 @@ sub hdr_gain {
 }
 sub t6mat { my $n = shift; ( my $b = $n ) =~ s{.*/}{}; $b =~ s/\|.*//; "mg_$b" }
 
-my ( %done, %by_t6, %mats, @todo, $warn );
+my ( %done, %by_t6, %mats, @todo, $warn, %kids, %mats_of );
 @todo = ( ( map { [ $_, t6fx($_) ] } @roots ), @copies );
 while ( my $job = shift @todo ) {
     my ( $n, $t6, $tint, $spread, $size ) = @$job;
     next if $done{$t6}++;
     my ( $fx, $need, $notes ) = $c->convert($n);
+    $kids{$t6} = [ map { t6fx($_) } keys %{ $need->{effects} } ];
     # a BO3 heat distortion draws with vanilla's own (a copy of its material crashed the game when drawn)
     my %as;
     for my $mn ( keys %{ $need->{materials} } ) {
@@ -165,7 +176,21 @@ while ( my $job = shift @todo ) {
     $fx->{totalSize} = MgFx7::total_size( $t6, $fx );
     spit( "$raw/fx/$t6.json", $json->encode($fx) );
     $mats{$_} //= $need->{materials}{$_} for grep { !$as{$_} } keys %{ $need->{materials} };
+    $mats_of{$t6} = [ grep { !$as{$_} } keys %{ $need->{materials} } ];
     push @todo, map { [ $_, t6fx($_) ] } keys %{ $need->{effects} };
+}
+
+# the materials that keep the full gain: those of the fullgain effects and of every effect they run. A material shared
+# with another effect keeps it there too (one material, one texture): the tuned look wins
+my %fullgain_mat;
+{
+    my ( @q, %seen ) = @fullgain;
+    $done{$_} or die "bo3_fx.pl: fullgain on $_, which is not converted\n" for @q;
+    while ( defined( my $t6 = shift @q ) ) {
+        next if $seen{$t6}++;
+        $fullgain_mat{$_} = 1 for @{ $mats_of{$t6} // [] };
+        push @q, @{ $kids{$t6} // [] };
+    }
 }
 
 # zm_prison's own fires for the forge's press at work, without the glow at their heart (the owner's call): the
@@ -208,10 +233,14 @@ for my $mn ( sort keys %mats ) {
         next;
     }
     # a glowing material's HDR goes into its texture too (its colours alone saturate: BO3's blue flame is (0, 76, 255)
-    # times 256, over a texture whose brightest pixels are 146): one copy of the texture per gain
+    # times 256, over a texture whose brightest pixels are 146): one copy of the texture per gain, its colour times
+    # the gain capped at IMAGE_GAIN_CAP (_rgb<gain>), or, for a fullgain effect's material, colour and alpha times the
+    # whole gain (_x<gain>)
     my $gain = $kind eq 'emissive' ? hdr_gain( $mats{$mn} ) : 1;
-    my $img = "mg_" . lc($color) . ( $gain > 1 ? sprintf( '_x%d', $gain ) : '' );
-    $images{$img} = [ $png{ lc $color }, undef, $gain ];
+    my $soft = $gain > 1 && !$fullgain_mat{$mn};
+    $gain = min( $gain, IMAGE_GAIN_CAP ) if $soft;
+    my $img = "mg_" . lc($color) . ( $gain > 1 ? sprintf( $soft ? '_rgb%d' : '_x%d', $gain ) : '' );
+    $images{$img} = [ $png{ lc $color }, undef, $gain, $soft ];
     my @out = $kind eq 'decal' ? ( [ "mc/" . t6mat($mn), $tj{decal_mc} ], [ "wc/" . t6mat($mn), $tj{decal_wc} ] ) : ( [ t6mat($mn), $tj{$kind} ] );
     for my $o (@out) {
         my ( $name, $tpl ) = @$o;
@@ -230,12 +259,15 @@ for my $mn ( sort keys %mats ) {
     }
 }
 
-# images: BC3 (the alpha matters), BC5 normals; a gain scales colour and alpha (an additive sprite adds both), clamped
+# images: BC3 (the alpha matters), BC5 normals; a gain scales the colour, clamped, and the alpha only for a fullgain
+# material (an additive sprite draws colour times alpha: the two gains multiplied, and the faint alpha of a star's
+# rays and halo went solid)
 for my $img ( sort keys %images ) {
-    my ( $src, $normal, $gain ) = @{ $images{$img} };
+    my ( $src, $normal, $gain, $soft ) = @{ $images{$img} };
     if ( $gain && $gain > 1 ) {
         my $p = MgPng::read($src);
-        $_ = min( 255, int( $_ * $gain + 0.5 ) ) for @{ $p->{px} };
+        my $px = $p->{px};
+        for my $i ( 0 .. $#$px ) { $px->[$i] = min( 255, int( $px->[$i] * $gain + 0.5 ) ) unless $soft && $i % 4 == 3 }
         MgDds::write( "$raw/images/_$img.dds", $p, 'bc3' );
         next;
     }

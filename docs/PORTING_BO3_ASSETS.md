@@ -71,14 +71,17 @@ BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effe
    white-hot core), read from the material's settings buffer in the snapshot (named by the pass shader's DXBC, as
    HydraX reads them). `HDR_WHITE` (64) is the scale taken as plain white. A material above it draws additive, and
    gets a gain of `hdrScale / 64`: its elements' colours are multiplied by that gain (saturating, as BO3's tone map
-   does), and so is its texture, colour and alpha, clamped (one copy of the texture per gain, `mg_<image>_x<gain>`,
-   since the colours alone saturate: BO3's blue flame is (0, 76, 255) times 256 over a texture whose brightest pixels
-   are 146). A material at or below 64 keeps its colours and BO3's alpha blend. Tune `HDR_WHITE` in `tools/bo3_fx.pl`
-   if the effects look too hot or too dim.
-5. **Recoloured copies.** A line of `tools/assets/bo3_fx.tsv` can carry `as=<name> tint=r,g,b`: instead of the effect
-   itself, a copy `mg/<name>` is shipped with every colour replaced by its brightness times the tint. The tempered
-   gun's blue muzzle flashes (`mg/fx_mg_tempered_flash`, `_3p`) are the Magmagat's own flashes (Harry's) recoloured
-   that way.
+   does), and so is its texture's colour, never its alpha, with the gain capped at `IMAGE_GAIN_CAP` (2), clamped (one
+   copy of the texture per gain, `mg_<image>_rgb<gain>`, since the colours alone saturate: BO3's blue flame is
+   (0, 76, 255) times 256 over a texture whose brightest pixels are 146). The full gain on colour and alpha squared it
+   on an additive sprite and turned the faint rays of Harry's trail stars solid (a firework round the blob). A
+   `fullgain` line of `tools/assets/bo3_fx.tsv` keeps the old full gain, colour and alpha (`mg_<image>_x<gain>`), for
+   its effect, the effects it runs and any material they share: the effects tuned in game before the cap (the blue
+   flames, the lockdown, the press fire, the lava pool). A material at or below 64 keeps its colours and BO3's alpha
+   blend. Tune `HDR_WHITE` or `IMAGE_GAIN_CAP` in `tools/bo3_fx.pl` if the effects look too hot or too dim.
+5. **Copies.** A line of `tools/assets/bo3_fx.tsv` can carry `as=<name>`: instead of the effect itself, a copy
+   `mg/<name>` is shipped, with `tint=r,g,b` every colour replaced by its brightness times the tint, `spread=k` and
+   `size=k` its sideways origins and its sprites scaled (the drums' flame and flare).
    (`scale=x,y` stretches an effect's element origins instead: the lockdown outline, fitted from the remaster's slightly
    smaller office to BO2's.)
 
@@ -88,7 +91,8 @@ The effects in the mod are listed in `tools/assets/bo3_fx.tsv`; they become `mg/
 (`_copforthat/_zm_prison/*`: the blue flames, the lockdown, the press fire, the lava pool, the soul). The rest are
 Harry's effects, which the remaster ships: `harry/magmagat/*` (the blob's trail, impact and burst,
 `mg/fx_magmagat_trail_bolt`, `_impact`, `_explode`, which the Magmagat weapon files name) and `harry/blundersplat/*`
-(the fire-coloured Acid Gat muzzle flash the Magmagat fires with, and the tempered copies above). Two more are Mob's
+(the fire-coloured Acid Gat muzzle flash the Magmagat fires with). `fire/fx_fire_ai_human_*_loop` are BO3's own
+body fire (its `arch_actor_fire_fx`), on a burning zombie's chest, head, an arm and a leg. Two more are Mob's
 own fires with their glow taken out, for the forge and the fireplace (`mg/fx_mg_forge_fire`, `mg/fx_mg_forge_flare`,
 from `fx_alcatraz_fire_sm` and `fx_alcatraz_falling_fire_impact`). The lava pool a miss
 lays is `mg/fx_prison_magmagat_aoe`. Not carried over: BO3's sound elements and spawn sounds (BO3 aliases; the mod

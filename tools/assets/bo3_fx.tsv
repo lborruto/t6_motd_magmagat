@@ -1,22 +1,26 @@
 # The BO3 remaster's effects the mod ships (tools/bo3_fx.pl), each with every effect it runs. In game they are
-# mg/<file name>: mg/fx_alcatraz_blue_flame_loop and so on.
-_copforthat/_zm_prison/fx_alcatraz_blue_flame_loop          # the fireplace's blue flame
-_copforthat/_zm_prison/fx_alcatraz_blue_flame_loop as=fx_mg_barrel_flame spread=0.5   # the drums' flame, held inside their rim (half its sideways spread)
-_copforthat/_zm_prison/fx_alcatraz_blue_flame_flare_up      # the forge's flare-up as the gun is laid down
-_copforthat/_zm_prison/fx_alcatraz_blue_flame_flare_up as=fx_mg_barrel_flare spread=0.5 size=0.75   # a drum refilling the temper, its burst within the rim's width
-_copforthat/_zm_prison/fx_alcatraz_blue_flame_skull         # a lit skull
-_copforthat/_zm_prison/fx_alcatraz_blue_flame_vm            # the tempered gun's flame
-_copforthat/_zm_prison/fx_alcatraz_lockdown_wardens scale=1.0146,1.019   # the office lockdown: one effect outlining the door and walls
+# mg/<file name>: mg/fx_alcatraz_blue_flame_loop and so on. fullgain: the owner tuned it in game before the texture
+# gain was capped (tools/bo3_fx.pl IMAGE_GAIN_CAP), so it keeps its full gain.
+_copforthat/_zm_prison/fx_alcatraz_blue_flame_loop fullgain          # the fireplace's blue flame
+_copforthat/_zm_prison/fx_alcatraz_blue_flame_loop as=fx_mg_barrel_flame spread=0.5 fullgain   # the drums' flame, held inside their rim (half its sideways spread)
+_copforthat/_zm_prison/fx_alcatraz_blue_flame_flare_up fullgain      # the forge's flare-up as the gun is laid down
+_copforthat/_zm_prison/fx_alcatraz_blue_flame_flare_up as=fx_mg_barrel_flare spread=0.5 size=0.75 fullgain   # a drum refilling the temper, its burst within the rim's width
+_copforthat/_zm_prison/fx_alcatraz_blue_flame_skull fullgain         # a lit skull
+_copforthat/_zm_prison/fx_alcatraz_blue_flame_vm fullgain            # the tempered gun's flame
+_copforthat/_zm_prison/fx_alcatraz_lockdown_wardens scale=1.0146,1.019 fullgain   # the office lockdown: one effect outlining the door and walls
 _copforthat/_zm_prison/fx_alcatraz_magmagat_power surface           # the forge powered, turned with the press
-_copforthat/_zm_prison/fx_prison_magmagat_press_fire surface        # the press at work, turned with the press
-_copforthat/_zm_prison/fx_prison_magmagat_aoe surface               # the lava pool, lying on the surface it hit
-_copforthat/_zm_prison/fx_prison_magmagat_impact_decal      # the blob's scorch
+_copforthat/_zm_prison/fx_prison_magmagat_press_fire surface fullgain   # the press at work, turned with the press
+_copforthat/_zm_prison/fx_prison_magmagat_aoe surface fullgain          # the lava pool, lying on the surface it hit
 harry/magmagat/fx_magmagat_trail_bolt                       # the lava blob in flight
 harry/magmagat/fx_magmagat_impact                           # the blob landing
 harry/magmagat/fx_magmagat_explode                          # the blob bursting
 harry/blundersplat/fx_blundersplat_muzzleflash                # the Magmagat's muzzle flash (the remaster's: Harry's fire-coloured Acid Gat flash)
 harry/blundersplat/fx_blundersplat_muzzleflash_3p             # the same, seen by others
-harry/blundersplat/fx_blundersplat_muzzleflash as=fx_mg_tempered_flash tint=0.3,0.6,1        # the tempered gun's muzzle flash: the same flash burning blue
-harry/blundersplat/fx_blundersplat_muzzleflash_3p as=fx_mg_tempered_flash_3p tint=0.3,0.6,1  # the same, seen by others
 harry/blundersplat/fx_blundersplat_muzzleflash_ug             # the Magmus Operandi's flash (the remaster's: Harry's _ug)
 harry/blundersplat/fx_blundersplat_muzzleflash_ug_3p          # the same, seen by others
+fire/fx_fire_ai_human_torso_loop                              # a burning zombie (BO3's own body fire, archetype_damage_effects), on four of its ten tags (mg_burn_fx): its chest
+fire/fx_fire_ai_human_head_loop                               # its head
+fire/fx_fire_ai_human_arm_left_loop                           # its arm
+fire/fx_fire_ai_human_arm_right_loop
+fire/fx_fire_ai_human_leg_left_loop                           # its leg
+fire/fx_fire_ai_human_leg_right_loop
