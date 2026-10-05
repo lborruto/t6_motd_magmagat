@@ -94,7 +94,7 @@ mg_coords_init()
     // smasher and our ram being one mesh at 0.755 scale (the smasher's centre + (33.5, 0, -30.6) scaled, from our ram's
     // centre (5.4, -0.25, 86.5)), on the machine's other side (the remaster's machine faces the other way than BO4's),
     // its grips out toward the player as the machine faces; `!mg grab MG_LEVER` places it, and the forge's ghouls fly
-    // around it (mg_ghoul_path)
+    // to its grips (mg_forge_ghouls)
     press = level.mg_coords["MG_PRESS"];
     p = press.angles[1];
     lever = press.origin + anglestoforward( ( 0, p, 0 ) ) * -28.1 + anglestoright( ( 0, p, 0 ) ) * 0.26 + ( 0, 0, 55.9 );

@@ -81,7 +81,7 @@ mg_debug_autorun()
 }
 
 // The real press (mg_press_show) on a Tempered Blundergat, unless one is at work or a Magmagat waits on the bed; the
-// Magmagat it makes goes 3 s later.
+// Machine opens first when it is not powered (and closes again after); the Magmagat it makes goes 3 s later.
 mg_debug_press()
 {
     if ( is_true( level.mg_forge_busy ) || isdefined( level.mg_forge_ready_gun ) )
@@ -91,6 +91,13 @@ mg_debug_press()
     }
 
     level.mg_forge_busy = 1;
+
+    if ( !is_true( level.mg_forge_open ) )
+    {
+        mg_forge_power_fx();
+        wait 0.5;
+    }
+
     gun = mg_press_show( "mg_tempered_zm" );
     wait 3;
 
@@ -99,6 +106,7 @@ mg_debug_press()
 
     level.mg_forge_place_ents = [];
     level.mg_forge_busy = 0;
+    level.mg_press["press_ram"] moveto( mg_press_ram_rest(), 0.5, 0.1, 0.2 );
 }
 
 // self = player. 1 when the command was ours.
@@ -279,6 +287,17 @@ mg_debug_command( sub, arg, args )
             self thread mg_debug_press();
             return 1;
 
+        // the Machine's power step, as the quest plays it (it stays powered)
+        case "power":
+            if ( is_true( level.mg_forge_open ) || is_true( level.mg_forge_busy ) )
+            {
+                self mg_out( "MG: the Machine is already powered (or at work)" );
+                return 1;
+            }
+
+            self thread mg_forge_power( self );
+            return 1;
+
         case "tp":
             if ( !isdefined( arg ) )
             {
@@ -369,11 +388,7 @@ mg_debug_tour()
     // 6. the forge: powered, then a gun pressed into the Magmagat (the ram stays up while a real press runs)
     fc = mg_coord( "MG_FORGE_GUN" );
     self mg_tour_look( "6/7 The forge: the Machine powered, the Tempered Blundergat pressed", mg_coord( "MG_FORGE" ).origin + ( 0, 0, 10 ), fc.origin );
-    level thread mg_forge_power_fx();
-    wait 1;
-    self playsoundtoplayer( "mg_brutus_mgu", self );
-    wait 2;
-    mg_debug_press();
+    mg_debug_press();    // its power step first, the press closed until then
 
     // 7. the Magmagat's shot, fired for real at the floor ahead: the blob flies and lays its pool
     self setorigin( back );

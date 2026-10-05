@@ -66,6 +66,7 @@ mg_press_spawn()
     }
 
     level.mg_press_rest = origin;
+    level.mg_press["press_ram"].origin = mg_press_ram_rest();
 }
 
 // The press's own animations, played on its ram: fxanim_zom_magmagat_press_start_anim brings it down 74.5 cm onto the
@@ -197,15 +198,15 @@ mg_forge_press( player )
     mg_forge_place( player, weapon );
 }
 
-// The carrier powers the Machine (the remaster's function_b09dee70, its power sound and effect, 1 s later the Warden's
-// line to him). The run goes on (the owner's rule: the tempered gun is what the forge takes); the Machine stays
-// powered for good.
+// The carrier powers the Machine (the remaster's function_b09dee70, its power sound and effect, then the Warden's line
+// to him). The press stands closed until then and opens as it wakes (mg_forge_power_fx); the run goes on (the owner's
+// rule: the tempered gun is what the forge takes); the Machine stays powered for good.
 mg_forge_power( player )
 {
     level endon( "mg_goto" );
     level.mg_forge_busy = 1;
     level thread mg_forge_power_fx();
-    wait 1;
+    wait 2.5;
 
     if ( isdefined( player ) )
         player playsoundtoplayer( "mg_brutus_mgu", player );
@@ -215,8 +216,9 @@ mg_forge_power( player )
     mg_debug_print( "MG: the Machine is powered: lay the Tempered Blundergat on it" );
 }
 
-// The Machine waking (the owner's wish: more than electricity): the remaster's power effect and sound, a surge, the
-// machine shuddering (its ram jolts, its lever twitches), and a flare of fire on its bed in embers. Also `!mg tour`.
+// The Machine waking (the owner's wish: more than electricity, and the closed press opening): a surge and the
+// remaster's power effect, the lever twitching; the closed ram shudders three times on the bed, then a slam in sparks
+// and a flare of fire; the ram lifts open (t 1.4) with fire through the machine and embers on the bed. Also `!mg tour`.
 mg_forge_power_fx()
 {
     level endon( "mg_goto" );
@@ -224,18 +226,48 @@ mg_forge_power_fx()
     ram = level.mg_press["press_ram"];
     lever = level.mg_press["press_lever"];
     bed = mg_coord( "MG_FORGE_GUN" ).origin;
+    closed = level.mg_press_rest - ( 0, 0, 29.33 );
     body playsound( "zmb_powerpanel_activate" );
     body playsound( "evt_electrical_surge" );
     mg_fx_once( "sparks", level.mg_press_rest, undefined, body.angles );
-    ram moveto( level.mg_press_rest - ( 0, 0, 4 ), 0.12 );
     lever rotatepitch( 8, 0.12 );
     wait 0.12;
-    ram moveto( level.mg_press_rest, 0.2, 0, 0.15 );
     lever rotatepitch( -8, 0.25, 0, 0.2 );
-    wait 0.3;
+    wait 0.18;
+
+    // t 0.3: the closed ram shudders, straining against the bed
+    for ( i = 0; i < 3; i++ )
+    {
+        ram moveto( closed + ( 0, 0, 3 ), 0.1 );
+        body playsound( "amb_metal_hits" );
+        wait 0.1;
+        ram moveto( closed, 0.1 );
+        wait 0.15;
+    }
+
+    // t 1.1: a slam in sparks, the fire flaring on the bed
+    mg_fx_once( "sparks", bed, undefined, body.angles );
     mg_fx_once( "barrel_flare", bed, 3 );
-    mg_fx_once( "forge_embers", bed, 3 );
+    body playsound( "zmb_hellbox_slam_shake" );
     body playsound( "mg_flame_burst" );
+    wait 0.3;
+
+    // t 1.4: the press opens, fire roaring through it
+    ram moveto( level.mg_press_rest, 0.9, 0.2, 0.4 );
+    body playsound( "mg_press" );
+    mg_fx_once( "forge_rise", level.mg_press_rest, 2, body.angles );
+    mg_fx_once( "forge_embers", bed, 4 );
+    wait 0.9;
+    body playsound( "mg_flame_burst" );
+}
+
+// The ram's rest: up when the Machine is powered, down on the bed until then (the press stands closed).
+mg_press_ram_rest()
+{
+    if ( is_true( level.mg_forge_open ) )
+        return level.mg_press_rest;
+
+    return level.mg_press_rest - ( 0, 0, 29.33 );
 }
 
 // The gun goes on the bed and the press works it, on the remaster's timeline (function_fb635f94; t from the use).
@@ -283,7 +315,7 @@ mg_press_show( weapon )
     // t 0: the temper flares up as the gun is laid down, the ghouls rise out of it
     mg_fx_once( "barrel_flare", c.origin, 3 );
     body playsound( "mg_flame_burst" );
-    level thread mg_forge_ghouls();
+    level thread mg_forge_ghouls( c.origin );
 
     // t 3.4: the lever pulled down 45 degrees in 0.2 s (the smelter's handel_1_jnt, frames 102 to 109)
     wait 3.4;
@@ -322,7 +354,18 @@ mg_press_show( weapon )
     body playsound( "mg_flame_burst" );
     body playsound( "zmb_buildable_complete" );
     level thread mg_forge_glow( gun, c.origin );
+    gun thread mg_forge_gun_float( c.origin + ( 0, 0, 6 ) );
     return gun;
+}
+
+// self = the Magmagat on the bed: it rises off it as the ram lifts, then floats there until taken (the owner's wish,
+// BO4's fireplace hover, mg_hover)
+mg_forge_gun_float( origin )
+{
+    self endon( "death" );
+    self moveto( origin, 0.8, 0.2, 0.4 );
+    wait 0.8;
+    self mg_hover( origin );
 }
 
 // BO4's reveal: the Magmagat glows on the bed (a glow, no flame) over tiny flames, while it lies there.
@@ -437,9 +480,9 @@ mg_forge_fabricate( state )
 
     level.mg_forge_place_ents = [];
     mg_forge_ready_clear();
-    level.mg_press["press_ram"] moveto( level.mg_press_rest, 0.1 );
     level.mg_forge_busy = 0;
     level.mg_forge_open = ( state == "forge" || state == "done" );
+    level.mg_press["press_ram"] moveto( mg_press_ram_rest(), 0.1 );
 
     if ( state == "forge" && isdefined( self ) && isplayer( self ) )
     {
@@ -453,27 +496,35 @@ mg_forge_fabricate( state )
 
 #using_animtree("fxanim_props");
 
-// BO4's ghouls (its scene's two fakeactors, c_t8_zmb_mob_ghoul bodies glowing blue: tools/build_ghoul_mats.pl), as its
-// scene plays them: each plays its own 11.4 s animation and flies its own path around the lever, BO4's tag_origin
-// track (mg_ghoul_path_data, tools/ghoul_path.pl), which a script_model does not take from the animation, so script
-// moves it; they go at the animation's end_alpha (10.67 s). Script models share one animtree (Mob's fxanim_props,
-// which mod.ff extends with theirs: tools/import_all.pl). Held in level.mg_forge_place_ents.
-mg_forge_ghouls()
+// BO4's ghouls (its scene's two fakeactors, c_t8_zmb_mob_ghoul bodies glowing blue: tools/build_ghoul_mats.pl) on BO4's
+// timeline, each playing its own 11.4 s animation in place: out of the gun on the bed (t 0), each flies to its grip of
+// the lever (t 0.5 to 2.9), turned to the machine, dips with the lever's pull (t 3.4), holds it, and goes at the
+// animation's end_alpha (t 10.67). BO4 flies them by their animation's tag_origin track in its scene's own frame,
+// which neither a script_model plays nor fits the remaster's press: script flies them to our grips instead. A ghoul's
+// body hangs 40 below its origin (j_mainroot, 103.5 cm). Script models share one animtree (Mob's fxanim_props, which
+// mod.ff extends with theirs: tools/import_all.pl). Held in level.mg_forge_place_ents.
+mg_forge_ghouls( bed )
 {
     level endon( "mg_goto" );
     scriptmodelsuseanimtree( #animtree );
     anims = array( %mg_ghoul_smelter_1, %mg_ghoul_smelter_2 );
+    l = mg_coord( "MG_LEVER" );
+    lever_yaw = ( 0, l.angles[1], 0 );
     ghouls = [];
 
-    for ( i = 0; i < 2; i++ )
+    foreach ( i, side in array( -1, 1 ) )
     {
-        path = mg_ghoul_path( i );
-        g = spawn( "script_model", path[0]["pos"] );
-        g.angles = path[0]["ang"];
+        // its grip (the lever's frame: 8 out, 61 along the shaft, 10.5 up; tools/import_all.pl's lever), it standing
+        // 20 further out, its body's hands at the grip
+        grip = l.origin + anglestoforward( lever_yaw ) * 8 - anglestoright( lever_yaw ) * ( side * 61 ) + ( 0, 0, 10.5 );
+        spot = grip + anglestoforward( lever_yaw ) * 20 + ( 0, 0, 22 );
+        g = spawn( "script_model", bed + ( 0, 0, 40 ) );
+        g.angles = ( 0, vectortoangles( spot - bed )[1], 0 );
         g setmodel( mg_model( "ghoul" + ( i + 1 ) ) );
         g useanimtree( #animtree );
         g setanim( anims[i], 1, 0, 1 );
-        g.mg_path = path;
+        g.mg_spot = spot;
+        g.mg_face = ( 0, vectortoangles( grip - spot )[1], 0 );
         ghouls[i] = g;
         level.mg_forge_place_ents[level.mg_forge_place_ents.size] = g;
     }
@@ -484,13 +535,28 @@ mg_forge_ghouls()
     {
         mg_fx_add_tag( g, "ghost_body", "j_spineupper" );
         mg_fx_add_tag( g, "ghost_head", "j_head" );
-        playsoundatposition( "zmb_afterlife_object_apparate", g.origin );
+        mg_fx_once( "ghost_tport", bed );
+        playsoundatposition( "zmb_afterlife_object_apparate", bed );
         g playloopsound( "zmb_afterlife_ghost_loop", 0.5 );
-        g thread mg_ghoul_fly( g.mg_path );
     }
 
-    // t 10.67, the animation's end_alpha
-    wait 10.62;
+    // t 0.5 to 2.9: out to its grip, turned to the machine
+    wait 0.45;
+
+    foreach ( g in ghouls )
+    {
+        g moveto( g.mg_spot, 2.4, 0.6, 0.8 );
+        g rotateto( g.mg_face, 2.4, 0.6, 0.8 );
+    }
+
+    // t 3.4: the pull, the lever's
+    wait 2.9;
+
+    foreach ( g in ghouls )
+        g moveto( g.mg_spot - ( 0, 0, 10 ), 0.2, 0.05, 0.05 );
+
+    // t 10.67, the animation's end_alpha: up and gone
+    wait 7.07;
 
     foreach ( g in ghouls )
     {
@@ -502,49 +568,3 @@ mg_forge_ghouls()
         g delete();
     }
 }
-
-// Ghoul i's path around the lever (MG_LEVER: its frame, turned by its yaw; heights from the machine's floor): its keys,
-// each ["pos"] and ["ang"] in the world, 0.2 s apart.
-mg_ghoul_path( i )
-{
-    l = mg_coord( "MG_LEVER" );
-    yaw = l.angles[1];
-    floor = mg_coord( "MG_PRESS" ).origin[2];
-    keys = [];
-
-    foreach ( item in strtok( mg_ghoul_path_data( i ), "|" ) )
-    {
-        v = strtok( item, "," );
-        k = [];
-        x = float( v[0] );
-        y = float( v[1] );
-        k["pos"] = ( l.origin[0] + x * cos( yaw ) - y * sin( yaw ), l.origin[1] + x * sin( yaw ) + y * cos( yaw ), floor + float( v[2] ) );
-        k["ang"] = ( float( v[3] ), float( v[4] ) + yaw, float( v[5] ) );
-        keys[keys.size] = k;
-    }
-
-    return keys;
-}
-
-// self = a ghoul: along its path, a key every 0.2 s
-mg_ghoul_fly( path )
-{
-    self endon( "death" );
-
-    for ( i = 1; i < path.size; i++ )
-    {
-        self moveto( path[i]["pos"], 0.2 );
-        self rotateto( path[i]["ang"], 0.2 );
-        wait 0.2;
-    }
-}
-
-// ghoul paths (tools/ghoul_path.pl: BO4's, a key every 0.2 s; do not edit by hand)
-mg_ghoul_path_data( i )
-{
-    if ( i == 0 )
-        return "58.1,86.3,0.3,35,154,13|56.8,89.9,14.6,30,168,15|52.7,95.3,31.6,30,-178,18|45.9,99.8,41.0,42,-169,16|36.4,101.1,45.1,79,-175,7|25.4,100.6,44.8,54,21,-146|10.0,100.5,34.5,31,14,-135|-6.0,103.7,24.7,28,11,-128|-16.6,111.1,22.3,25,14,-109|-23.9,120.2,22.8,14,16,-78|-26.1,130.2,24.4,0,3,-52|-22.2,143.3,28.2,-1,-25,-33|-15.8,153.8,36.6,5,-56,-14|-10.8,153.8,47.7,9,-63,2|-7.9,152.2,53.6,8,-57,8|-6.7,150.5,55.3,5,-53,8|-8.2,148.7,53.0,4,-54,2|-10.8,146.9,47.3,0,-48,0|-12.7,146.5,43.6,2,-38,4|-14.4,146.5,42.3,12,-27,18|-15.0,146.7,43.6,16,-32,19|-16.3,147.4,46.6,16,-28,19|-19.0,148.6,48.3,11,-28,19|-22.9,145.6,47.9,6,-26,19|-26.0,139.9,41.9,2,-20,20|-28.5,134.2,37.1,-2,-13,20|-29.5,129.5,37.3,-5,-10,17|-28.7,126.4,39.1,-8,-11,16|-27.4,123.7,41.6,-9,-14,14|-26.5,121.3,45.3,-7,-15,14|-26.5,119.4,47.6,-4,-15,14|-27.0,118.6,48.0,-1,-12,14|-27.7,118.1,47.9,1,-8,17|-28.4,117.8,47.0,3,-3,20|-29.1,117.7,45.4,5,2,22|-29.8,117.7,43.8,8,6,25|-30.3,117.6,42.5,12,10,27|-30.6,117.3,41.8,15,13,28|-30.5,116.3,41.5,16,13,30|-29.9,113.2,41.9,14,8,30|-29.2,108.1,43.2,14,0,29|-28.3,101.2,45.9,21,-9,27|-27.5,92.6,48.2,34,-21,21|-26.5,82.5,48.5,47,-43,8|-24.7,71.0,46.9,59,-64,-7|-22.7,58.3,41.3,72,-64,-4|-19.2,44.5,33.6,84,-52,10|-13.1,29.8,26.5,85,-134,-68|-0.2,14.3,22.9,71,-135,-65|19.9,-1.7,27.2,48,-125,-49|45.0,-18.3,42.8,20,-129,-37|73.4,-35.1,67.2,-2,-144,-19|103.1,-52.1,97.3,-14,-167,-3|132.0,-69.1,129.6,-23,148,25|158.2,-86.8,160.5,-5,94,64|178.6,-104.5,186.7,16,78,73|185.6,-110.3,200.7,20,78,68|186.6,-110.5,201.9,32,58,72";
-
-    return "52.0,95.4,3.1,-10,33,22|52.1,95.4,10.0,-12,33,17|52.1,95.2,25.0,-14,35,11|51.6,94.3,40.6,-29,33,23|49.3,89.8,53.4,-42,-0,72|45.6,81.7,58.6,-22,-22,105|39.8,70.9,52.2,0,-22,122|29.9,58.6,41.2,18,-9,135|21.2,45.6,32.0,24,20,127|20.4,32.3,25.2,14,37,114|29.8,19.6,21.0,-1,54,96|44.7,12.7,21.1,-12,81,69|59.8,12.9,25.9,-16,116,47|70.1,15.6,34.9,-15,144,18|70.6,18.9,44.9,-9,150,7|69.5,20.8,53.0,-8,148,4|67.4,20.4,53.8,-9,143,5|64.8,18.6,48.1,-10,137,6|63.6,16.9,44.1,-8,129,4|63.0,15.3,42.2,5,118,-6|62.9,14.5,43.3,11,123,-7|63.1,13.3,46.2,11,120,-7|63.5,10.4,48.1,8,120,-8|60.2,7.6,48.4,4,119,-9|53.8,6.3,43.0,-1,114,-11|46.9,5.7,38.3,-3,106,-14|40.4,6.2,39.7,-3,100,-13|35.9,8.0,42.9,-3,93,-8|32.6,10.6,47.1,-1,82,-1|30.9,13.2,52.1,4,69,6|34.5,15.8,56.9,19,55,18|46.5,18.0,57.6,49,63,49|62.4,19.7,54.4,57,86,81|82.5,21.9,53.0,59,92,79|102.7,25.8,53.7,72,79,54|120.1,32.6,57.4,76,-16,-50|134.8,44.1,63.4,53,-35,-80|149.2,64.0,73.5,36,-25,-88|153.6,97.1,81.8,15,-8,-85|149.4,126.2,83.5,8,8,-83|137.6,151.7,80.0,18,26,-86|114.3,177.4,73.7,29,45,-85|86.2,193.7,67.6,38,67,-81|56.2,192.4,64.7,43,89,-76|29.1,182.8,63.5,40,105,-79|13.3,169.9,63.2,40,120,-81|2.1,155.9,63.5,41,133,-82|-7.1,140.9,65.7,46,149,-82|-12.2,125.1,68.7,51,166,-80|-11.8,108.7,72.4,56,-172,-72|-6.1,91.3,78.9,59,-149,-62|3.0,71.7,90.2,60,-131,-55|15.1,53.2,106.4,61,-115,-49|33.2,37.3,126.6,62,-102,-45|51.5,23.7,147.1,63,-88,-40|65.6,14.1,163.9,64,-74,-34|72.7,10.8,178.2,62,-57,-23|75.1,10.8,189.3,61,-54,-18";
-}
-// end ghoul paths

@@ -179,29 +179,14 @@ mg_hearth_place( player )
     level thread mg_lockdown( player );
 }
 
-// The gun in the fire, at MG_HEARTH. With mg_bo4 "hover", BO4's: it floats there (its
-// p8_fxanim_zm_esc_blundergat_fireplace_hover_anim: up 3.7 cm, 1.5 in, and back over its 3.33 s loop, no turn).
+// The gun in the fire, at MG_HEARTH. With mg_bo4 "hover", BO4's: it floats there (mg_hover).
 mg_hearth_gun_spawn( weapon )
 {
     c = mg_coord( "MG_HEARTH" );
     level.mg_hearth_gun = spawn_weapon_model( weapon, undefined, c.origin, c.angles );
 
     if ( mg_bo4( "hover" ) )
-        level.mg_hearth_gun thread mg_hearth_gun_hover( c.origin );
-}
-
-// self = the gun in the fire, floating until it goes
-mg_hearth_gun_hover( origin )
-{
-    self endon( "death" );
-
-    for ( ;; )
-    {
-        self moveto( origin + ( 0, 0, 1.47 ), 1.67, 0.6, 0.6 );
-        wait 1.67;
-        self moveto( origin, 1.66, 0.6, 0.6 );
-        wait 1.66;
-    }
+        level.mg_hearth_gun thread mg_hover( c.origin );
 }
 
 // The lockdown (MG.gsc:431-454): the office shut for players, its fire outline, the laugh, the laundry's defend music;

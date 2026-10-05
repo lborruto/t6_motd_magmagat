@@ -158,6 +158,21 @@ mg_bo4( part )
     return issubstr( list, " " + part + " " ) || issubstr( list, " all " );
 }
 
+// self = an entity floating at origin until it goes, BO4's way (its p8_fxanim_zm_esc_blundergat_fireplace_hover_anim:
+// up 3.7 cm, 1.5 in, and back over its 3.33 s loop, no turn): the gun in the fireplace, the Magmagat on the forge.
+mg_hover( origin )
+{
+    self endon( "death" );
+
+    for ( ;; )
+    {
+        self moveto( origin + ( 0, 0, 1.47 ), 1.67, 0.6, 0.6 );
+        wait 1.67;
+        self moveto( origin, 1.66, 0.6, 0.6 );
+        wait 1.66;
+    }
+}
+
 // A vector dvar, "x y z" (an in-game fitting knob), or fallback when it is not set.
 mg_dvar_vec( name, fallback )
 {
