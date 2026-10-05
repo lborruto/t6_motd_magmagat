@@ -58,14 +58,12 @@ mg_coords_init()
 
     level.mg_coords = [];
 
-    // hearth: placeholder position at the desk until overridden below; the skulls and the use point are
-    // already derived from the owner's real MG_HEARTH spot (mg_apply_overrides), adjust with !mg grab if the
-    // hearth ever moves again
+    // the fireplace, its use spot and its skulls: placeholders at the desk; the owner's grabs (mg_apply_overrides) set them
     mg_coord_set( "MG_HEARTH", ( -767, 8662, 1372 ), ( 0, 180, 0 ), mg_model( "gun_world" ) );
-    mg_coord_set( "MG_HEARTH_USE", ( -433, 8762, 1353 ), ( 0, 135, 0 ), mg_model( "beacon" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
-    mg_coord_set( "MG_SKULL_1", ( -495, 8784, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
-    mg_coord_set( "MG_SKULL_2", ( -475, 8804, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
-    mg_coord_set( "MG_SKULL_3", ( -455, 8824, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) ); // derived from the owner's MG_HEARTH spot; adjust with !mg grab
+    mg_coord_set( "MG_HEARTH_USE", ( -433, 8762, 1353 ), ( 0, 135, 0 ), mg_model( "beacon" ) );
+    mg_coord_set( "MG_SKULL_1", ( -495, 8784, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) );
+    mg_coord_set( "MG_SKULL_2", ( -475, 8804, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) );
+    mg_coord_set( "MG_SKULL_3", ( -455, 8824, 1409 ), ( 0, 135, 0 ), mg_model( "skull_bo4" ) );
 
     // barrels along the route (spec: office exit, top of the spiral stairs, bottom of the tunnels, generator door):
     // placeholders on the zone volume origins of tools/assets/zm_prison.d3dbsp.ents.txt
@@ -75,25 +73,26 @@ mg_coords_init()
     mg_coord_set( "MG_BARREL_4", ( -400, 6500, 72 ), ( 0, 0, 0 ), mg_model( "barrel" ) );
     mg_coord_set( "MG_BARREL_5", ( -62, 7007, 88 ), ( 0, 184, 0 ), mg_model( "barrel" ) ); // owner: five barrels on the route
 
-    // forge: placeholders near the Generator Room (the override stands it where the remaster's is; mg_forge spawns the press)
+    // forge: placeholders near the Generator Room (the overrides stand it where BO4's own fits; mg_forge spawns the press)
     mg_coord_set( "MG_FORGE", ( -400, 6330, 72 ), ( 0, 190.7, 0 ), mg_model( "beacon" ) );
     mg_coord_set( "MG_FORGE_GUN", ( -449, 6307, 120 ), ( 0, 280, -90 ), mg_model( "gun_world" ) );
 
-
     mg_apply_overrides();
 
-    // the forge's machine (its foot): by default where the remaster's gun spot puts it (mg_upgrade_struct 44 over the
-    // bed's foot, 8.75 back, 6.51 aside); `!mg grab MG_PRESS` moves it, the gun spot and the use spot with it
+    // the forge's machine (its foot): the owner pinned it (mg_apply_overrides), so this default is only the fallback,
+    // where the remaster's gun spot puts it (mg_upgrade_struct 44 over the bed's foot, 8.75 back, 6.51 aside);
+    // `!mg grab MG_PRESS` moves it, the gun spot and the use spot with it
     gun = level.mg_coords["MG_FORGE_GUN"];
     yaw = gun.angles[1] + 90;
     foot = gun.origin + anglestoforward( ( 0, yaw, 0 ) ) * -8.75 + anglestoright( ( 0, yaw, 0 ) ) * 6.51 - ( 0, 0, 44 );
     mg_coord_set( "MG_PRESS", foot, ( 0, yaw, 0 ), mg_model( "press_body" ) );
 
-    // BO4's lever on the machine (its pivot): by default where the smelter has it next to its smasher, the smelter's
-    // smasher and our ram being one mesh at 0.755 scale (the smasher's centre + (33.5, 0, -30.6) scaled, from our ram's
-    // centre (5.4, -0.25, 86.5)), on the machine's other side (the remaster's machine faces the other way than BO4's),
-    // its grips out toward the player as the machine faces; `!mg grab MG_LEVER` places it, and the forge's ghouls fly
-    // to its grips (mg_forge_ghouls)
+    // BO4's lever on the machine (its pivot): pinned by the owner too, so this default is only the fallback, where the
+    // smelter has it next to its smasher, the smelter's smasher and our ram being one mesh at 0.755 scale (the
+    // smasher's centre + (33.5, 0, -30.6) scaled, from our ram's centre (5.4, -0.25, 86.5)), on the machine's other side
+    // (the remaster's machine faces the other way than BO4's), its grips out toward the player as the machine faces;
+    // `!mg grab MG_LEVER` places it, and the forge's ghouls fly to its grips (mg_forge_ghouls). The machine and the
+    // lever read below are the pinned ones.
     press = level.mg_coords["MG_PRESS"];
     p = press.angles[1];
     lever = press.origin + anglestoforward( ( 0, p, 0 ) ) * -28.1 + anglestoright( ( 0, p, 0 ) ) * 0.26 + ( 0, 0, 55.9 );
@@ -141,17 +140,17 @@ mg_apply_overrides()
     mg_coord_override( "MG_BARREL_5", ( -62, 7007, 87 ), ( 0, 184, 0 ) ); // 1 down: it stood off the floor
 
     // the forge: the machine stands where BO4's own fits, turned to face as the owner set it (his grab, 2026-10-04: press
-    // -310 6358 64, yaw 101; the remaster's spot was 136 6655 72, yaw 190.7); the gun on its bed and the use trigger keep
-    // the remaster's offsets from it (mg_upgrade_struct -7.4 -8.0 44, tr_forge -25.5 -5.7), and mg_press_spawn stands
-    // the machine back from the gun
+    // -310 6358 64, yaw 101; the remaster's spot was 136 6655 72, yaw 190.7); the machine, its gun spot on the bed and its
+    // lever are each pinned by the owner's grabs below
     mg_coord_override( "MG_FORGE", ( -315.9, 6383.5, 64 ), ( 0, 101, 0 ) );
 
-    // the machine pinned where it stood (its default follows the gun spot, which the owner then fitted on its bed)
-    mg_coord_override( "MG_PRESS", ( -310, 6358, 64 ), ( 0, 101, 0 ) );
+    // the machine pinned where it stood (its default follows the gun spot, which the owner then fitted on its bed). Its
+    // model is given: pinned before its default is set, it has no anchor yet to keep one from (`!mg grab`, `!mg show`)
+    mg_coord_override( "MG_PRESS", ( -310, 6358, 64 ), ( 0, 101, 0 ), mg_model( "press_body" ) );
     mg_coord_override( "MG_FORGE_GUN", ( -311, 6367, 112 ), ( 0, 11, 0 ) );
 
     // its lever, fitted on the machine by the owner (2026-10-05)
-    mg_coord_override( "MG_LEVER", ( -316, 6385, 131 ), ( 0, 101, 0 ) );    // its grips out, toward the player
+    mg_coord_override( "MG_LEVER", ( -316, 6385, 131 ), ( 0, 101, 0 ), mg_model( "press_lever" ) );    // its grips out, toward the player
 }
 
 mg_coord_set( key, origin, angles, model )
@@ -159,11 +158,7 @@ mg_coord_set( key, origin, angles, model )
     if ( isdefined( level.mg_coords[key] ) && is_true( level.mg_coords[key].overridden ) )
         return;
 
-    c = spawnstruct();
-    c.origin = origin;
-    c.angles = angles;
-    c.model = model;
-    level.mg_coords[key] = c;
+    level.mg_coords[key] = mg_coord_make( origin, angles, model );
 }
 
 // An override without a model keeps the model of the existing anchor, if any.
@@ -172,12 +167,19 @@ mg_coord_override( key, origin, angles, model )
     if ( !isdefined( model ) && isdefined( level.mg_coords[key] ) )
         model = level.mg_coords[key].model;
 
+    c = mg_coord_make( origin, angles, model );
+    c.overridden = 1;
+    level.mg_coords[key] = c;
+}
+
+// an anchor: where it stands, how it turns, the prop that shows it (undefined for none)
+mg_coord_make( origin, angles, model )
+{
     c = spawnstruct();
     c.origin = origin;
     c.angles = angles;
     c.model = model;
-    c.overridden = 1;
-    level.mg_coords[key] = c;
+    return c;
 }
 
 mg_coord( key )

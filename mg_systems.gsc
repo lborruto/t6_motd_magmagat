@@ -29,7 +29,7 @@ mg_fx_table()
     // one key per visible role: the BO3 remaster's own effect where it has one, else the one zm_prison plays for that
     // job (maps/mp/zm_prison_fx.gsc)
     t = [];
-    // the fireplace: its boards burning at the first press, the lockdown, the souls and the lit skulls
+    // the fireplace: the lockdown, the souls, the lit skulls, the deposit's flare and blue fire (the boards' burn: flame_burst, embers)
     t["hearth_flare"] = "maps/zombie_alcatraz/fx_alcatraz_falling_fire_impact"; // the fire flaring as the souls go in
     t["lockdown"] = "mg/fx_alcatraz_lockdown_wardens"; // the remaster's lockdown: the office's door and walls outlined
     t["soul_full"] = "mg/fx_alcatraz_blue_flame_skull"; // the remaster's lit skull
@@ -55,7 +55,7 @@ mg_fx_table()
     t["impact"] = "mg/fx_magmagat_impact"; // Harry's: the blob landing
     t["explo"] = "mg/fx_magmagat_explode"; // Harry's: the blob bursting
     t["burst_fire"] = "maps/zombie/fx_zmb_tranzit_lava_torso_explo"; // Tranzit's lava zombie bursting: fire and smoke over it
-    // the debug tools: a saved anchor, a previewed one
+    // the debug tools: a placed anchor and a shock zap (blue_spark), a previewed anchor and the kill zone (glint)
     t["blue_spark"] = "electrical/fx_elec_spark_bounce_blue_lg";
     t["glint"] = "maps/zombie_alcatraz/fx_alcatraz_key_glint";
     return t;
@@ -147,12 +147,11 @@ mg_fx_stop( ent )
 // A second looping fx on an entity mg_fx_loop spawned (it goes with it).
 mg_fx_add( ent, key )
 {
-    if ( isdefined( ent ) && isdefined( level._effect["mg_" + key] ) )
-        playfxontag( level._effect["mg_" + key], ent, "tag_origin" );
+    mg_fx_add_tag( ent, key, "tag_origin" );
 }
 
-// Whether part plays BO4's way rather than the remaster's: the dvar mg_bo4 lists the parts ("skulls hover"), or "all".
-// The owner's comparison knob (set before the map loads: some parts are spawned at start).
+// Whether part plays BO4's way rather than the remaster's: the dvar mg_bo4 lists the parts (only "hover" now: the gun
+// floating in the fireplace), or "all". The owner's comparison knob, read as the gun is laid in the fire.
 mg_bo4( part )
 {
     list = " " + getdvar( "mg_bo4" ) + " ";

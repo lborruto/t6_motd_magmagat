@@ -5,6 +5,7 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_hearth;
+#include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_forge;
 #include scripts\zm\zm_prison\mg_weapon;
 #include scripts\zm\zm_prison\mg_place;
@@ -380,12 +381,13 @@ mg_debug_tour()
     if ( isdefined( gun ) )
         gun delete();
 
-    // 5. the run: a lit drum, then its flare as it refills the temper
-    b = mg_coord( "MG_BARREL_1" ).origin;
+    // 5. the run: a lit drum, then its flare as it refills the temper (mg_run's own spots, from its anchor)
+    drum = mg_coord( "MG_BARREL_1" );
+    b = drum.origin;
     self mg_tour_look( "5/7 The run: a drum burning, its flare when it refills the temper", b + ( 90, 90, 40 ), b + ( 0, 0, 20 ) );
-    fire = mg_fx_loop( "barrel_fire", b - ( 0, 0, 27.37 ) );
+    fire = mg_fx_loop( "barrel_fire", mg_barrel_flame( drum ) );
     wait 1.5;
-    mg_fx_once( "drum_flare", b - ( 0, 0, 22.37 ), 5 );
+    mg_fx_once( "drum_flare", mg_barrel_base( drum ), 5 );
     self playsoundtoplayer( "mg_flame_burst", self );
     wait 4;
     mg_fx_stop( fire );
@@ -444,7 +446,7 @@ mg_debug_spawn_model( name )
     level.mg_debug_model = spawn( "script_model", pos );
     level.mg_debug_model setmodel( name );
     level.mg_debug_model.angles = ( 0, self.angles[1] + 180, 0 );
-    self mg_out( "MG: model " + name + " at " + int( pos[0] ) + " " + int( pos[1] ) + " " + int( pos[2] ) );
+    self mg_out( "MG: model " + name + " at " + mg_vec_str( pos ) );
 }
 
 // self = player. Every shot of the shock weapon traces from the eye; the nearest afterlife_interact entity
@@ -611,9 +613,7 @@ mg_aud_is_number( s )
 
     for ( i = 0; i < s.size; i++ )
     {
-        c = s[i];
-
-        if ( c != "0" && c != "1" && c != "2" && c != "3" && c != "4" && c != "5" && c != "6" && c != "7" && c != "8" && c != "9" )
+        if ( !issubstr( "0123456789", s[i] ) )
             return 0;
     }
 
@@ -660,25 +660,20 @@ mg_aud_fx( arg )
 
     idx = mg_aud_resolve( arg, list, level.mg_aud_fx_idx );
 
+    // the list holds every registered key, ours and the map's
     if ( !isdefined( idx ) )
     {
-        // any registered key, even outside the curated list
-        if ( isdefined( level._effect["mg_" + arg] ) )
-        {
-            mg_aud_fx_show( arg, -1 );
-            return;
-        }
-
         self mg_out( "fx: unknown '" + arg + "' (not in the list, not a registered fx). !mg fx list | stop" );
         return;
     }
 
     level.mg_aud_fx_idx = idx;
-    mg_aud_fx_show( list[idx], idx );
+    self thread mg_aud_fx_show( list[idx], idx, list.size );
 }
 
-// The fx at the point you aim at (ground hit within 300, else 150 ahead), for 8 s or until the next one.
-mg_aud_fx_show( name, idx )
+// The fx at the point you aim at (ground hit within 300, else 150 ahead), for 8 s or until the next one; count is the
+// list's size, for the read-out.
+mg_aud_fx_show( name, idx, count )
 {
     full = "mg_" + name;
 
@@ -699,16 +694,18 @@ mg_aud_fx_show( name, idx )
     if ( isdefined( trace["fraction"] ) && trace["fraction"] < 1 )
         pos = trace["position"] + trace["normal"] * 4;
 
-    level.mg_aud_fx_ent = spawn( "script_model", pos );
-    level.mg_aud_fx_ent setmodel( "tag_origin" );
-    playfxontag( level._effect[full], level.mg_aud_fx_ent, "tag_origin" );
-    level thread mg_aud_fx_auto_stop( level.mg_aud_fx_ent, 8 );
-    tag = "[FX " + idx + "/" + mg_aud_fx_list().size + "] ";
+    ent = spawn( "script_model", pos );
+    ent setmodel( "tag_origin" );
+    level.mg_aud_fx_ent = ent;
+    wait 0.05;    // an effect played in the frame its entity appears is dropped by the clients (mg_fx_loop)
 
-    if ( idx < 0 )
-        tag = "[FX] ";
+    // the next audition (or a stop) came first
+    if ( !isdefined( ent ) )
+        return;
 
-    self mg_out( tag + name + "  at " + mg_vec_str( pos ) + "  (8 s; !mg fx next | prev | <n> | <name> | list | stop)" );
+    playfxontag( level._effect[full], ent, "tag_origin" );
+    level thread mg_aud_fx_auto_stop( ent, 8 );
+    self mg_out( "[FX " + idx + "/" + count + "] " + name + "  at " + mg_vec_str( pos ) + "  (8 s; !mg fx next | prev | <n> | <name> | list | stop)" );
 }
 
 mg_aud_fx_stop()

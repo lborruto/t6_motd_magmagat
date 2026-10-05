@@ -17,7 +17,7 @@
 // - anywhere else: a lava pool for 5 s (radius 64, 32 high; 2 at once), the blob lying in it, luring 3 zombies over
 //   128 units (the Magmus 6 over 256) when the floor is near. A zombie touching it catches fire; its owner takes 1
 //   every 0.4 s.
-// A burning zombie takes a share of its maximum health each second for up to 12 s. Magmagat damage pays no points per
+// A burning zombie takes a share of its maximum health each second for up to 8 s. Magmagat damage pays no points per
 // hit (the kill still does). The Acid Gat kit takes the Magmagat as the Blundergat it was and makes the Acid Gat.
 
 mg_weapon_init()
@@ -49,10 +49,27 @@ mg_weapon_precache()
 mg_weapon_register()
 {
     base = level.zombie_weapons["blundergat_zm"];
-    s = spawnstruct();
-    s.weapon_name = "magmagat_zm";
+    s = mg_weapon_entry( "magmagat_zm", base );
     s.upgrade_name = "magmagat_upgraded_zm";
-    s.weapon_classname = "weapon_magmagat_zm";
+    level.zombie_weapons["magmagat_zm"] = s;
+    level.zombie_weapons_upgraded["magmagat_upgraded_zm"] = "magmagat_zm";
+    level.zombie_include_weapons["magmagat_zm"] = 0;
+
+    // the tempered guns: known to vanilla's weapon code, out of the box, never Pack-a-Punched
+    foreach ( name in array( "mg_tempered_zm", "mg_tempered_upgraded_zm" ) )
+    {
+        level.zombie_weapons[name] = mg_weapon_entry( name, base );
+        level.zombie_include_weapons[name] = 0;
+    }
+}
+
+// A weapon entry for vanilla's weapon code, out of the box, priced and voiced as the Blundergat (base, when the map
+// has it).
+mg_weapon_entry( name, base )
+{
+    s = spawnstruct();
+    s.weapon_name = name;
+    s.weapon_classname = "weapon_" + name;
     s.is_in_box = 0;
 
     if ( isdefined( base ) )
@@ -64,36 +81,19 @@ mg_weapon_register()
         s.ammo_cost = base.ammo_cost;
     }
 
-    level.zombie_weapons["magmagat_zm"] = s;
-    level.zombie_weapons_upgraded["magmagat_upgraded_zm"] = "magmagat_zm";
-    level.zombie_include_weapons["magmagat_zm"] = 0;
+    return s;
+}
 
-    // the tempered guns: known to vanilla's weapon code, out of the box, never Pack-a-Punched
-    foreach ( name in array( "mg_tempered_zm", "mg_tempered_upgraded_zm" ) )
-    {
-        t = spawnstruct();
-        t.weapon_name = name;
-        t.weapon_classname = "weapon_" + name;
-        t.is_in_box = 0;
-
-        if ( isdefined( base ) )
-        {
-            t.hint = base.hint;
-            t.cost = base.cost;
-            t.vox = base.vox;
-            t.vox_response = base.vox_response;
-            t.ammo_cost = base.ammo_cost;
-        }
-
-        level.zombie_weapons[name] = t;
-        level.zombie_include_weapons[name] = 0;
-    }
+// A Pack-a-Punched tier: the Sweeper, the Vitriolic Withering, the upgraded tempered gun, the Magmus Operandi.
+mg_is_upgraded( weapon )
+{
+    return isdefined( weapon ) && ( weapon == "blundergat_upgraded_zm" || weapon == "blundersplat_upgraded_zm" || weapon == "mg_tempered_upgraded_zm" || weapon == "magmagat_upgraded_zm" );
 }
 
 // The tempered gun the fireplace hands back for a Blundergat of this tier (BO4's model, its canisters burning blue).
 mg_tempered_of( weapon )
 {
-    if ( isdefined( weapon ) && ( weapon == "blundergat_upgraded_zm" || weapon == "blundersplat_upgraded_zm" ) )
+    if ( mg_is_upgraded( weapon ) )
         return "mg_tempered_upgraded_zm";
 
     return "mg_tempered_zm";
@@ -156,7 +156,7 @@ mg_tempered_give_back( tempered )
 // Operandi.
 mg_magma_of( weapon )
 {
-    if ( isdefined( weapon ) && ( weapon == "blundergat_upgraded_zm" || weapon == "blundersplat_upgraded_zm" || weapon == "mg_tempered_upgraded_zm" ) )
+    if ( mg_is_upgraded( weapon ) )
         return "magmagat_upgraded_zm";
 
     return "magmagat_zm";
@@ -332,8 +332,6 @@ mg_blob_land( blob, player, weapon, fire )
     blob hide();
     mg_fx_stop( fire );
     mg_fx_once( "impact", blob.origin, undefined, mg_up_angles( mg_blob_normal( dir, blob ) ) );    // turned to the surface, as the pool
-    blob.mg_owner = player;
-    blob.mg_weapon = weapon;
     host = mg_blob_host( blob );
 
     // stuck to a teammate, it drops to the floor under him and pools there, as BO4's (function_482c54d5); stuck to
@@ -546,11 +544,10 @@ mg_blob_on_zombie( zombie, player, weapon )
 
 // self = blob on Brutus (BO4's boss: function_ba9e077b, function_78f754f7): 100 burn damage, then he burns each second
 // for 10 to 20 % of his maximum health (from round 15, 5 to 10 %) for 5 s, and the blob goes without a burst (vanilla
-// brutus_damage_override keeps a share of it).
+// brutus_damage_override keeps a share of it). A Brutus dying meanwhile takes the blob with him at once.
 mg_blob_on_brutus( brutus, player, weapon )
 {
     self endon( "death" );
-    brutus endon( "death" );
     mg_magma_dodamage( brutus, 100, brutus.origin, player, "MOD_BURNED", weapon );
     brutus thread mg_burn_start();
     end = gettime() + 5000;
@@ -558,6 +555,9 @@ mg_blob_on_brutus( brutus, player, weapon )
     while ( gettime() < end )
     {
         wait 1;
+
+        if ( !isdefined( brutus ) || !isalive( brutus ) )
+            break;
 
         if ( level.round_number < 15 )
             dmg = brutus.maxhealth * randomfloatrange( 0.1, 0.2 );
@@ -567,7 +567,9 @@ mg_blob_on_brutus( brutus, player, weapon )
         mg_magma_dodamage( brutus, int( dmg ), brutus.origin, player, "MOD_BURNED", weapon );
     }
 
-    brutus thread mg_burn_end( 0 );
+    if ( isdefined( brutus ) && isalive( brutus ) )
+        brutus thread mg_burn_end();
+
     self delete();
 }
 
@@ -644,7 +646,7 @@ mg_zombie_burn( player, weapon )
 
     self.mg_burning = undefined;
     self.is_on_fire = 0;
-    self thread mg_burn_end( 0 );
+    self thread mg_burn_end();
 }
 
 // self = Brutus scorched by a pool or a burst (BO4's boss in function_ba9e077b): one hit, then 8 s of flames that do
@@ -661,7 +663,7 @@ mg_brutus_scorch( player, weapon, hit )
     self mg_burn_start();
     wait 8;
     self.mg_burning = undefined;
-    self thread mg_burn_end( 0 );
+    self thread mg_burn_end();
 }
 
 // Magmagat damage, credited to its player while he is still here.
@@ -805,8 +807,6 @@ mg_pool_player()
 // for T6's effect budget.
 mg_burn_start()
 {
-    self notify( "mg_burn_restart" );
-
     if ( !is_true( self.mg_burn_watched ) )
     {
         self.mg_burn_watched = 1;
@@ -864,16 +864,11 @@ mg_burn_fx()
         self.mg_burn_lit = undefined;
 }
 
-// self = zombie whose fire went out: the fire loop fades now, the flames delay s later, unless it catches fire again.
-mg_burn_end( delay )
+// self = zombie whose fire went out: the fire loop fades, the flames go (mg_burn_fx).
+mg_burn_end()
 {
-    self endon( "death" );
-    self endon( "mg_burn_restart" );
     self stoploopsound( 2 );
     self.mg_burn_loop = undefined;
-    if ( delay > 0 )
-        wait( delay );
-
     self notify( "mg_burn_fx_off" );
 }
 

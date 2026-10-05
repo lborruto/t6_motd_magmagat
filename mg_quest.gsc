@@ -2,7 +2,6 @@
 #include maps\mp\_utility;
 #include maps\mp\zombies\_zm_utility;
 #include scripts\zm\zm_prison\mg_systems;
-#include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_hearth;
 #include scripts\zm\zm_prison\mg_run;
 #include scripts\zm\zm_prison\mg_forge;
@@ -128,14 +127,7 @@ mg_can_replace_current( player )
 
 mg_state_index( s )
 {
-    order = [];
-    order[0] = "locked";
-    order[1] = "ready";
-    order[2] = "souls";
-    order[3] = "pickup";
-    order[4] = "run";
-    order[5] = "forge";
-    order[6] = "done";
+    order = array( "locked", "ready", "souls", "pickup", "run", "forge", "done" );
 
     for ( i = 0; i < order.size; i++ )
     {
@@ -157,15 +149,17 @@ mg_goto( state )
     }
 
     level notify( "mg_goto" );
+
+    // a tour in its press dies with the press on this notify (mg_press_show), before it clears its flag: cleared here,
+    // so `!mg tour` runs again
+    foreach ( p in getplayers() )
+        p.mg_touring = 0;
+
     wait 0.05;
 
-    if ( state == "souls" || state == "pickup" || state == "run" || state == "forge" )
-    {
-        if ( !isdefined( mg_has_blundergat( self ) ) && state != "souls" && state != "pickup" )
-        {
-            self mg_give_weapon( "blundergat_zm" );
-        }
-    }
+    // run and forge carry a Blundergat's tempered gun or forge from one: one is given when the player has none
+    if ( ( state == "run" || state == "forge" ) && !isdefined( mg_has_blundergat( self ) ) )
+        self mg_give_weapon( "blundergat_zm" );
 
     mg_hearth_fabricate( state );
     self mg_run_fabricate( state );

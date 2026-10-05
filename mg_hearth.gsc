@@ -71,11 +71,15 @@ mg_hearth_prompt_loop()
                 continue;
             }
 
-            // the boards' press has no hint: nothing on screen, the press still counts
+            // the boards' press has no hint: nothing on screen, the press still counts (only our own prompt is taken
+            // down: another line on that element, the `!mg grab` read-out, stays)
             if ( text == "" )
             {
-                player.mg_hearth_prompted = 0;
-                player mg_prompt( 0, undefined );
+                if ( is_true( player.mg_hearth_prompted ) )
+                {
+                    player.mg_hearth_prompted = 0;
+                    player mg_prompt( 0, undefined );
+                }
             }
             else
             {
@@ -237,11 +241,13 @@ mg_lockdown( placer )
         mg_hearth_reset();
 }
 
-// pickup: the placer alone can take the gun, so his leaving the game loses it (the remaster would wait forever)
+// pickup: the placer alone can take the gun, so his leaving the game loses it (the remaster would wait forever). It
+// ends as he takes the gun (mg_hearth_take), not on mg_state: a goto sets the state right after starting it.
 mg_hearth_owner_watch( placer, session )
 {
     level endon( "end_game" );
     level endon( "mg_goto" );
+    level endon( "mg_hearth_owner_end" );
 
     if ( isdefined( placer ) )
         placer waittill( "disconnect" );
@@ -423,9 +429,8 @@ mg_skull_model( lit )
     return mg_model( "skull_bo4" );
 }
 
-// Skull index 0..2 lights: the remaster's blue flame skull on it (MG.gsc:473-494, MG.csc:86-99); nothing sounds. The
-// remaster's skull model does not change, BO4's turns into its Afterlife skull. It stays lit until a failed lockdown or
-// a failed run.
+// Skull index 0..2 lights: the remaster's blue flame skull on it (MG.gsc:473-494, MG.csc:86-99), and BO4's skull turns into
+// its Afterlife skull; nothing sounds. It stays lit until the deposit, a failed lockdown or a failed run.
 mg_skull_light( idx )
 {
     skull = level.mg_skulls[idx];
@@ -451,8 +456,8 @@ mg_skull_light( idx )
         level thread mg_fx_keepalive( ent );
 }
 
-// All three skulls out: on a failed lockdown here, and on a failed run from mg_run (MG.gsc:507-511, lockdown_failed /
-// tempered_step_failed). After a forged gun they stay lit for the rest of the game.
+// All three skulls out: at the deposit (their souls given), on a failed lockdown, on a failed run (mg_run), and as the
+// tempered gun is laid on the forge (MG.gsc:507-511, lockdown_failed / tempered_step_failed).
 mg_skulls_dark()
 {
     level.mg_skull_gen++;
@@ -483,7 +488,6 @@ mg_hearth_deposit( player )
     session = level.mg_hearth_session;
     hearth = mg_coord( "MG_HEARTH" ).origin;
     level.mg_hearth_depositing = 1;
-    from = player geteye() - ( 0, 0, 12 );
 
     // the three skulls' souls leave the placer for the gun in the fire, one after the other
     for ( i = 0; i < 3; i++ )
@@ -500,10 +504,16 @@ mg_hearth_deposit( player )
     // 30 to 35 units over its origin
     playsoundatposition( "mg_flame_burst", hearth );
     mg_fx_once( "hearth_flare", hearth - ( 0, 0, 20 ) );
+    level thread mg_hearth_blue_on( session );    // its own thread: a goto ending this one mid-spawn must not leak it
+}
+
+// The deposit's blue fire, lit over the map's own; a blue fire still spawning when the step is reset goes at once.
+mg_hearth_blue_on( session )
+{
     blue = mg_fx_loop( "hearth_blue", ( -459, 8817.2, 1303 ) );    // 12 deeper into the fireplace than the map's fire
     level.mg_hearth_depositing = 0;
 
-    // a reset (the placer gone, a goto) during those waits: the fire stays as it was
+    // a reset (the placer gone, a goto) during the deposit's waits: the fire stays as it was
     if ( !mg_state_is( "pickup" ) || level.mg_hearth_session != session )
     {
         mg_fx_stop( blue );
@@ -566,6 +576,7 @@ mg_hearth_take( player )
     level.mg_hearth_weapon = undefined;
     level.mg_hearth_owner = undefined;
     mg_hearth_blue_off();
+    level notify( "mg_hearth_owner_end" );    // the gun is his: his leaving no longer loses it
     mg_run_start( player, tempered );
 }
 
@@ -633,6 +644,16 @@ mg_lockdown_off()
 // are out, the fireplace takes a gun again.
 mg_hearth_reset()
 {
+    mg_hearth_clear();
+
+    if ( mg_state_is( "souls" ) || mg_state_is( "pickup" ) )
+        mg_state_set( "ready" );
+}
+
+// The fireplace emptied (mg_hearth_reset, mg_hearth_fabricate): no more souls counted, the gun in the fire gone with
+// its placer, the skulls dark, the blue fire out.
+mg_hearth_clear()
+{
     mg_death_listen_remove( "mg_hearth" );
     level.mg_souls_on = 0;
     level.mg_souls = 0;
@@ -642,13 +663,10 @@ mg_hearth_reset()
         level.mg_hearth_gun delete();
 
     level.mg_hearth_gun = undefined;
-    mg_skulls_dark();
-    mg_hearth_blue_off();
     level.mg_hearth_weapon = undefined;
     level.mg_hearth_owner = undefined;
-
-    if ( mg_state_is( "souls" ) || mg_state_is( "pickup" ) )
-        mg_state_set( "ready" );
+    mg_skulls_dark();
+    mg_hearth_blue_off();
 }
 
 // !mg goto support (self = the player typing): builds what the asked state expects from the hearth. The typing player
@@ -661,20 +679,8 @@ mg_hearth_fabricate( state )
         placer = getplayers()[0];
 
     level.mg_hearth_session++;
-    mg_death_listen_remove( "mg_hearth" );
     mg_lockdown_off();
-    level.mg_souls_on = 0;
-    level.mg_souls = 0;
-    level.mg_souls_taken = 0;
-
-    if ( isdefined( level.mg_hearth_gun ) )
-        level.mg_hearth_gun delete();
-
-    level.mg_hearth_gun = undefined;
-    level.mg_hearth_weapon = undefined;
-    level.mg_hearth_owner = undefined;
-    mg_skulls_dark();
-    mg_hearth_blue_off();
+    mg_hearth_clear();
     level.mg_hearth_burnt = 1;
 
     if ( state == "locked" )

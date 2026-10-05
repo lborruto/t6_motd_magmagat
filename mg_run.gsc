@@ -5,7 +5,6 @@
 #include scripts\zm\zm_prison\mg_coords;
 #include scripts\zm\zm_prison\mg_quest;
 #include scripts\zm\zm_prison\mg_hearth;
-#include scripts\zm\zm_prison\mg_forge;
 #include scripts\zm\zm_prison\mg_weapon;
 
 // The temper run, as the BO3 remaster (_zm_weap_magmagat.gsc function_2ca6799): 15 s of temper counted in whole
@@ -18,6 +17,7 @@
 mg_run_init()
 {
     level.mg_barrels = [];
+    level.mg_run_gen = 0;
 
     for ( i = 1; i <= 5; i++ )
     {
@@ -41,8 +41,12 @@ mg_run_init()
     }
 }
 
+// Each flame spawns in its own level thread, 0.15 s apart as ever (its spawn time, waited here): a goto killing the
+// caller while one spawns no longer leaves it burning outside barrel.mg_fx, and a run ended meanwhile lights no more.
 mg_barrels_set( lit )
 {
+    gen = level.mg_run_gen;
+
     foreach ( barrel in level.mg_barrels )
     {
         mg_fx_stop( barrel.mg_fx );
@@ -52,13 +56,22 @@ mg_barrels_set( lit )
         if ( !lit )
             continue;
 
-        ent = mg_fx_loop( "barrel_fire", mg_barrel_flame( barrel ) );
+        level thread mg_barrel_light( barrel, gen );
+        wait 0.15;
+    }
+}
 
-        if ( isdefined( ent ) )
-        {
-            level thread mg_fx_keepalive( ent );
-            barrel.mg_fx = ent;
-        }
+// a barrel's flame still spawning when the run ends goes at once (as mg_lockdown_wall)
+mg_barrel_light( barrel, gen )
+{
+    ent = mg_fx_loop( "barrel_fire", mg_barrel_flame( barrel ) );
+
+    if ( gen != level.mg_run_gen )
+        mg_fx_stop( ent );
+    else if ( isdefined( ent ) )
+    {
+        level thread mg_fx_keepalive( ent );
+        barrel.mg_fx = ent;
     }
 }
 
@@ -157,7 +170,10 @@ mg_run_loop( weapon )
     level endon( "mg_run_over" );
     self endon( "disconnect" );
 
-    level.mg_run_flame = mg_run_flame_on( self );
+    // the flame spawns in a level thread (this one dies with the carrier down or gone, or a goto, maybe mid-spawn);
+    // its 0.15 s spawn time is waited here, so the weapon rule starts where it always did
+    level thread mg_run_flame_spawn( self, level.mg_run_gen );
+    wait 0.15;
 
     // the remaster starts checking the weapon 0.5 s after the start, with no grace after that. Its player keeps his
     // gun; ours was just handed the tempered one (mg_switch_to raises it), so until it first reaches his hands, for
@@ -218,10 +234,22 @@ mg_run_flame_on( player )
 
     flame = mg_fx_loop( "gun_flame", player gettagorigin( tag ) );
 
-    if ( isdefined( flame ) )
+    // the carrier may have left during the spawn
+    if ( isdefined( flame ) && isdefined( player ) )
         flame linkto( player, tag, ( 0, 0, 0 ), ( 0, 0, 0 ) );
 
     return flame;
+}
+
+// a flame still spawning when the run ends (or its carrier gone) goes at once, as mg_lockdown_wall
+mg_run_flame_spawn( player, gen )
+{
+    flame = mg_run_flame_on( player );
+
+    if ( gen != level.mg_run_gen || !isdefined( player ) )
+        mg_fx_stop( flame );
+    else
+        level.mg_run_flame = flame;
 }
 
 // self = carrier. Last stand or death ends the temper (the remaster gets there through the weapon rule: the pistol,
@@ -276,9 +304,12 @@ mg_run_give_back()
         level.mg_carrier mg_tempered_give_back( level.mg_run_weapon );
 }
 
-// Everything the run created, destroyed from one place (the loops may have been killed by a notify).
+// Everything the run created, destroyed from one place (the loops may have been killed by a notify); a flame still
+// spawning sees the generation change and goes (mg_run_flame_spawn, mg_barrel_light).
 mg_run_cleanup()
 {
+    level.mg_run_gen++;
+
     if ( isdefined( level.mg_carrier ) )
         level.mg_carrier.mg_temper_left = undefined;
 

@@ -11,8 +11,8 @@
 // The forge: the remaster's Machine (mg_upgrade_machine) in the dock Generator Room. The owner's rule, BO4's: only a
 // Tempered Blundergat still burning (its run not expired) is pressed. The first carrier to reach it powers it (the
 // remaster's power cue; the run and its timer go on, the gun stays his), and it stays powered; then the carrier lays
-// the tempered gun on its bed: the run ends in success and the press works it (5.65 s: the ram down, the press fire,
-// the Magmagat on the bed as the ram lifts); the placer alone takes the Magmagat within 15 s or it is lost, and a
+// the tempered gun on its bed: the run ends in success and the press works it (11.6 s, BO4's: the ghouls pull the
+// lever, the ram down, the press fire, the Magmagat on the bed as the ram lifts); the placer alone takes the Magmagat within 15 s or it is lost, and a
 // guardian comes for it. The fireplace then takes a Blundergat again, for the next player's Magmagat.
 
 mg_forge_init()
@@ -23,8 +23,8 @@ mg_forge_init()
     level thread mg_forge_prompt_loop();
 }
 
-// The remaster's press (p8_zm_esc_machinery_01, mg_upgrade_machine) at its anchor MG_PRESS (mg_coords.gsc: by
-// default where the remaster places it around the gun on its bed).
+// The remaster's press (p8_zm_esc_machinery_01, mg_upgrade_machine) at its anchor MG_PRESS (mg_coords.gsc: pinned where
+// BO4's own fits).
 mg_press_spawn()
 {
     c = mg_coord( "MG_PRESS" );
@@ -75,7 +75,13 @@ mg_press_down()
 {
     level endon( "mg_goto" );
     wait 0.3;
-    level.mg_press["press_ram"] moveto( level.mg_press_rest - ( 0, 0, 29.33 ), 0.333, 0.15, 0.15 );
+    level.mg_press["press_ram"] moveto( mg_press_ram_closed(), 0.333, 0.15, 0.15 );
+}
+
+// The ram down on the bed: 74.5 cm (29.33 units) under its rest.
+mg_press_ram_closed()
+{
+    return level.mg_press_rest - ( 0, 0, 29.33 );
 }
 
 mg_press_up()
@@ -226,7 +232,7 @@ mg_forge_power_fx()
     ram = level.mg_press["press_ram"];
     lever = level.mg_press["press_lever"];
     bed = mg_coord( "MG_FORGE_GUN" ).origin;
-    closed = level.mg_press_rest - ( 0, 0, 29.33 );
+    closed = mg_press_ram_closed();
     body playsound( "zmb_powerpanel_activate" );
     body playsound( "evt_electrical_surge" );
     fx = mg_coord( "MG_FORGE_FX" );
@@ -268,10 +274,11 @@ mg_press_ram_rest()
     if ( is_true( level.mg_forge_open ) )
         return level.mg_press_rest;
 
-    return level.mg_press_rest - ( 0, 0, 29.33 );
+    return mg_press_ram_closed();
 }
 
-// The gun goes on the bed and the press works it, on the remaster's timeline (function_fb635f94; t from the use).
+// The gun goes on the bed and the press works it (mg_press_show, BO4's timeline); 1.3 s after the Magmagat appears it
+// can be taken.
 mg_forge_place( player, weapon )
 {
     level endon( "end_game" );
@@ -373,7 +380,7 @@ mg_forge_gun_float( origin )
     self mg_hover( origin );
 }
 
-// BO4's reveal: tiny flames on the bed under the Magmagat, while it floats there (no glow: the owner's call).
+// BO4's reveal: tiny flames on the bed under the Magmagat, while it floats there.
 mg_forge_embers( gun, origin )
 {
     embers = mg_fx_loop( "embers", origin - ( 0, 0, 2 ) );
@@ -486,6 +493,10 @@ mg_forge_fabricate( state )
     level.mg_forge_busy = 0;
     level.mg_forge_open = ( state == "forge" || state == "done" );
     level.mg_press["press_ram"] moveto( mg_press_ram_rest(), 0.1 );
+
+    // a press or a power step killed by the goto leaves its fire loop playing and its lever pulled: both back at rest
+    level.mg_press["press_body"] stoploopsound();
+    level.mg_press["press_lever"] rotateto( mg_coord( "MG_LEVER" ).angles, 0.1 );
 
     if ( state == "forge" && isdefined( self ) && isplayer( self ) )
     {

@@ -126,15 +126,17 @@ mg_place_think()
             self mg_place_hud();
         }
 
+        // threaded: both end in mg_place_end_current, whose "mg_place_end" notify would kill this loop (and them with
+        // it, before the [SPOT] line) if they ran inside it
         if ( self attackbuttonpressed() )
         {
-            self mg_place_drop();
+            self thread mg_place_drop();
             return;
         }
 
         if ( self meleebuttonpressed() )
         {
-            self mg_place_cancel();
+            self thread mg_place_cancel();
             return;
         }
 
@@ -228,7 +230,7 @@ mg_place_hud()
         return;
 
     o = self.mg_place_ent.origin;
-    text = self.mg_place_key + "  " + int( o[0] ) + " " + int( o[1] ) + " " + int( o[2] ) + "  yaw " + int( self.mg_place_ent.angles[1] ) + "  lift " + int( self.mg_place_lift );
+    text = self.mg_place_key + "  " + mg_vec_str( o ) + "  yaw " + int( self.mg_place_ent.angles[1] ) + "  lift " + int( self.mg_place_lift );
 
     if ( self.mg_place_frozen )
         text += "  [frozen]";
@@ -278,7 +280,7 @@ mg_place_drop()
     mg_preview_refresh( key );
 
     // mg_out, not mg_debug_print: the paste-ready line must reach the console whatever mg_debug is set to
-    self mg_out( "[SPOT] " + key + " | " + int( origin[0] ) + " " + int( origin[1] ) + " " + int( origin[2] ) + " | " + int( angles[0] ) + " " + int( angles[1] ) + " " + int( angles[2] ) + " | " + model );
+    self mg_out( "[SPOT] " + key + " | " + mg_vec_str( origin ) + " | " + mg_vec_str( angles ) + " | " + model );
 
     line = "mg_coord_override( \"" + key + "\", ( " + int( origin[0] ) + ", " + int( origin[1] ) + ", " + int( origin[2] ) + " ), ( " + int( angles[0] ) + ", " + int( angles[1] ) + ", " + int( angles[2] ) + " )";
 
