@@ -27,6 +27,18 @@
 // A place writes mg_coord_override( key, origin, angles, model ) (mg_coords.gsc), the same call
 // mg_apply_overrides uses, and prints the paste-ready line so it can be made permanent in the sources.
 
+// The forge machine's own part an anchor places (its key in level.mg_press: the lever, a chain), or undefined.
+mg_place_press_part( key )
+{
+    if ( key == "MG_LEVER" )
+        return "press_lever";
+
+    if ( issubstr( key, "MG_CHAIN_" ) )
+        return "chain_" + getsubstr( key, 9 );
+
+    return undefined;
+}
+
 mg_place_yaw_step()
 {
     return 15;
@@ -62,12 +74,14 @@ mg_place_grab( key )
     if ( !had_model )
         model = mg_model( "beacon" ); // anchors without a prop still need something visible
 
-    // the forge's machine held: the real one goes meanwhile, and stands again where it is placed (or was); its lever
-    // held: only the real lever hides, the machine stays to fit it on
+    // the forge's machine held: the real one goes meanwhile, and stands again where it is placed (or was); its lever or
+    // a chain held: only that part hides, the machine stays to fit it on
+    part = mg_place_press_part( key );
+
     if ( key == "MG_PRESS" )
         mg_press_remove();
-    else if ( key == "MG_LEVER" && isdefined( level.mg_press["press_lever"] ) )
-        level.mg_press["press_lever"] hide();
+    else if ( isdefined( part ) && isdefined( level.mg_press[part] ) )
+        level.mg_press[part] hide();
 
     ent = spawn( "script_model", c.origin );
     ent setmodel( model );
@@ -83,9 +97,9 @@ mg_place_grab( key )
     self.mg_place_start_org = c.origin;
     self.mg_place_start_ang = c.angles;
     self.mg_place_frozen = 0;
-    // the lever, the machine's effects and its ghouls are fitted onto the machine, which the crosshair goes through (a
+    // the lever, the chains, the machine's effects and its ghouls are fitted onto the machine, which the crosshair goes through (a
     // script_model stops no trace): they stay where they are and move by !mg move, !mg rot, !mg up and 1-4 only
-    self.mg_place_pinned = key == "MG_LEVER" || key == "MG_FORGE_GUN" || key == "MG_FORGE_FX" || key == "MG_GHOUL_1" || key == "MG_GHOUL_2";
+    self.mg_place_pinned = isdefined( part ) || key == "MG_FORGE_GUN" || key == "MG_FORGE_FX" || key == "MG_GHOUL_1" || key == "MG_GHOUL_2";
     self.mg_place_nudge = ( 0, 0, 0 );
 
     self thread mg_place_think();
@@ -259,7 +273,7 @@ mg_place_drop()
         old = mg_coord( key );
         turn = angles[1] - old.angles[1];
 
-        foreach ( k in array( "MG_FORGE_GUN", "MG_FORGE", "MG_LEVER", "MG_FORGE_FX", "MG_GHOUL_1", "MG_GHOUL_2" ) )
+        foreach ( k in array( "MG_FORGE_GUN", "MG_FORGE", "MG_LEVER", "MG_FORGE_FX", "MG_GHOUL_1", "MG_GHOUL_2", "MG_CHAIN_1", "MG_CHAIN_2", "MG_CHAIN_3", "MG_CHAIN_4" ) )
         {
             a = mg_coord( k );
             off = a.origin - old.origin;
@@ -319,11 +333,11 @@ mg_place_end_current( why )
     self.mg_place_ent = undefined;
     self.mg_place_key = undefined;
 
-    // the machine back (its lever with it, where it was placed)
-    if ( key == "MG_LEVER" )
+    // the machine back (its lever or chain with it, where it was placed)
+    if ( isdefined( mg_place_press_part( key ) ) )
         mg_press_remove();
 
-    if ( key == "MG_PRESS" || key == "MG_LEVER" )
+    if ( key == "MG_PRESS" || isdefined( mg_place_press_part( key ) ) )
         mg_press_spawn();
 
     self mg_prompt( 0, undefined );

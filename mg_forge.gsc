@@ -50,6 +50,16 @@ mg_press_spawn()
     lever setmodel( mg_model( "press_lever" ) );
     level.mg_press["press_lever"] = lever;
 
+    // its chains (mg_coords.gsc MG_CHAIN_1..4), part of the machine: they go and come back with it
+    for ( i = 1; i <= 4; i++ )
+    {
+        ch = mg_coord( "MG_CHAIN_" + i );
+        chain = spawn( "script_model", ch.origin );
+        chain.angles = ch.angles;
+        chain setmodel( ch.model );
+        level.mg_press["chain_" + i] = chain;
+    }
+
     // a script_model stops no player: four clip boxes 64 x 64 x 128, two along the machine's length and two across,
     // overlapping so their outer faces meet its sides (77 x 134, 116 high), sunk 12 into the floor so they top out with
     // it (bullets pass through: a script_model of a mod.ff prop has no bullet collision)
