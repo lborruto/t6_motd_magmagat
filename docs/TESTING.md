@@ -166,18 +166,30 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       acid splash where it lands. The clip holds one (the Magmus two). Both fire with the plain Blundergat's shot, as
       the remaster's own t8_magmagat_zm does.
 - [ ] **Hit a zombie** (BO4's): 0.5 s later a zombie of 1000 health or less bursts in gore and dies; a tougher one
-      burns, walks, and dies 4 s later. When it dies the blob bursts in flame with the Acid Gat's explosion sound (no
-      green smoke): the zombies within 128 units catch fire, take 400 and burn to death, falling dead (no gore). No
-      player is hurt. Other zombies are not drawn to a blob on a zombie.
-- [ ] **Hit Brutus** (`!mg brutus` sends one): 100, then he burns 5 s (torso flames) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured.
+      burns, keeps its gait at about 60 % of its speed (a sprinter stays a slower sprinter, its legs not sliding), and
+      dies 4 s later. A second blob on a tough one hurts it again (1000) and starts its own 4 s. When the Magmagat
+      kills it, it bursts in gore and the blob bursts in flame with the Acid Gat's explosion sound (no green smoke):
+      the zombies within 128 units of it lose limbs (some crawl on), catch fire, take 400 and burn to death. Killed
+      by another weapon (or a trap), it falls whole and the blob just goes. No player is hurt. Other zombies are not
+      drawn to a blob on a zombie. Near a hungry wolf head (the Hell's Retriever's) the stuck zombie dies whole.
+- [ ] **Hit Brutus** (`!mg brutus` sends one): 0.5 s later 100, then he burns 5 s (torso flames) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured. Two blobs a second apart: both burns stop when the first blob goes.
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
-      turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws 3 zombies (the Magmus 6);
-      high up a wall it draws none. A zombie touching its fire (64 units, 32 high) catches fire and burns to death
-      (in early rounds within about 2 s); Brutus loses a tenth of his health once. Only its owner is hurt touching it:
-      1 every 0.4 s.
+      turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws 3 zombies (the Magmus 6, while
+      it is in hand), which walk to spots around the pool; the other zombies keep after the players. High up a wall,
+      or outside the playable area, it draws none. A zombie touching its fire (64 units, 32 high) catches fire and
+      burns to death (in early rounds within about 2 s). Brutus walking through it loses a tenth of his health each
+      frame until his flames light 2 s later (with the burn compensation he usually dies in it). Only its owner is
+      hurt touching it: 1 every 0.4 s, with a light rumble (a pad's), down or not.
+- [ ] A blob fired into the sky (it never lands): a pool appears where it is after 5 s of flight. A blob on a corpse
+      or the gondola pools where it stuck.
 - [ ] A burning zombie: the flames and the loop sound stay on it until it dies or for 8 s.
+- [ ] **12 burning at most**: with 12 or more enemies burning (a big train through two pools), the next ones take
+      only the first hit (no flames, no burn): a pool keeps hitting them while they stand in it.
 - [ ] Spam 5 or more pools: never more than 2 at once (the oldest goes).
-- [ ] **Points**: hits and pool ticks give no +10; kills give the normal kill points.
+- [ ] **Points**: each hit pays +10 as any weapon's (a burn's ticks at most every 0.5 s); kills give the normal kill
+      points; Brutus pays none per hit, as for any weapon.
+- [ ] **Insta-Kill**: from round 10 (zombies over 1000 health), any blob, pool or burst kills a zombie at once, its
+      head gibbed; Brutus is not killed by it.
 - [ ] **Spoon**: stuck-blob kills in the showers count.
 - [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
 - [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and
@@ -187,16 +199,18 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] **Pack-a-Punch**: a Magmagat comes back as `magmagat_upgraded_zm`, Magmus Operandi: the BO4 model with its
       armour kit, a 2-blob clip, the bigger pool and lure.
 - [ ] **Acid Gat kit takes a Magmagat**: holding only a Magmagat, use the Acid Gat station: it goes in as a
-      Blundergat and the Acid Gat comes out (a Magmus Operandi gives the Vitriolic Withering).
+      Blundergat and the Acid Gat comes out (a Magmus Operandi gives the Vitriolic Withering) with the Magmagat's
+      reserve ammo (fire a few first: the Acid Gat's reserve matches, up to its maximum).
 - [ ] A plain Blundergat still upgrades at the Acid Gat station normally. With a Magmagat and an Acid Gat already,
-      the station keeps your Magmagat (no conversion).
+      the Magmagat goes in and the Acid Gat is refilled, as BO4's kit does.
 - [ ] **Back and forth**: Magmagat -> Acid Gat kit -> Acid Gat -> fireplace -> Magmagat again; the same with a
       Magmus Operandi -> Vitriolic Withering -> Magmus Operandi. No step gives back a lower tier.
 - [ ] With a Magmagat in hand, a Brutus-locked craftable table still charges its unlock price and unlocks;
       other craftables (shield, plane parts) still craft normally.
 - [ ] Losing the Magmagat (box swap, wall buy replacing it, death without Tombstone) loses it like any weapon;
       the open forge converts a fresh gun again.
-- [ ] The Mystery Box never offers a Magmagat.
+- [ ] The Mystery Box never offers a Magmagat, nor a Blundergat to a player holding a Magmagat (or a Tempered
+      Blundergat); a teammate without one can still get it (vanilla's one-Blundergat limit permitting).
 - [ ] Watch the console for "missing fx key" and script errors, especially from the burning zombies and the lure.
 
 ## 7. Debug tools

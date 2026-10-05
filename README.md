@@ -51,14 +51,17 @@ next player can forge his own. For every detail and edge case, see the [full wal
 
 It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
 
-- **On a zombie:** half a second later it blows apart (one with over 1000 health burns, slowed, and dies 4 seconds
-  later). Its death bursts the blob, setting every zombie within 128 units on fire.
+- **On a zombie:** half a second later it blows apart (one with over 1000 health burns, slowed to 60 %, and dies 4
+  seconds later). When the Magmagat kills it, it blows apart and the blob bursts, tearing limbs off the zombies within
+  128 units and setting them on fire.
 - **On Brutus:** he burns for 5 seconds.
-- **Missed shot:** a lava pool for 5 seconds (two at most at once) that sets on fire every zombie walking in. It only
-  stings you (your screen burns), barely.
+- **Missed shot:** a lava pool for 5 seconds (two at most at once) that sets on fire every zombie walking in, and
+  burns Brutus hard until his flames catch. It only stings you (your screen burns), barely.
 - **Burning zombies** take a share of their health every second (fast in early rounds, slower later) for up to 8
-  seconds, and fall dead.
-- **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, and the fireplace takes the Acid Gat again.
+  seconds, and fall dead. Twelve enemies burn at most at once.
+- **Points and power-ups:** every hit pays points as any weapon does; Insta-Kill kills with any Magmagat hit.
+- **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, keeping its ammo, and the fireplace takes the Acid
+  Gat again.
 
 ## Credits
 
