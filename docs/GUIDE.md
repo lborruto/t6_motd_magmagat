@@ -42,8 +42,8 @@ Only the player who placed the gun can use the fireplace now, with no time limit
 ## 4. The run
 
 - The tempered gun burns out in **15 seconds**.
-- Five **blue drums** on the way (the office exit, the stairs, the Citadel, the tunnels, the docks) reset it to 15
-  seconds when you walk up to one, **once each per run**.
+- Five **drums burning blue** on the way (the office exit, the stairs, the Citadel, the tunnels, the docks) reset it to
+  15 seconds when you walk up to one, **once each per run**.
 - Firing is fine. Switching to another weapon (except a Blundergat), going down or running out of time **fails the
   run**: you get your gun back, and five seconds later the fireplace takes a gun again (back to step 1.2).
 
@@ -53,7 +53,7 @@ In the Generator Room by the docks, while the temper still burns:
 
 1. **Hold use** to **power the Machine** (once per game; the run goes on).
 2. **Hold use** to **place the Tempered Blundergat** on it. The run is won.
-3. After about 6 seconds, **take the Magmagat** within **15 seconds**, or it is lost.
+3. After about 13 seconds, **take the Magmagat** within **15 seconds**, or it is lost.
 
 Taking it calls a **Brutus** into the Generator Room. Already own a Magmagat? Taking one refills its ammo (a
 Pack-a-Punched gun turns a plain Magmagat into the Magmus Operandi). The fireplace then takes a new gun, so every

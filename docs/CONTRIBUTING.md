@@ -43,25 +43,27 @@ change.
 | `mg_main.gsc` | `init()` (zm_prison guard, precache, version), `mg_boot()`, chat listener `!mg`, command dispatch, help |
 | `mg_systems.gsc` | ported helpers: `mg_debug_print`, `mg_out`, `mg_fx_init`, `mg_fx_loop/once/stop`, `mg_fx_keepalive`, `mg_prompt`, `mg_press_use`, `mg_bar_*`, `mg_hud_title`, `mg_death_listen_add/remove`, `mg_zombies_near`, `mg_trail`, HUD disconnect cleanup |
 | `mg_coords.gsc` | anchor registry `mg_coord( key )` / `mg_coord_set`, `mg_apply_overrides()` (owner spots pasted here), `mg_models_init` / `mg_model( kind )` / `mg_precache()` (the barrel and skull models come from our mod.ff) |
-| `mg_place.gsc` | live placement mode `!mg grab <KEY>` / `drop` / `cancel` / `rot` / `up` (ported from Dead Frequency's `df_place.gsc`), anchor previews `mg_preview_show` / `mg_preview_refresh` / `mg_preview_hide` / `mg_preview_teleport` |
+| `mg_place.gsc` | live placement mode `!mg grab <KEY>` / `drop` / `cancel` / `rot` / `up` / `move` (ported from Dead Frequency's `df_place.gsc`), anchor previews `mg_preview_show` / `mg_preview_refresh` / `mg_preview_hide` / `mg_preview_teleport` |
 | `mg_quest.gsc` | `level.mg_state`, `mg_state_set( s )`, `mg_state_is( s )`, `level notify( "mg_state", s )`, bridge gate, `mg_goto( state )` fabrication, `mg_status_lines()` |
 | `mg_hearth.gsc` | fireplace (boards, prompts, place), the lockdown (outline, door clip), the souls (essences dropped, stepped on, flown into the skulls), skulls, the deposit, pickup |
 | `mg_run.gsc` | temper run (15 s timer, barrels, weapon rule), carrier fail rules |
-| `mg_forge.gsc` | forge power, the press, take; the open forge |
+| `mg_forge.gsc` | forge power (the closed press waking), the press (BO4's lever and ghouls), take; the open forge |
 | `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the blob (a sticky grenade, lobbed), the lava pool |
-| `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg zone`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg spots` |
+| `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg zone`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg press`, `!mg power`, `!mg model`, `!mg spots` |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
-| `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/paint_mask.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain (the dump, the props, the drums' paint tint, the Magmagat, the lava material, PNG / DDS) and the release (see "The mod.ff") |
+| `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/paint_mask.pl`, `tools/model_tints.pl`, `tools/barrel_fill.pl`, `tools/build_ghoul_mats.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain (the dump, the props, the press's BO3 tints, the drums' paint tint and filling, the ghouls' materials, the Magmagat, the lava material, PNG / DDS) and the release (see "The mod.ff") |
 | `tools/import_sounds.pl`, `tools/flac2wav.pl`, `tools/MgBo3.pm`, `tools/assets/bo3_sounds.tsv` | the sound bank: the BO3 map's fastfile and banks read, FLAC decoded to WAV, the list of our `mg_*` aliases |
 | `tools/bo3_fx.pl`, `tools/MgFx7.pm`, `tools/MgSnap.pm`, `tools/bo3mem/Bo3Snapshot.cs`, `tools/assets/bo3_fx.tsv`, `tools/oat/t6-fx-json.patch` | the effects: the T7 to T6 conversion, the snapshot reader, the snapshot tool (C#), the list of effects, and the OpenAssetTools patch (GPL-3.0) that gives the Linker a T6 effect loader (see [PORTING_BO3_ASSETS.md](PORTING_BO3_ASSETS.md)) |
 | `tools/assets/assets_zm_prison.txt`, `tools/assets/fx_registered_zm_prison.txt`, `tools/assets/zm_prison.d3dbsp.ents.txt`, `tools/assets/soundbank/*.aliases.csv` | reference data dumped from BO2's zm_prison: its assets, its registered effects, its map entities, its sound alias tables (read by `lint_sounds`) |
 | `mod/zone_source/mod.zone`, `mod/mod.json` | the fastfile's asset list (its blocks are written by the tools), the mod's name card. The props' material template is vanilla's wood barrel, `mod/work/dump/materials/mc/mtl_p6_zm_al_wood_barrel_01.json`, dumped by `tools/dump_game.pl` (never committed) |
 | `.github/workflows/check.yml`, `.github/workflows/release.yml`, `tools/publish.pl` | lints and a pack test on every push; the player zip when a release is published (see "The GitHub Actions") |
-| `README.md`, `LICENSE`, `docs/GUIDE.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md`, `docs/PORTING_BO3_ASSETS.md` | end-user and contributor docs |
+| `README.md`, `CHANGELOG.md`, `LICENSE`, `docs/GUIDE.md`, `docs/CONTRIBUTING.md`, `docs/TESTING.md`, `docs/PORTING_BO3_ASSETS.md` | end-user and contributor docs |
 
 Anchor keys (all in `mg_coords.gsc`): `MG_HEARTH` (gun rest in the fire), `MG_HEARTH_USE` (where the player
 stands to press), `MG_SKULL_1`, `MG_SKULL_2`, `MG_SKULL_3`, `MG_BARREL_1..5`, `MG_FORGE` (use point at the
-generator), `MG_FORGE_GUN` (gun rest on the generator). Defaults are placeholders near the vanilla free
+Machine), `MG_FORGE_GUN` (gun rest on its bed), `MG_PRESS` (the Machine's foot), `MG_LEVER` (the lever's pivot),
+`MG_FORGE_FX` (where the Machine's effects play), `MG_GHOUL_1` / `MG_GHOUL_2` (the ghouls at the lever's
+grips). Defaults are placeholders near the vanilla free
 Blundergat desk struct and the dock generator; the owner replaces them through `mg_apply_overrides()` (see
 "Coordinate workflow" below).
 
@@ -98,8 +100,14 @@ and an environment variable to point elsewhere.
   leaves empty LODs out, and a model with none is left out of the mod). `p8_fxp_magma_blob` in particular exports only
   after the Magmagat has fired in BO3. Then, with "Load xImage from the game" on, export the images (PNG): the models' textures
   into `exported_files/black_ops_3/ximages` (among them `i_mtl_p7_barrel_metal_55gal_blue_c`, the drum's paint mask,
-  and `i_pbr_lava_magma_emissive_1_mtl_*`, the lava), and the effect textures there or in `black_ops_3_sp/ximages`
-  (`tools/bo3_fx.pl` names any that is missing).
+  `i_pbr_lava_magma_emissive_1_mtl_*`, the lava, and the Magmagat's specular `_s` and gloss `_g` maps), and the effect
+  textures there or in `black_ops_3_sp/ximages` (`tools/bo3_fx.pl` names any that is missing).
+- **Black Ops 4** on Blood of the Dead, with Greyhound: export into `exported_files/black_ops_4_sp` the models
+  `p8_fxanim_zm_esc_smelter_ghost_mod` (the lever), `p8_zm_esc_skull_sgl`, `p8_zm_esc_skull_afterlife`,
+  `c_t8_zmb_mob_ghoul_body1`, `c_t8_zmb_mob_ghoul_body2` and `p8_zm_esc_debris_wood_pile_splinter_40x40x4_burnt`, their
+  images (`ximages`), and the ghouls' two xanims of the scene `aib_vign_zm_mob_smelter_ghost` (`xanims`, Direct XAnim,
+  BO1 compatibility). Without that folder `tools/import_all.pl` leaves the lever, the BO4 skulls, the ghouls and the
+  drums' filling out.
 - **gsc-tool** (xensik; `MG_GSC_TOOL`, the exe): the syntax check; `tools/pack.pl` also reads the exact string block
   size from its output when it is there.
 - **The decompiled T6 scripts** (the `ZM` folder of a t6-scripts dump; `MG_T6_SCRIPTS`): `tools/lint_calls.pl` checks
@@ -108,8 +116,8 @@ and an environment variable to point elsewhere.
 
 | Variable | Used by | Default |
 |---|---|---|
-| `MG_BO2` | `dump_game.pl`, `build_mod.pl`, `bo3_fx.pl` | `C:/Program Files (x86)/Steam/steamapps/common/Call of Duty Black Ops II` |
-| `MG_OAT` | `dump_game.pl` (run by `import_all.pl` and `build_weapon.pl`) | `C:/Games/t6/openassettools` |
+| `MG_BO2` | `dump_game.pl`, `build_mod.pl`, `bo3_fx.pl`, `import_all.pl`, `build_ghoul_mats.pl` | `C:/Program Files (x86)/Steam/steamapps/common/Call of Duty Black Ops II` |
+| `MG_OAT` | `dump_game.pl` (run by `import_all.pl` and `build_weapon.pl`), `import_all.pl` (the animtree), `build_ghoul_mats.pl` | `C:/Games/t6/openassettools` |
 | `MG_OAT_FX` | `build_mod.pl`, `bo3_fx.pl` | `C:/Games/t6/oat-src/build/bin/Release_x86` |
 | `MG_BO3_MAP` | `import_sounds.pl` | `C:/Program Files (x86)/Steam/steamapps/workshop/content/311210/3373649394` |
 | `MG_GREYHOUND` | `import_all.pl`, `build_magmagat_model.pl`, `gen_lava_mat.pl`, `bo3_fx.pl` | `C:/Games/t6/Greyhound-1.49.4.0` |
@@ -168,7 +176,8 @@ perl tools/publish.pl          # the GitHub Release: mod.ff and the sound bank u
 Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/weapon`, `mod/sound`, `mod/fx`,
 `mod/work` and `mod/out` are generated from the games' files and are never committed (`.gitignore` lists them).
 
-- **Props** (`tools/import_all.pl` lists them): each BO3 model becomes a rigid T6 xmodel (Greyhound's glTF, Z-up
+- **Props** (`tools/import_all.pl` lists them): each BO3 or BO4 model becomes a rigid T6 xmodel (the ghouls skinned, `--skinned`, their xanims in mod.ff's
+  `animtrees/fxanim_props.atr`; Greyhound's glTF, Z-up
   centimetres, turned to the Linker's Y-up inches; at most 4 LODs, most detailed first by file size since Greyhound's
   LOD numbers are no detail order, and LODs it exported without meshes left out: BO3 streams them, so export a model
   while it is in view in game), one material per surface cloned from a vanilla
@@ -190,7 +199,7 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   the Acid Gat's bones, so the weapon takes the Acid Gat's `hideTags`. `magmagat_upgraded_zm` (Magmus Operandi) is the
   same model with the BO4 armour kit (the `tag_armor_acid` kit dropped, as BO2 hides it). The world model's LOD0 is
   the same mesh fitted on BO2's world gun; its far LODs are BO2's world gun recoloured (`tools/recolor.pl`).
-  Materials: BO4's colour / normal maps on the Blundergat's lit material (a gloss map derived from the colour); the
+  Materials: BO4's colour / normal / specular / gloss maps on the Blundergat's lit material; the
   molten parts on the Acid Gat's emberglow shader (reveal = BO4's crack mask, ember = BO4's magma glow noise on a
   molten ramp, heat = BO2's flicker; `%lava` turns up glow, flicker and scroll). The display names come from
   `english/localizedstrings/mg_weapons.str`.
@@ -211,7 +220,8 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
 - **What the stock Linker cannot carry** (OpenAssetTools v0.33): particle effects (FxEffectDef is not loaded; the
   mod links them with a patched Linker, see PORTING_BO3_ASSETS.md, "The effects"), new tracers (the T6 tracer loader is not
   registered: the weapons use no tracer) and BO3 animations (no tool turns T7 xanims into T6 ones; the rig is shared,
-  so the Blundergat's animations fit the BO4 gun).
+  so the Blundergat's animations fit the BO4 gun; BO4's ghoul animations come from Greyhound as Direct XAnim, BO1
+  compatibility, which the Linker reads).
 
 ### The GitHub Actions
 
@@ -264,6 +274,9 @@ Run `tools/deploy.pl` after the lints and the syntax check pass, then test the c
 | `!mg grab <KEY>` | live placement mode: the anchor's prop follows your crosshair (FIRE place, MELEE cancel, ADS freeze, 1/2 turn, 3/4 raise, F surface/float, jump reset) |
 | `!mg drop` / `!mg cancel` | place the held prop (prints the paste-ready `mg_coord_override(...)` line) / leave the anchor as it was |
 | `!mg rot <deg>` / `!mg up <units>` | turn / raise the held prop by chat instead of the buttons |
+| `!mg press` | the forge's sequence on a Tempered Blundergat (the power step first if the Machine is not powered) |
+| `!mg power` | the Machine's power step (once powered, its effects again, to fit `MG_FORGE_FX`) |
+| `!mg move <forward> <right> <up>` | nudge a pinned prop held with `!mg grab` (the lever, the gun spot, the forge effects, the ghouls) from where you look |
 | `!mg show [KEY]` / `!mg hide` | preview one anchor (or every anchor) in place / remove the preview |
 | `!mg tp <KEY>` | teleport to an anchor to judge it in person |
 
@@ -292,7 +305,10 @@ mg_coord_override( "MG_BARREL_1", ( -600, 9100, 1336 ), ( 0, 0, 0 ), "mg_barrel_
 Paste the `mg_coord_override(...)` line into `mg_apply_overrides()` in `mg_coords.gsc` to make it permanent
 (the 4th, model, argument is only printed when the anchor carries a prop of its own). An override always wins
 over the placeholder default. The anchor keys to fill in are `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`,
-`MG_BARREL_1..5`, `MG_FORGE`, `MG_FORGE_GUN`.
+`MG_BARREL_1..5`, `MG_FORGE`, `MG_FORGE_GUN`, `MG_PRESS`, `MG_LEVER`, `MG_FORGE_FX`, `MG_GHOUL_1`, `MG_GHOUL_2`.
+
+The forge's `MG_LEVER`, `MG_FORGE_GUN`, `MG_FORGE_FX` and `MG_GHOUL_1` / `_2` are pinned when grabbed: they ignore the
+crosshair, and `!mg move <forward> <right> <up>` nudges them from where you look.
 
 The cheats script (`cheats_zm.gsc`) and its old `!place` / `!spot` placement flow are not part of this
 repository and are never edited here — see "Rules every change must keep" below.

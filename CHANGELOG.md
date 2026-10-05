@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.3 - 2026-10-05
+
+The forge and the quest's props, closer to Black Ops 4:
+
+- The forge plays Black Ops 4's scene: two ghouls rise out of the bed, pull the press's lever and fly off through the
+  roof while the press works the gun in fire and sparks. The Magmagat then floats over the bed until you take it.
+- The forge stands where Black Ops 4's does, and stays closed until you power the Machine.
+- The mantle skulls are Black Ops 4's: each turns into the Afterlife skull as it fills.
+- The temper drums are filled with ash and burnt wood.
+- The fireplace wakes in an orange burst of flame.
+- The Magmagat and the Magmus Operandi use Black Ops 4's specular and gloss maps; the Magmus Operandi is brighter.
+
 ## 1.0.2 - 2026-10-04
 
 - Standing in your own lava pool burns your screen again.

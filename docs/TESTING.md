@@ -11,7 +11,7 @@ set mg_debug 1
 Install first, from the repo (Git Bash): `perl tools/build_mod.pl` (mod.ff, its sound bank mod.all.sabl / .sabs,
 and mod.json) and `perl tools/deploy.pl` (the scripts), both into `mods/zm_magmagat`; then Mods -> zm_magmagat in game. Check it loaded: console
 `set mg_debug 1`, then in chat `!mg status` (it answers with the version, state, souls, carrier, timer, the gate flag
-and every anchor resolved). Every `!mg` answer is also printed to the console as `[MG] ...`.
+and whether the forge is open). Every `!mg` answer is also printed to the console as `[MG] ...`.
 
 The `!mg ...` commands below are typed in chat. From the console, put `say` in front: `say !mg goto run`.
 
@@ -25,10 +25,11 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] The five route barrels are the remaster's dark-green drums and the three mantle skulls BO4's plain skulls
       (`!mg show` previews them; `!mg model mg_barrel_green` / `!mg model mg_skull_bo4` spawn one in front of you).
 - [ ] `!mg status` prints the version, the state (`locked` at boot), souls 0/15, no carrier, the gate flag and the
-      forge (closed), and a resolved line for every anchor.
+      forge (closed).
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
-      `MG_FORGE_GUN`; none say "undefined".
-- [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `tour`, `lockdown`, `zone`, `bridge`, `give`, `magma`, `shock`
+      `MG_FORGE_GUN`, `MG_PRESS`, `MG_LEVER`, `MG_FORGE_FX`, `MG_GHOUL_1`, `MG_GHOUL_2`; none say
+      "undefined".
+- [ ] `!mg help` lists `status`, `goto`, `spots`, `help`, `tour`, `press`, `power`, `lockdown`, `zone`, `bridge`, `give`, `magma`, `shock`
       (all at once) / `shock gun`, `fx`, `snd`, and the placement commands.
 
 ## 0a. The sound bank
@@ -82,7 +83,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Kill more zombies than souls still missing without taking any: no more essences drop than souls still missing
       (15 lying = no new one); once some are taken, kills drop again.
 - [ ] Brutus dying in the office, and a zombie dying outside it, give no soul.
-- [ ] Skulls light at 5, 10 and 15: the blue flame only, the model unchanged, no sound. No soul counts past 15.
+- [ ] Skulls light at 5, 10 and 15: the blue flame, and the plain skull turns into the Afterlife skull; no sound. No soul counts past 15.
 - [ ] 1 s after the 15th soul reaches its skull the laugh plays again; 2 s later the outline and the door clip go, and
       the essences still lying there vanish.
 - [ ] **Fail**: the placer goes down (last stand or Afterlife) during the lockdown: the skulls go out at once, no
@@ -115,7 +116,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       armour): its canisters glow blue; others see a blue flame on it.
 - [ ] Fire it: its muzzle flash burns blue (`mg/fx_mg_tempered_flash`, the Magmagat's flash recoloured), in first
       person and as seen by another player.
-- [ ] The five drums (the remaster's dark-green drums) burn blue from inside, the flames rising out of the rim.
+- [ ] The five drums (the remaster's dark-green drums, filled 2/3 with ash and burnt wood) burn blue from inside, the flames rising out of the rim.
 - [ ] Each drum is solid: you cannot walk through it nor jump onto it (its clip stands 128 units high from its foot).
 - [ ] Stand at a lit drum's foot (within 64 units, feet 0-64 above its base): the temper is back to 15 s, with a 5 s
       flare and the flame-burst sound. No whoosh, no rumble; the drum keeps burning. A second visit to the same drum
@@ -131,20 +132,21 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 ## 5. The forge
 
-- [ ] With the tempered gun at the forge, "Hold [use] to power the Machine" shows for the carrier only. Using it plays
-      the power-panel sound and the sparks on the Machine; the run goes on (the timer still counts) and the gun stays in
-      your hands. A second later the Warden's line plays to that player only. (`!mg goto forge` fabricates a Magmagat
+- [ ] With the tempered gun at the forge, "Hold [use] to power the Machine" shows for the carrier only. Before that
+      the press stands closed. Using it plays the power-panel sound and the sparks on the Machine; the press shudders and opens in fire;
+      the run goes on (the timer still counts) and the gun stays in your hands. About 2.5 s later the Warden's line
+      plays to that player only. (`!mg goto forge` fabricates a Magmagat
       waiting for you.)
 - [ ] Then "Hold [use] to place the Tempered Blundergat", for the carrier only: nobody else, and no plain Blundergat,
       gets a prompt, and only while it is in his hands. Letting the temper run out before placing it fails the run as
       anywhere else.
 - [ ] The Machine has collision: you cannot walk through it.
 - [ ] Place it: the run ends, the skulls go out and the fireplace takes a Blundergat again. The gun lies on the bed
-      with a blue flare and a flame burst; the ram comes down at about 0.8-1.1 s and strikes in sparks with a slam, the
-      press sound starts at 0.55 s and a fire loop roars until the end (all from the Machine), the press fire plays at
-      about 1.35 s with a flame burst and the gun disappears. At about 4.35 s the Magmagat lies on the bed in a burst of
-      flame, with the "build complete" chime, and the ram lifts.
-- [ ] At about 5.65 s "Hold [use] to take the Magmagat" shows, for the placer only.
+      with a blue flare; two ghouls rise out of the bed to the lever's grips and pull it at about 3.4 s; the ram
+      strikes the gun at 4 s in sparks with a slam (the gun disappears) and works it for 7.4 s in fire, the fire loop
+      roaring. At about 11.6 s the ram and lever lift and the Magmagat floats over the bed over tiny flames, with the
+      "build complete" chime; the ghouls are gone through the roof.
+- [ ] At about 13 s "Hold [use] to take the Magmagat" shows, for the placer only.
 - [ ] Taking it: a Brutus spawns in the Generator Room about 1 s later.
 - [ ] Every forge hint (power the Machine, place the Tempered Blundergat, take the Magmagat) and every fireplace hint shows the
       use key in yellow and the rest in white (`^3` / `^7`), like vanilla's.
@@ -154,7 +156,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Only the placer can take it; another player sees no prompt and his press does nothing.
 - [ ] Place a second gun while you already own a Magmagat: taking it only refills the ammo of the one you own; a
       Pack-a-Punched gun pressed while you own a plain Magmagat makes it the Magmus Operandi (never the reverse).
-- [ ] `!mg goto ready` in the middle of a press: the ram returns to rest and the entities are cleaned up.
+- [ ] `!mg goto ready` in the middle of a press: the ram returns to rest (the press closed, the Machine unpowered) and the gun and
+      ghouls are cleaned up.
 
 ## 6. The weapon (Magmagat / Magmus Operandi)
 
@@ -210,6 +213,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       at an Afterlife shock box - it should zap as if hit by the real Afterlife interaction.
 - [ ] **Shock pistol on a power panel**: same toggle, aim at an Afterlife power panel instead - it should
       zap that too. Toggle `!mg shock gun` off afterward and confirm shots no longer zap anything.
+- [ ] `!mg grab MG_LEVER` pins the lever: `!mg move <forward> <right> <up>` nudges it from where you look; `!mg press`
+      then shows the ghouls at its grips.
 - [ ] `!mg goto locked|ready|souls|pickup|run|forge|done` puts the stations in the matching state (`souls` starts a real
       lockdown with you as the placer; `pickup`, `run`, `forge` light the skulls).
 
@@ -223,16 +228,12 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] After a Magmagat, another player can temper his own: the fireplace takes a Blundergat again, and the powered
       Machine takes only his Tempered Blundergat (no plain Blundergat).
 
-## 8b. BO4 or the remaster (1.0.3 work)
+## 8b. BO4 or the remaster
 
 The dvar `mg_bo4` lists the parts to play BO4's way; set it in the console **before loading the map**
 (`set mg_bo4 "hover"`, or `all`; empty = the remaster's).
 
 - [ ] `hover`: the gun in the fireplace floats up and down, BO4's 3.3 s loop.
-- [ ] The forge (always BO4's now): `say !mg press` plays it on a Tempered Blundergat. The ghouls rise out of the bed
-      to the lever's ends, the lever drops at 3.4 s, the ram strikes at 4 s and works 7.4 s in fire, the Magmagat
-      floats over the bed. `!mg grab MG_LEVER` places the lever (the ghouls fly around it).
-- [ ] The Machine's power step (`say !mg tour`, step 6): a surge, the machine jolts awake, a flare of fire in embers.
 
 ## 9. Lints and syntax (before every deploy)
 

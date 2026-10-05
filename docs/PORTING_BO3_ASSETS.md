@@ -22,6 +22,9 @@ reads the map's own `zm_prison.ff` and sound banks for the sounds (`tools/import
 streams meshes and textures in on demand, so export a model while it is in view in game. The Magmagat's lava blob
 (`p8_fxp_magma_blob`) is only loaded once the Magmagat has fired.
 
+Black Ops 4's own forge props (the smelter's lever, the mantle skulls, the ghouls and their animations, the burnt
+splinters) come from a Greyhound export of BO4 on Blood of the Dead (`black_ops_4_sp`).
+
 ### Props (`tools/import_all.pl`, `tools/import_prop.pl`)
 Each Greyhound xmodel export becomes a rigid T6 xmodel, one material per surface cloned from vanilla's wood barrel,
 with its textures embedded as `*mg_<name>` images (a plain image name makes the Linker write a streamed image, which T6
@@ -35,7 +38,10 @@ only looks for in its own `.ipak` files).
   `--bones` splits a skinned model into parts script can move (the press's body and its ram). `--material` puts every
   surface on an existing material (the splat meshes and the blob wear the mod's lava, `mc/mg_lava`, since their BO3
   shader is procedural). `--color` swaps a colour map, such as the drum's, whose paint tint `tools/paint_mask.pl`
-  bakes in.
+  bakes in. `--skinned` keeps a model's skeleton for its xanims (the ghouls), `--material-rename` puts their parts on
+  the mod's ghost materials (`tools/build_ghoul_mats.pl`: Mob's Afterlife ghost with BO4's normal maps), `--tail`
+  shortens and tapers their ghost tail, `--stretch` fits the lever. `tools/barrel_fill.pl` builds the drums' filling
+  (BO4's ash and burnt splinters) as a Greyhound-style export.
 
 ### The weapon (`tools/build_weapon.pl`, `tools/build_magmagat_model.pl`)
 BO4's Magmagat and Tempered Blundergat view models were built on BO2's Blundergat rig, so the T6 skeleton is kept as
@@ -82,7 +88,9 @@ The effects in the mod are listed in `tools/assets/bo3_fx.tsv`; they become `mg/
 (`_copforthat/_zm_prison/*`: the blue flames, the lockdown, the press fire, the lava pool, the soul). The rest are
 Harry's effects, which the remaster ships: `harry/magmagat/*` (the blob's trail, impact and burst,
 `mg/fx_magmagat_trail_bolt`, `_impact`, `_explode`, which the Magmagat weapon files name) and `harry/blundersplat/*`
-(the fire-coloured Acid Gat muzzle flash the Magmagat fires with, and the tempered copies above). The lava pool a miss
+(the fire-coloured Acid Gat muzzle flash the Magmagat fires with, and the tempered copies above). Two more are Mob's
+own fires with their glow taken out, for the forge and the fireplace (`mg/fx_mg_forge_fire`, `mg/fx_mg_forge_flare`,
+from `fx_alcatraz_fire_sm` and `fx_alcatraz_falling_fire_impact`). The lava pool a miss
 lays is `mg/fx_prison_magmagat_aoe`. Not carried over: BO3's sound elements and spawn sounds (BO3 aliases; the mod
 plays its sounds from script), BO3-only element types, and the view-model attachment of `_vm` effects (T6 script
 cannot play an effect on the view model).
@@ -92,7 +100,8 @@ cannot play an effect on the view model).
   slots/settings rather than writing one from a human-readable source format.
 - Mods menu loads one mod.ff at a time; must merge multiple mods into a single .ff to combine them.
 - No known automated T7 (BO3) → T6 (BO2) xanim converter; skeleton/rig differences mean new
-  animations are effectively a manual re-creation, not a port.
+  animations are effectively a manual re-creation, not a port. BO4's ghoul animations do carry over: Greyhound
+  exports them as Direct XAnim (BO1 compatibility), which OAT's Linker reads.
 - Some GfxImage encodings aren't supported by OAT yet, which can bite on certain BO3 texture
   formats (needs a per-texture check during extraction).
 - Multiteam/asset-count ceilings exist in T6 fastfiles (the JezuzLizard player-model pack's own
