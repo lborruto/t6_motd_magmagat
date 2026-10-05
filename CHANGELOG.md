@@ -6,7 +6,6 @@ The Magmagat, 1:1 with Black Ops 4's own script:
 
 - One blob kills Brutus in a few seconds in early rounds; a lava pool burns him hard.
 - Every hit pays points, and Insta-Kill works with the Magmagat.
-- A lava pool lures 3 zombies (the Magmus Operandi 6), not every zombie near it.
 - Twelve enemies burn at most at once.
 - A zombie with a blob bursts only when the Magmagat kills it, tearing limbs off its neighbours; a second blob hurts it
   again, and a tough one slows to 60 % of its speed.

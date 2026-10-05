@@ -493,9 +493,8 @@ mg_is_boss( ai )
 
 // The lure of a pool, BO4's (function_7b25328b): vanilla's point of interest on the floor under the blob, 128 units
 // and 3 zombies (256 and 6 when its owner holds the Magmus Operandi or the Vitriolic Withering as it lands), only when
-// that floor is within 64 of the blob (a blob up a wall or on a ceiling draws no one) and in the playable area; its
-// attractor positions (create_zombie_point_of_interest_attractor_positions, 128 wide) hold it to that many zombies,
-// in rings around it. Brutus ignores it. Returns its entity, or undefined.
+// that floor is within 64 of the blob (a blob up a wall or on a ceiling draws no one) and in the playable area: every
+// zombie within its reach comes to it, as in BO4's play (below). Brutus ignores it. Returns its entity, or undefined.
 mg_blob_lure( blob, player )
 {
     trace = bullettrace( blob.origin, blob.origin - ( 0, 0, 1000 ), 0, blob );
@@ -509,20 +508,14 @@ mg_blob_lure( blob, player )
         held = player getcurrentweapon();
 
     lure = spawn( "script_origin", trace["position"] );
-    n = 3;
-    radius = 128;
 
+    // BO4 asks for 3 attractors (the Magmus 6), but in play its pool draws nearly every zombie near it (the owner's
+    // test in BO4): as here, every zombie within its reach comes to the pool itself (attract_to_origin, no ring
+    // positions, so vanilla's can_attract never caps the count)
     if ( isdefined( held ) && ( held == "magmagat_upgraded_zm" || held == "blundersplat_upgraded_zm" ) )
-    {
-        n = 6;
-        radius = 256;
-    }
-
-    // vanilla's ring maths (add_poi_attractor) hands out no position under 4 attractors a ring: the rings are laid
-    // out for 4n (at 30 and 60 units, inside the pool), can_attract holds the lure to n
-    lure create_zombie_point_of_interest( radius, n * 4, 10000 );
-    lure thread create_zombie_point_of_interest_attractor_positions( 4, 30, 45 );
-    lure.num_poi_attracts = n;
+        lure create_zombie_point_of_interest( 256, 6, 10000 );
+    else
+        lure create_zombie_point_of_interest( 128, 3, 10000 );
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
