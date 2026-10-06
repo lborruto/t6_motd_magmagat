@@ -115,6 +115,11 @@ for my $r (@rows) {
     printf "import_sounds.pl: %-16s <- %-30s %d variant(s), %s\n", $r->{ours}, $r->{bo3}, scalar @e, $r->{storage};
 }
 
+# Black Ops 4's volume, raised by $BO4_GAIN (the owner found them a little quieter than in BO4, whose mix plays them
+# louder than its linear gain says), at most T6's 100
+my $BO4_GAIN = 4;
+sub mg_bo4_vol { my $v = shift() + $BO4_GAIN; return $v > 100 ? 100 : $v }
+
 # Black Ops 4's: the banks' entries by id, every manifest row a variant
 my %bo4_entry;
 for my $b ( map { MgBo3::open_bank($_) } @bo4_banks ) {
@@ -127,7 +132,7 @@ while (<$m>) {
     s/\r?\n\z//;
     my @c = split /\t/, $_, -1;
     die "import_sounds.pl: bo4_sounds.tsv line $.: 10 tab-separated columns expected (an 11th, what for, is optional)\n" unless @c >= 10;
-    my $r = { ours => $c[0], sec => $c[2], storage => $c[3], pan => $c[4], loop => $c[5], vol => $c[6], dmin => $c[7], dmax => $c[8],
+    my $r = { ours => $c[0], sec => $c[2], storage => $c[3], pan => $c[4], loop => $c[5], vol => mg_bo4_vol( $c[6] ), dmin => $c[7], dmax => $c[8],
         dwet => $c[9] };
     my $id = $c[1] =~ /^#([0-9a-f]+)$/ ? $1 : MgBo3::bo4_file_id( join chr(92), split m{/}, $c[1] );    # the bank names it with backslashes
     my $e = $bo4_entry{$id} or die "import_sounds.pl: $c[1] ($id) is in none of BO4's banks\n";
