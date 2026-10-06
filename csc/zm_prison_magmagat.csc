@@ -22,6 +22,9 @@ mg_tempered_flame_start()
 
 mg_tempered_flame( localclientnum )
 {
+    last = "";
+    println( "MG csc: tempered flame watcher on client " + localclientnum + ", effect " + level._effect["mg_tempered_flame"] );
+
     while ( true )
     {
         // as vanilla's polls (_zm_weap_thundergun.csc): no weapon to read before the client has a snapshot
@@ -29,6 +32,14 @@ mg_tempered_flame( localclientnum )
             wait 0.05;
 
         weapon = getcurrentweapon( localclientnum );
+
+        if ( weapon != last )
+        {
+            last = weapon;
+
+            if ( getdvarint( "mg_debug" ) )
+                println( "MG csc: client " + localclientnum + " holds " + weapon );
+        }
 
         if ( weapon == "mg_tempered_zm" || weapon == "mg_tempered_upgraded_zm" )
             playviewmodelfx( localclientnum, level._effect["mg_tempered_flame"], "tag_muzzle_acid" );

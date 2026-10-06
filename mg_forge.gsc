@@ -346,13 +346,18 @@ mg_press_show( weapon )
     gun delete();
 
     // t 4.0 to 11.4: the press works the gun, the remaster's press fire through it, the gun burning under the ram after
-    // a burst of flame, a slam every 1.4 s
-    mg_fx_once( "forge_rise", fx.origin, 7.4, fx.angles );
+    // a burst of flame, a slam every 1.4 s; the fires are lit again at each slam so the closed press burns all along
+    // (played once, they burnt out long before the ram lifted: the owner's call)
     mg_fx_once( "flame_burst", c.origin );
-    mg_fx_once( "forge_fire", c.origin, 7.4 );
 
-    for ( i = 0; i < 5; i++ )
+    for ( i = 0; i < 6; i++ )
     {
+        mg_fx_once( "forge_rise", fx.origin, 2, fx.angles );
+        mg_fx_once( "forge_fire", c.origin, 2 );
+
+        if ( i == 5 )
+            break;
+
         wait 1.4;
         body playsound( "zmb_hellbox_slam_shake" );
     }

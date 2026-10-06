@@ -93,6 +93,7 @@ my %lit = (    # BO4 material -> [ colour, normal ]  (lit: the Blundergat's own 
     mtl_wpn_t8_zm_blundergat_armor => [ 'i_wpn_t8_zm_blundergat_armor_c', 'i_wpn_t8_zm_blundergat_armor_n' ],
     mtl_wpn_t8_zm_blundergat_frame => [ undef, 'i_wpn_t8_zm_blundergat_frame_n' ],
 );
+my %bo4_parent;    # BO4 bone -> its parent bone (Greyhound's node tree), for the bones T6 lacks
 sub bo4_prims {    # a Greyhound export -> ( { mat, pos, nrm, uv, joints (bo4 names x4), weights, idx } ... )
     my $name = shift;
     my $src = "$xg/$name";
@@ -100,6 +101,9 @@ sub bo4_prims {    # a Greyhound export -> ( { mat, pos, nrm, uv, joints (bo4 na
     die "build_magmagat_model.pl: no Greyhound export of $name in $src\n" unless $src_gltf;
     my $bo4 = load_gltf( $src_gltf, $src );
     my @bo4_joint = map { $bo4->{nodes}[$_]{name} } @{ $bo4->{skins}[0]{joints} };
+    for my $n ( @{ $bo4->{nodes} } ) {
+        $bo4_parent{ $bo4->{nodes}[$_]{name} } //= $n->{name} for @{ $n->{children} || [] };
+    }
     my @prims;
     for my $mesh ( @{ $bo4->{meshes} } ) {
         for my $p ( @{ $mesh->{primitives} } ) {
@@ -184,13 +188,23 @@ my @tv_joints = @{ $tv->{skins}[0]{joints} };
 $t6_joint{ $tv->{nodes}[ $tv_joints[$_] ]{name} } = $_ for 0 .. $#tv_joints;
 die "build_magmagat_model.pl: no j_gun in the T6 view skeleton\n" unless defined $t6_joint{j_gun};
 my %unmapped;
+# a BO4-only bone (the right chains, the armour) rides the T6 bone of its nearest BO4 parent T6 has, so it moves with
+# that part: the right chains with the right barrel as the gun breaks open to reload, not left standing on j_gun
+sub t6_ride {
+    my $b = shift;
+    while ( defined( $b = $bo4_parent{$b} ) ) {
+        my $t = $t6_of{$b} // $b;
+        return $t if defined $t6_joint{$t};
+    }
+    return 'j_gun';
+}
 my $view_weights = sub {
     my ( $names, $w ) = @_;
     my %sum;
     for my $k ( 0 .. 3 ) {
         next unless $w->[$k] > 0;
         my $t = $t6_of{ $names->[$k] } // $names->[$k];
-        if ( !defined $t6_joint{$t} ) { $unmapped{ $names->[$k] }++; $t = 'j_gun' }
+        if ( !defined $t6_joint{$t} ) { $t = t6_ride( $names->[$k] ); $unmapped{"$names->[$k]>$t"}++ }
         $sum{ $t6_joint{$t} } += $w->[$k];
     }
     my @j = sort { $sum{$b} <=> $sum{$a} || $a <=> $b } keys %sum;    # equal weights by joint index: the same bytes every run
@@ -251,7 +265,7 @@ for my $m (@models) {
     write_model( "$raw/model_export/${up_name}_world_lod0.gltf", $t6_world, \@up, $root_only, $to_world );
     printf "build_magmagat_model.pl: %s: %d surfaces, world scale %.3f\n", $src, scalar @prims, $s;
 }
-printf "build_magmagat_model.pl: BO4-only bones on j_gun: %s\n", join( ' ', sort keys %unmapped ) || 'none';
+printf "build_magmagat_model.pl: BO4-only bones riding T6 ones: %s\n", join( ' ', sort keys %unmapped ) || 'none';
 
 # ---- textures
 my %tex_done;

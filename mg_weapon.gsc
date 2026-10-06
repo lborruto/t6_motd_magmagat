@@ -386,7 +386,19 @@ mg_blob_land( blob, player, weapon, fire )
         blob.origin = floor["position"];
         dir = ( 0, 0, -1 );
     }
-    else if ( !isdefined( host ) && isdefined( linked ) && ( isai( linked ) || linked.classname == "script_brushmodel" ) )
+    else if ( !isdefined( host ) && !flying && ( ( isdefined( linked ) && isai( linked ) ) || !mg_blob_on_surface( dir, blob ) ) )
+    {
+        // stuck to a body already dead (a zombie bursting in the frame the blob hit it), or left in the air where one
+        // vanished: it drops to the floor under it and pools there, as on a teammate, not where the body stood
+        floor = bullettrace( blob.origin + ( 0, 0, 8 ), blob.origin - ( 0, 0, 1000 ), 0, blob );
+        blob unlink();
+
+        if ( floor["fraction"] < 1 )
+            blob.origin = floor["position"];
+
+        dir = ( 0, 0, -1 );
+    }
+    else if ( !isdefined( host ) && isdefined( linked ) && linked.classname == "script_brushmodel" )
         blob unlink();
 
     // the grenade is hidden: a copy of the blob shows it. On a surface it stands out of it, a wall or a ceiling as the
@@ -475,6 +487,16 @@ mg_blob_normal( dir, blob )
         return ( 0, 0, 1 );
 
     return trace["normal"];
+}
+
+// Whether the blob rests on something: a surface traced along its last flight direction through it (characters
+// ignored, as mg_blob_normal), or anything just under it.
+mg_blob_on_surface( dir, blob )
+{
+    if ( bullettrace( blob.origin - dir * 24, blob.origin + dir * 24, 0, blob )["fraction"] < 1 )
+        return 1;
+
+    return bullettrace( blob.origin + ( 0, 0, 4 ), blob.origin - ( 0, 0, 12 ), 0, blob )["fraction"] < 1;
 }
 
 // Angles that stand a model's up axis along n (pitch 90 more than n's own: forward to n, then up to it).
