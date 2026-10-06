@@ -47,26 +47,26 @@ next player can forge his own. For every detail and edge case, see the [full wal
 
 ## The weapon
 
-| | Magmagat | Magmus Operandi |
+A lobbed lava blob that sticks to whatever it hits.
+
+| | Magmagat | Magmus Operandi (Pack-a-Punched) |
 |---|---|---|
 | Clip / start / max ammo | 1 / 30 / 36 | 2 / 25 / 30 |
-| Lure (lava pool near the floor) | 3 at a time into its fire, 128 units | 6 at a time, 256 units |
+| Lava pool pulls in | 3 zombies at a time | 6 zombies at a time, from twice as far |
 
-It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
-
-- **On a zombie:** half a second later it blows apart (one with over 1000 health burns, slowed to 60 %, and dies 4
-  seconds later). When the Magmagat kills it, it blows apart and the blob bursts, tearing limbs off the zombies within
-  128 units and setting them on fire.
-- **On Brutus:** he burns for 5 seconds.
-- **Missed shot:** a lava pool for 5 seconds (two at most at once) that sets on fire every zombie walking in, and
-  burns Brutus hard until his flames catch. It only stings you (your screen burns), barely.
-- **Burning zombies** take a share of their health every second (fast in early rounds, slower later) for up to 8
-  seconds, and fall dead. Twelve enemies burn at most at once.
-- **Points and power-ups:** burns and bursts pay points as any weapon's hits (the shot and the blob's impact pay
-  none); under Insta-Kill any Magmagat hit kills, a blob on contact (no burst, it pools on the floor under it).
-- **Acid Gat kit:** it turns the Magmagat back into an Acid Gat, keeping its ammo, and the fireplace takes the Acid
-  Gat again. The Mystery Box offers no Blundergat while you hold a Magmagat, or while your Blundergat lies in the
-  fireplace or on the forge.
+- **Hit a zombie:** half a second later it blows apart. A tough one (over 1000 health, in later rounds) burns instead,
+  slows down and dies 4 seconds later.
+- **Burst:** a zombie the Magmagat kills bursts, tearing limbs off the zombies close to it and setting them on fire.
+- **Hit Brutus:** he burns; in early rounds one blob kills him in a few seconds.
+- **Miss:** the blob leaves a lava pool for 5 seconds (two at most). Zombies walking in catch fire, and it pulls nearby
+  zombies into its fire, the next coming as each dies. It burns Brutus hard. Standing in your own pool burns you a
+  little; teammates are safe.
+- **Burning:** zombies burn for up to 8 seconds, dying fast in early rounds, slower later. Twelve enemies burn at most
+  at once; the others only take the first hit.
+- **Points:** burns and bursts pay points; the shot and the blob's impact don't.
+- **Insta-Kill:** every Magmagat hit kills, and a blob kills on contact, with no burst.
+- **Acid Gat kit:** it turns the Magmagat into an Acid Gat, keeping its ammo.
+- **Mystery Box:** it won't give you a Blundergat while you hold a Magmagat or while your Blundergat is in the quest.
 
 ### Where the rules come from
 
