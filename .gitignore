@@ -7,3 +7,5 @@ mod/weapon/
 mod/sound/
 mod/fx/
 tools/bo3mem/*.exe
+tools/bo4mem/*.exe
+tools/bo4mem/*.dll

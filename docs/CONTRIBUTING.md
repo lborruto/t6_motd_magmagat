@@ -52,7 +52,8 @@ change.
 | `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg zone`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg brutus`, `!mg press`, `!mg power`, `!mg model`, `!mg spots` |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
 | `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/paint_mask.pl`, `tools/model_tints.pl`, `tools/barrel_fill.pl`, `tools/build_ghoul_mats.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain (the dump, the props, the press's BO3 tints, the drums' paint tint and filling, the ghouls' materials, the Magmagat, the lava material, PNG / DDS) and the release (see "The mod.ff") |
-| `tools/import_sounds.pl`, `tools/flac2wav.pl`, `tools/MgBo3.pm`, `tools/assets/bo3_sounds.tsv` | the sound bank: the BO3 map's fastfile and banks read, FLAC decoded to WAV, the list of our `mg_*` aliases |
+| `tools/bo4mem/*.cs` | the Black Ops 4 memory readers (C#; see "Reading Black Ops 4 from memory") |
+| `tools/import_sounds.pl`, `tools/flac2wav.pl`, `tools/MgBo3.pm`, `tools/assets/bo3_sounds.tsv`, `tools/assets/bo4_sounds.tsv` | the sound bank: the BO3 map's fastfile and banks and BO4's banks read, FLAC decoded to WAV, the lists of our `mg_*` aliases |
 | `tools/bo3_fx.pl`, `tools/MgFx7.pm`, `tools/MgSnap.pm`, `tools/bo3mem/Bo3Snapshot.cs`, `tools/assets/bo3_fx.tsv`, `tools/oat/t6-fx-json.patch` | the effects: the T7 to T6 conversion, the snapshot reader, the snapshot tool (C#), the list of effects, and the OpenAssetTools patch (GPL-3.0) that gives the Linker a T6 effect loader (see [PORTING_BO3_ASSETS.md](PORTING_BO3_ASSETS.md)) |
 | `tools/assets/assets_zm_prison.txt`, `tools/assets/fx_registered_zm_prison.txt`, `tools/assets/zm_prison.d3dbsp.ents.txt`, `tools/assets/soundbank/*.aliases.csv` | reference data dumped from BO2's zm_prison: its assets, its registered effects, its map entities, its sound alias tables (read by `lint_sounds`) |
 | `mod/zone_source/mod.zone`, `mod/mod.json` | the fastfile's asset list (its blocks are written by the tools), the mod's name card. The props' material template is vanilla's wood barrel, `mod/work/dump/materials/mc/mtl_p6_zm_al_wood_barrel_01.json`, dumped by `tools/dump_game.pl` (never committed) |
@@ -108,6 +109,10 @@ and an environment variable to point elsewhere.
   images (`ximages`), and the ghouls' two xanims of the scene `aib_vign_zm_mob_smelter_ghost` (`xanims`, Direct XAnim,
   BO1 compatibility). Without that folder `tools/import_all.pl` leaves the lever, the BO4 skulls, the ghouls and the
   drums' filling out.
+- **Black Ops 4's sound banks** (`MG_BO4_SND`): with CascView, take `zm_escape.all.sabl`, `zm_escape.all.sabs`,
+  `zm_common.all.sabl` and `zm_common.all.sabs` out of the game's `zone/snd/all` into one folder (by default
+  `<MG_GREYHOUND>/sabs/zone/snd/all`). `tools/import_sounds.pl` copies the Magmagat's own sounds out of them
+  (`tools/assets/bo4_sounds.tsv`).
 - **gsc-tool** (xensik; `MG_GSC_TOOL`, the exe): the syntax check; `tools/pack.pl` also reads the exact string block
   size from its output when it is there.
 - **The decompiled T6 scripts** (the `ZM` folder of a t6-scripts dump; `MG_T6_SCRIPTS`): `tools/lint_calls.pl` checks
@@ -120,6 +125,7 @@ and an environment variable to point elsewhere.
 | `MG_OAT` | `dump_game.pl` (run by `import_all.pl` and `build_weapon.pl`), `import_all.pl` (the animtree), `build_ghoul_mats.pl` | `C:/Games/t6/openassettools` |
 | `MG_OAT_FX` | `build_mod.pl`, `bo3_fx.pl` | `C:/Games/t6/oat-src/build/bin/Release_x86` |
 | `MG_BO3_MAP` | `import_sounds.pl` | `C:/Program Files (x86)/Steam/steamapps/workshop/content/311210/3373649394` |
+| `MG_BO4_SND` | `import_sounds.pl` | `<MG_GREYHOUND>/sabs/zone/snd/all` |
 | `MG_GREYHOUND` | `import_all.pl`, `build_magmagat_model.pl`, `gen_lava_mat.pl`, `bo3_fx.pl` | `C:/Games/t6/Greyhound-1.49.4.0` |
 | `MG_GSC_TOOL` | `pack.pl` | `C:/Games/t6/gsc-tools/gsc-tool.exe` |
 | `MG_T6_SCRIPTS` | `lint_calls.pl` | `C:/Games/t6/t6-scripts/t6-scripts-main/ZM` |
@@ -165,7 +171,7 @@ development layout), because two layouts must never coexist. Never hand-edit an 
 ```
 perl tools/import_all.pl       # the BO3 props from the Greyhound export -> mod/props
 perl tools/build_weapon.pl     # the Magmagat weapons from BO2's Blundergat -> mod/weapon (--redump to dump again)
-perl tools/import_sounds.pl    # the BO3 remaster's quest sounds -> mod/sound (the mod.all sound bank)
+perl tools/import_sounds.pl    # the BO3 remaster's quest sounds and BO4's Magmagat sounds -> mod/sound (the mod.all sound bank)
 perl tools/bo3_fx.pl           # the BO3 remaster's effects -> mod/fx (needs the BO3 snapshot, see PORTING_BO3_ASSETS.md)
 perl tools/build_mod.pl        # OpenAssetTools Linker -> mod/out/mod.ff + mod.all.sabl/.sabs + mod.json, installed into the mod folder
 perl tools/deploy.pl           # the scripts, beside it
@@ -216,7 +222,13 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   variant of an alias is copied out: a `loaded` one decoded to a plain 44-byte-header PCM WAV (`tools/flac2wav.pl`), a
   `streamed` one kept FLAC, as BO2 stores its own. The zone line `soundbank,mod.all` makes the Linker write
   `mod.all.sabl` / `mod.all.sabs` beside `mod.ff`; they ship in the mod folder. Our aliases are `mg_*`; `lint_sounds`
-  reads the manifest. In game, `printsoundalias mg_press` (console) shows whether the bank is loaded.
+  reads the manifests. In game, `printsoundalias mg_press` (console) shows whether the bank is loaded.
+  The Magmagat's own sounds are Black Ops 4's (`tools/assets/bo4_sounds.tsv`): BO4's banks are the same container
+  (version 21, 48-byte entries), each entry named by the low 60 bits of the fnv1a-64 of its file name
+  (`MgBo3::bo4_file_id`; a name Greyhound does not know is given as `#<id>`). The manifest was read from the running
+  game: each BO4 alias's variants (their files), the alias it layers (BO4's secondary alias, our `Secondary`), its
+  linear volume (written as T6's 100 + 20 log10) and distances, for the weapon's fire and dry fire and the weapon
+  script's blob, burst and burning sounds (`zm_weap_blundergat.csc`).
 - **What the stock Linker cannot carry** (OpenAssetTools v0.33): particle effects (FxEffectDef is not loaded; the
   mod links them with a patched Linker, see PORTING_BO3_ASSETS.md, "The effects"), new tracers (the T6 tracer loader is not
   registered: the weapons use no tracer) and BO3 animations (no tool turns T7 xanims into T6 ones; the rig is shared,
@@ -323,7 +335,8 @@ repository and are never edited here — see "Rules every change must keep" belo
   (`scripts/zm_common/zm_utility.gsc` for the lure, `zm_spawner.gsc` for `damage_on_fire`, `scripts/zm/ai/zm_ai_brutus.gsc`).
   Each rule's comment in `mg_weapon.gsc` names the Black Ops 4 function it comes from (`function_78f754f7` Brutus's
   burn, `function_7b25328b` the lure, `function_bf2a4486` the pool...): check a change against it. Weapon data (fire
-  rate, ammo, projectile, impact damage, Brutus's damage scale) is not in the scripts and can't be checked this way.
+  rate, reload, ammo) and the sounds are not in the scripts: they were read from the running game (`tools/bo4mem`,
+  see "Reading Black Ops 4 from memory").
 - **The quest and the look** follow copforthat's Black Ops III remaster (its decompiled scripts and zone, see
   [PORTING_BO3_ASSETS.md](PORTING_BO3_ASSETS.md)); Black Ops II's own behaviour is
   [plutoniummod/t6-scripts](https://github.com/plutoniummod/t6-scripts).
@@ -338,6 +351,25 @@ repository and are never edited here — see "Rules every change must keep" belo
     lay the gun.
 
 Never commit the decompiled Black Ops 4 (or Black Ops III) scripts here: link to them.
+
+### Reading Black Ops 4 from memory
+
+What the scripts don't hold (timings, ammo, sounds) is read from the running game with `tools/bo4mem` (C# console
+tools, built with the `csc.exe` line at the top of each; git ignores the exes). Start Black Ops 4 on Blood of the
+Dead, take the Magmagat and the Magmus Operandi and fire both, so their assets are loaded.
+
+- `Bo4Pools.exe` finds the asset pool table (Greyhound's signature) and prints its offset, which the others take.
+- [atian-cod-tools](https://github.com/ate47/atian-cod-tools) `acts dpbo4 weapon` dumps every WeaponDef (its table
+  offset is a constant of `acts-common.dll`: patch it to the one `Bo4Pools` prints when your build differs). The
+  Magmagat is the one whose `baseWeapon` is `#hash_23882a5729dceca` (`ww_blundergat_fire_t8`), the Magmus
+  `#hash_1b5092cccdb3d65b`. Its pointer at `+0xA58` is the tunables block: fire time `+0xD10`, first raise `+0xD20`,
+  reload `+0xE20`, max ammo `+0xD4C`, start ammo `+0xE40` (ms and rounds).
+- `Bo4Fields.exe` reads the engine's GSC weapon-field table, which maps a field name (`firetime`, `reloadtime`...) to
+  its offset or to the getter that computes it; `Bo4Dis.exe` disassembles a getter and `Bo4Xref.exe` finds the code
+  that reads a field (both need `Iced.dll`, from the NuGet package Iced, `lib/net45`, beside them).
+- `Bo4Snd.exe` dumps every loaded sound alias: its variants' files, layers, volume and distances
+  (`tools/assets/bo4_sounds.tsv` came from it).
+- `Bo4Traj.exe` watches for projectile trajectories, to measure a projectile's launch velocity in flight.
 
 ## Rules every change must keep
 

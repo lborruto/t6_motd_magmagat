@@ -429,6 +429,10 @@ mg_blob_show( angles, ride )
     shown = spawn( "script_model", self.origin );
     shown.angles = angles;
     shown setmodel( mg_model( "ball" ) );
+    // BO4's stuck blob sounds (zm_weap_blundergat.csc magma_gat_blob_fx): its stick, then its burning loop until it goes.
+    // The stick plays at its place: an event on an entity in the frame it appears is dropped by the clients.
+    playsoundatposition( "mg_blob_stick", self.origin );
+    shown playloopsound( "mg_blob_loop" );
 
     if ( ride )
         shown linkto( self );
@@ -618,9 +622,17 @@ mg_magma_stuck( player, weapon )
 }
 
 // self = zombie. BO4's annihilate (gibserverutils, its Magmagat deaths), as T6 can: vanilla's gut explosion, once;
-// none in a hungry wolf's area (level.no_gib_in_wolf_area, where BO4 sets no_gib too) nor on a no_gib zombie.
+// none in a hungry wolf's area (level.no_gib_in_wolf_area, where BO4 sets no_gib too) nor on a no_gib zombie. Its
+// explosion sound plays either way, once, at its upper spine (BO4's zombie_magma_fire_explosion clientfield, set with
+// every annihilate: zm_weap_blundergat.csc plays it at j_spineupper).
 mg_annihilate()
 {
+    if ( !is_true( self.mg_exploded ) )
+    {
+        self.mg_exploded = 1;
+        playsoundatposition( "mg_explode", self gettagorigin( "j_spineupper" ) );
+    }
+
     if ( isdefined( level.no_gib_in_wolf_area ) && self [[ level.no_gib_in_wolf_area ]]() )
         self.no_gib = 1;
 
@@ -715,7 +727,8 @@ mg_brutus_blob_burn( player, weapon )
 }
 
 // self = blob on a zombie that died: BO4's burst (function_209c8c45), played with Harry's explosion, Tranzit's lava
-// zombie bursting in fire and smoke over it (the owner's) and the Acid Gat's explosion, the remaster's sound. The
+// zombie bursting in fire and smoke over it (the owner's); its sound is BO4's explosion, played as the zombie is
+// annihilated (mg_annihilate). The
 // zombies within 128 of the dead one (centre) never lit yet lose limbs (function_b826901d: gib_random_parts, before
 // the fire), catch fire and take 400; any other enemy (Brutus, fodder, a boss) takes 20 and burns. It hurts no
 // player. Then the blob goes (BO4 detonates nothing: no explosion of the weapon's own).
@@ -724,7 +737,6 @@ mg_blob_burst( player, weapon, centre )
     pos = self.origin;
     mg_fx_once( "explo", pos, undefined, ( -90, 0, 0 ) );    // its +X up: Harry's burst is built along X, it sprayed sideways
     mg_fx_once( "burst_fire", pos );
-    playsoundatposition( "wpn_blundersplat_explode", pos );
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
@@ -1217,8 +1229,7 @@ mg_pool_player()
     self playrumbleonentity( "damage_light" );
 }
 
-// self = zombie. It burns: T6's fire loop (for the remaster's chr_burning_loop) and its flames, on 12 zombies at most
-// for T6's effect budget.
+// self = zombie. It burns: BO4's ignite and fire loop, and its flames, on 12 zombies at most for T6's effect budget.
 mg_burn_start()
 {
     if ( !is_true( self.mg_burn_watched ) )
@@ -1227,10 +1238,12 @@ mg_burn_start()
         self thread mg_burn_death();
     }
 
+    // BO4's (zm_weap_blundergat.csc positional_zombie_fire_fx): it ignites, then burns in a loop
     if ( !is_true( self.mg_burn_loop ) )
     {
         self.mg_burn_loop = 1;
-        self playloopsound( "zmb_fire_loop", 1 );
+        self playsound( "mg_burn_ignite" );
+        self playloopsound( "mg_burn_loop", 1 );
     }
 
     if ( is_true( self.mg_burn_lit ) || level.mg_burn_fx_count >= 12 )

@@ -86,16 +86,20 @@ my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_worl
 # 5. weapon files: [ ours, the vanilla one it copies, field overrides ]. hideTags = the Acid Gat's: the plain shells and
 #    muzzle go, the lava set (the acid bones) shows. The remaster's Magmagat is the Acid Gat with fire, and ours fires as
 #    T6's Acid Gat does: a harmless hitscan shot with no tracer nor impact, the script lobs the blob (magicgrenadetype
-#    mg_magma_blob_zm, mg_blob_launch in mg_weapon.gsc). Flashes and fire sounds as the remaster's own
-#    t8_magmagat_zm / t8_magmagat_upgraded_zm (read from BO3's weapon pool): Harry's fire-coloured flash on the Magmagat
-#    and his _ug one on the Magmus (mod.ff's mg/fx_blundersplat_muzzleflash*), the plain Blundergat's shot on both. The
+#    mg_magma_blob_zm, mg_blob_launch in mg_weapon.gsc). Flashes as the remaster's own t8_magmagat_zm /
+#    t8_magmagat_upgraded_zm (read from BO3's weapon pool): Harry's fire-coloured flash on the Magmagat and his _ug one on
+#    the Magmus (mod.ff's mg/fx_blundersplat_muzzleflash*). Fire and dry-fire sounds are BO4's own (tools/assets/
+#    bo4_sounds.tsv: its layered shot, the Magmus' with BO4's Pack-a-Punch layer over it). The
 #    ammo is BO4's (1 / 36 / 30, the Magmus 2 / 30 / 25). The blob is a grenade, so it falls (T6 flies a projectile
 #    weapon straight), lobbed by the script (mg_blob_launch), with no damage of its own, hit nor explosion: the
 #    script does all of it as BO4's (mg_weapon.gsc) and deletes the blob, which never goes off unless it hit nothing
 #    (its 10 s fuse outlasts the 5 s pool).
+# BO4's own timings (read from its weapon tunables in memory): both guns fire every 0.4 s and reload in 2.3 s, where
+# the Blundergat they copy fires every 0.192 s and reloads in 2.55 s (the first raise is 0.95 s on both)
+my %bo4_times = ( fireTime => 0.4, lastFireTime => 0.4, reloadTime => 2.3, reloadEmptyTime => 2.3 );
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
-    fireSound => 'wpn_blundergat_fire_npc', fireSoundPlayer => 'wpn_blundergat_fire_plr' );
+    emptyFireSound => 'mg_dryfire_npc', emptyFireSoundPlayer => 'mg_dryfire_plr', %bo4_times );
 # the blob in flight and stuck: BO4's lava blob (p8_fxp_magma_blob, tools/import_all.pl), as mg_model( "ball" ) in
 # mg_coords.gsc. Export it from Greyhound after the Magmagat fired in BO3: before, BO3 has not streamed its mesh in and
 # the export is empty
@@ -105,11 +109,13 @@ my $blob = 'mg_magma_blob';
 my %no_acid = ( impactType => 'none' );
 my @weapons = (
     [ 'magmagat_zm', 'blundergat_zm', { displayName => 'ZMWEAPON_MAGMAGAT', gunModel => 'mg_magmagat_view',
-        worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, viewFlashEffect => 'mg/fx_blundersplat_muzzleflash',
+        worldModel => 'mg_magmagat_world', hideTags => $tank_tags, %blob_only, fireSound => 'mg_fire_npc', fireSoundPlayer => 'mg_fire_plr',
+        viewFlashEffect => 'mg/fx_blundersplat_muzzleflash',
         worldFlashEffect => 'mg/fx_blundersplat_muzzleflash_3p', clipSize => 1, maxAmmo => 36, startAmmo => 30 } ],
     [ 'magmagat_upgraded_zm', 'blundergat_upgraded_zm', { displayName => 'ZMWEAPON_MAGMAGAT_UPGRADED', gunModel => 'mg_magmus_view',
         worldModel => 'mg_magmus_world', attachViewModel6 => '', attachWorldModel6 => '', hideTags => "$tank_tags\ntag_sights",
-        %blob_only, viewFlashEffect => 'mg/fx_blundersplat_muzzleflash_ug', worldFlashEffect => 'mg/fx_blundersplat_muzzleflash_ug_3p',
+        %blob_only, fireSound => 'mg_fire_up_npc', fireSoundPlayer => 'mg_fire_up_plr',
+        viewFlashEffect => 'mg/fx_blundersplat_muzzleflash_ug', worldFlashEffect => 'mg/fx_blundersplat_muzzleflash_ug_3p',
         clipSize => 2, maxAmmo => 30, startAmmo => 25 } ],
     # the script hides it where it sticks and shows a copy, turned to the surface it stuck to
     [ 'mg_magma_blob_zm', 'blundersplat_explosive_dart_zm', { projectileModel => $blob, projTrailEffect => 'mg/fx_magmagat_trail_bolt',

@@ -45,6 +45,17 @@ if ( open my $h, '<', "$tools/assets/bo3_sounds.tsv" ) {
     close $h;
 }
 
+# and Black Ops 4's (its pan, then its min and max dry distances)
+if ( open my $h, '<', "$tools/assets/bo4_sounds.tsv" ) {
+    while (<$h>) {
+        next if /^#/ || !/\S/;
+        my @c = split /\t/;
+        $alias{ $c[0] } = 1;
+        $info{ $c[0] } = "$c[4] $c[7]-$c[8] (mod bank, BO4)";
+    }
+    close $h;
+}
+
 # vox aliases played by vanilla prison scripts (english bank, not in the dumped tables) verified by hand
 my %vox_ok = ();
 

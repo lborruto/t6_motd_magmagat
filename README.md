@@ -52,6 +52,7 @@ A lobbed lava blob that sticks to whatever it hits.
 | | Magmagat | Magmus Operandi (Pack-a-Punched) |
 |---|---|---|
 | Clip / start / max ammo | 1 / 30 / 36 | 2 / 25 / 30 |
+| Fires every / reloads in | 0.4 s / 2.3 s | 0.4 s / 2.3 s |
 | Lava pool pulls in | 3 zombies at a time | 6 zombies at a time, from twice as far |
 
 - **Hit a zombie:** half a second later it blows apart. A tough one (over 1000 health, in later rounds) burns instead,
@@ -71,7 +72,8 @@ A lobbed lava blob that sticks to whatever it hits.
 ### Where the rules come from
 
 The Magmagat plays by Black Ops 4's own rules: its damage, timings, the lure, burning, the burst, Brutus, points and
-Insta-Kill were checked line by line against Black Ops 4's weapon script, as decompiled by the community:
+Insta-Kill were checked line by line against Black Ops 4's weapon script, as decompiled by the community (its fire
+rate, reload, ammo and sounds, which the script doesn't hold, were read from the game itself):
 [`zm_weap_blundergat.gsc`](https://github.com/shiversoftdev/t8-src/blob/main/scripts/zm/weapons/zm_weap_blundergat.gsc)
 (shiversoftdev/t8-src). A few details differ where Black Ops II works differently. The quest, by contrast, follows
 copforthat's Black Ops III remaster.
@@ -82,10 +84,11 @@ copforthat's Black Ops III remaster.
   Kingslayer Kyle): the quest this mod follows and the quest's effects, released with copforthat's permission.
 - **Harry**: the Magmagat's blob and muzzle-flash effects, as that map ships them.
 - **Treyarch / Activision**: every model, texture and sound. From Black Ops 4: the Magmagat, the Tempered
-  Blundergat, the lava blob, the forge with its lever and ghouls, the skulls, the drums' ash and burnt wood and, as far
-  as we can tell, the quest's sounds. From Black Ops III: the drums, the lava and the effects' textures. From
+  Blundergat, the lava blob, the forge with its lever and ghouls, the skulls, the drums' ash and burnt wood, the
+  Magmagat's sounds and, as far as we can tell, the quest's sounds. From Black Ops III: the drums, the lava and the effects' textures. From
   Black Ops II: Mob of the Dead itself and the Blundergat animations.
-- **Tools**: OpenAssetTools (Laupetin and contributors), Greyhound and HydraX (Scobalula).
+- **Tools**: OpenAssetTools (Laupetin and contributors), Greyhound and HydraX (Scobalula), atian-cod-tools (ate47)
+  and Iced (0xd4d).
 - **Plutonium**, for keeping Black Ops II alive.
 
 ## Assets and takedown

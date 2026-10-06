@@ -1,0 +1,46 @@
+# Black Ops 4's own Magmagat sounds (tools/import_sounds.pl reads them from BO4's zm_escape / zm_common banks into the
+# mod.all bank of mod.ff). Read from the running game: each row is one variant of a BO4 alias (zm_escape's
+# ww_blundergat_fire_t8 / _upgraded fire, dry fire and the weapon script's blob, burst and burning sounds), with its
+# file, the alias it layers (BO4's secondary alias, played with it), its volume (BO4's linear gain as T6's
+# 100 + 20 log10) and distances. A file is its name in the bank, or #<id> when the name is unknown.
+# Not taken: the burst's frag shockwave layers (volume 0 in BO4).
+# our alias	BO4 file	layers	storage	pan	looping	volume	dist_min	dist_max_dry	dist_max_wet	what for
+mg_fire_npc	#546ba229e383ba3	mg_fire_npc_2	loaded	3d	nonlooping	93	125	2000	2000	the Magmagat fires (others hear it): BO4 fire layer 1
+mg_fire_npc_2	#9621260e050f10b	mg_fire_npc_3	loaded	3d	nonlooping	90	50	350	350	layer 2
+mg_fire_npc_3	#2769e07a765f025	mg_fire_npc_decay	loaded	3d	nonlooping	95	50	287	287	layer 3
+mg_fire_npc_decay	wpn/shotgun/decay/int/wpn_shotgun_decay_int.ln100.pc.snd		loaded	3d	nonlooping	90	250	600	600	the decay
+mg_fire_npc_decay	#aaf0a7845269e76		loaded	3d	nonlooping	92	750	4000	4000	
+mg_fire_plr	#546ba229e383ba3	mg_fire_plr_2	loaded	2d	nonlooping	95	0	5000	5000	the Magmagat fires (its holder): BO4 fire layer 1
+mg_fire_plr_2	#9621260e050f10b	mg_fire_plr_3	loaded	2d	nonlooping	93	0	5000	5000	layer 2
+mg_fire_plr_3	#55350ccfe6e1ca9	mg_fire_plr_4	loaded	2d	nonlooping	97	0	5000	5000	layer 3
+mg_fire_plr_4	#2769e07a765f025	mg_fire_plr_decay	loaded	2d	nonlooping	95	0	5000	5000	layer 4
+mg_fire_plr_decay	wpn/shotgun/decay/int/wpn_shotgun_decay_int.ln100.pc.snd		loaded	2d	nonlooping	90	0	5000	5000	the decay
+mg_fire_plr_decay	#aaf0a7845269e76		loaded	2d	nonlooping	92	0	5000	5000	
+mg_fire_up_npc	wpn/pap/systemized/plr/wpn_pap_first.ln100.pc.snd	mg_fire_npc	loaded	3d	nonlooping	84	75	1000	1000	the Magmus Operandi fires (others): the Pack-a-Punch layer over the Magmagat's
+mg_fire_up_npc	wpn/pap/systemized/plr/wpn_pap_last.ln100.pc.snd	mg_fire_npc	loaded	3d	nonlooping	84	75	1000	1000	
+mg_fire_up_npc	wpn/pap/systemized/plr/wpn_pap_launcher.ln100.pc.snd	mg_fire_npc	loaded	3d	nonlooping	84	75	1000	1000	
+mg_fire_up_plr	wpn/pap/systemized/plr/wpn_pap_first.ln100.pc.snd	mg_fire_plr	loaded	2d	nonlooping	84	0	5000	5000	the Magmus Operandi fires (its holder): the Pack-a-Punch layer over the Magmagat's
+mg_fire_up_plr	wpn/pap/systemized/plr/wpn_pap_last.ln100.pc.snd	mg_fire_plr	loaded	2d	nonlooping	84	0	5000	5000	
+mg_fire_up_plr	wpn/pap/systemized/plr/wpn_pap_launcher.ln100.pc.snd	mg_fire_plr	loaded	2d	nonlooping	84	0	5000	5000	
+mg_dryfire_npc	wpn/assault/dry_fire/npc/dry_fire_00.ln100.pc.snd		loaded	3d	nonlooping	80	75	275	275	an empty trigger pull (others)
+mg_dryfire_plr	wpn/assault/dry_fire/plr/dry_fire_00.ln100.pc.snd		loaded	2d	nonlooping	80	0	5000	5000	an empty trigger pull (its holder)
+mg_blob_stick	#44223decef68af7		loaded	3d	nonlooping	80	125	750	750	a blob sticks (a zombie or the ground)
+mg_blob_stick	#b146a14d6d6369a		loaded	3d	nonlooping	80	125	750	750	
+mg_blob_stick	#9e573ea2c069d45		loaded	3d	nonlooping	80	125	750	750	
+mg_blob_loop	#bcbb62f60112697		loaded	3d	looping	94	75	750	750	a stuck blob burns
+mg_explode	#6a094a471bab2f8	mg_explode_2	loaded	3d	nonlooping	95	375	1250	1250	a zombie bursts: BO4 explosion layer 1
+mg_explode	#be9248b723366cd	mg_explode_2	loaded	3d	nonlooping	95	375	1250	1250	
+mg_explode	#af9d0a2324d7ac2	mg_explode_2	loaded	3d	nonlooping	95	375	1250	1250	
+mg_explode_2	#2b6e1901c897be	mg_explode_dist	loaded	3d	nonlooping	95	375	1250	1250	layer 2
+mg_explode_dist	exp/distant/small_distant/exp_small_distant_00.ln100.pc.snd	mg_explode_decay	loaded	3d	nonlooping	87	1250	4000	4000	the distant layer
+mg_explode_dist	exp/distant/small_distant/exp_small_distant_01.ln100.pc.snd	mg_explode_decay	loaded	3d	nonlooping	87	1250	4000	4000	
+mg_explode_dist	exp/distant/small_distant/exp_small_distant_02.ln100.pc.snd	mg_explode_decay	loaded	3d	nonlooping	87	1250	4000	4000	
+mg_explode_dist	exp/distant/small_distant/exp_small_distant_03.ln100.pc.snd	mg_explode_decay	loaded	3d	nonlooping	87	1250	4000	4000	
+mg_explode_decay	wpn/grenade/explosion/decay/ext/exp_grenade_decay_00.ln100.pc.snd		loaded	3d	nonlooping	77	300	1250	1250	the decay
+mg_explode_decay	wpn/grenade/explosion/decay/int/exp_grenade_decay_00.ln100.pc.snd		loaded	3d	nonlooping	87	100	500	750	
+mg_burn_ignite	wpn/zmb/magma_gat/ignite_zmb/ignite_00.ln100.pc.snd		loaded	3d	nonlooping	76	75	400	500	a zombie catches fire
+mg_burn_ignite	wpn/zmb/magma_gat/ignite_zmb/ignite_01.ln100.pc.snd		loaded	3d	nonlooping	76	75	400	500	
+mg_burn_ignite	wpn/zmb/magma_gat/ignite_zmb/ignite_02.ln100.pc.snd		loaded	3d	nonlooping	76	75	400	500	
+mg_burn_ignite	wpn/zmb/magma_gat/ignite_zmb/ignite_03.ln100.pc.snd		loaded	3d	nonlooping	76	75	400	500	
+mg_burn_ignite	wpn/zmb/magma_gat/ignite_zmb/ignite_04.ln100.pc.snd		loaded	3d	nonlooping	76	75	400	500	
+mg_burn_loop	pfx/fire/small/fire_small_00.ll100.pc.snd		loaded	3d	looping	65	50	375	425	a zombie burns
