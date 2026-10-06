@@ -17,6 +17,7 @@
 use strict;
 use warnings;
 use FindBin;
+use File::Copy qw(copy);
 use File::Path qw(make_path remove_tree);
 use JSON::PP;
 
@@ -98,8 +99,31 @@ my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_worl
 # the Blundergat they copy fires every 0.192 s and reloads in 2.55 s (the first raise is 0.95 s on both)
 my %bo4_times = ( fireTime => 0.4, lastFireTime => 0.4, reloadTime => 2.3, reloadEmptyTime => 2.3 );
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
+# BO4's own view animations, the Magmagat's and the Magmus' (BO4 plays one set on both, vm_ww_blundergat_*: its
+# weapon's anim table, read from memory): Greyhound's Direct XAnim export (BO1 compatibility, the version the Linker
+# reads) into black_ops_4_sp/xanims, carried in mod.ff. Each BO4 animation and the T6 fields it fills; the fields left
+# out keep the Blundergat's (ADS up and down: BO4's ads_base_* move one bone, a base pose, not a replacement).
+my $xa4 = ( $ENV{MG_GREYHOUND} // 'C:/Games/t6/Greyhound-1.49.4.0' ) . '/exported_files/black_ops_4_sp/xanims';
+my %vm_fields = ( idle => [qw(idleAnim emptyIdleAnim)], fire => [qw(fireAnim fireIntroAnim lastShotAnim)],
+    fire_ads => [qw(adsFireAnim adsFireIntroAnim adsLastShotAnim)], reload => ['reloadAnim'], reload_empty => ['reloadEmptyAnim'],
+    pullout => [qw(raiseAnim emptyRaiseAnim altRaiseAnim)], first_raise => ['firstRaiseAnim'],
+    putaway => [qw(dropAnim emptyDropAnim altDropAnim)], pullout_quick => ['quickRaiseAnim'], putaway_quick => ['quickDropAnim'],
+    sprint_in => [qw(sprintInAnim sprintInEmptyAnim)], sprint_loop => [qw(sprintLoopAnim sprintLoopEmptyAnim)],
+    sprint_out => [qw(sprintOutAnim sprintOutEmptyAnim)], crawl_in => [qw(crawlInAnim crawlEmptyInAnim)],
+    crawl_out => [qw(crawlOutAnim crawlEmptyOutAnim)], crawl_f => [qw(crawlForwardAnim crawlEmptyForwardAnim)],
+    crawl_b => [qw(crawlBackAnim crawlEmptyBackAnim)], crawl_l => [qw(crawlLeftAnim crawlEmptyLeftAnim)],
+    crawl_r => [qw(crawlRightAnim crawlEmptyRightAnim)] );
+my ( %bo4_anims, @xanims );
+make_path("$raw/xanim");
+for my $a ( sort keys %vm_fields ) {
+    my $x = "vm_ww_blundergat_$a";
+    if ( !-f "$xa4/$x" ) { warn "build_weapon.pl: $x left out, the Blundergat's plays (no $xa4/$x)\n"; next }
+    copy( "$xa4/$x", "$raw/xanim/$x" ) or die "build_weapon.pl: $x: $!\n";
+    push @xanims, $x;
+    $bo4_anims{$_} = $x for @{ $vm_fields{$a} };
+}
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
-    emptyFireSound => 'mg_dryfire_npc', emptyFireSoundPlayer => 'mg_dryfire_plr', %bo4_times );
+    emptyFireSound => 'mg_dryfire_npc', emptyFireSoundPlayer => 'mg_dryfire_plr', %bo4_times, %bo4_anims );
 # the blob in flight and stuck: BO4's lava blob (p8_fxp_magma_blob, tools/import_all.pl), as mg_model( "ball" ) in
 # mg_coords.gsc. Export it from Greyhound after the Magmagat fired in BO3: before, BO3 has not streamed its mesh in and
 # the export is empty
@@ -155,7 +179,7 @@ spit( "$raw/english/localizedstrings/mg_weapons.str", $str );
 my $zone = "$repo/mod/zone_source/mod.zone";
 my $z = slurp($zone);
 $z =~ s/\r\n/\n/g;    # a checkout may hand it over with CRLF endings
-my @lines = ( 'localize,mg_weapons', ( map { "xmodel,$_" } @models ), ( map { "weapon,$_->[0]" } @weapons ) );
+my @lines = ( 'localize,mg_weapons', ( map { "xmodel,$_" } @models ), ( map { "xanim,$_" } @xanims ), ( map { "weapon,$_->[0]" } @weapons ) );
 my $block = "// weapon (tools/build_weapon.pl)\n" . join( "\n", @lines ) . "\n// end weapon\n";
 # in place when the block exists (the zone keeps its order), else appended
 if ( $z !~ s/\/\/ weapon \(tools\/build_weapon\.pl\).*?\/\/ end weapon\n/$block/s ) { $z =~ s/\s*\z/\n/; $z .= "\n$block" }

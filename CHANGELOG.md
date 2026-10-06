@@ -6,6 +6,7 @@ The Magmagat, closer to Black Ops 4, read straight from the running game:
 
 - Both guns fire every 0.4 seconds and reload in 2.3 seconds, as in Black Ops 4 (they used the Blundergat's 0.19 and
   2.55).
+- Black Ops 4's own view animations on both guns: idle, firing, reload, raise and lower, sprint and crawl.
 - Black Ops 4's own sounds: the shot (the Magmus Operandi's with its Pack-a-Punch layer), the empty trigger, a blob
   sticking and burning, a zombie bursting, and a zombie catching fire and burning.
 

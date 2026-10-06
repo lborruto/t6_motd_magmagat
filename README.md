@@ -85,8 +85,8 @@ copforthat's Black Ops III remaster.
 - **Harry**: the Magmagat's blob and muzzle-flash effects, as that map ships them.
 - **Treyarch / Activision**: every model, texture and sound. From Black Ops 4: the Magmagat, the Tempered
   Blundergat, the lava blob, the forge with its lever and ghouls, the skulls, the drums' ash and burnt wood, the
-  Magmagat's sounds and, as far as we can tell, the quest's sounds. From Black Ops III: the drums, the lava and the effects' textures. From
-  Black Ops II: Mob of the Dead itself and the Blundergat animations.
+  Magmagat's animations and sounds and, as far as we can tell, the quest's sounds. From Black Ops III: the drums, the
+  lava and the effects' textures. From Black Ops II: Mob of the Dead itself and the Tempered Blundergat's animations.
 - **Tools**: OpenAssetTools (Laupetin and contributors), Greyhound and HydraX (Scobalula), atian-cod-tools (ate47)
   and Iced (0xd4d).
 - **Plutonium**, for keeping Black Ops II alive.

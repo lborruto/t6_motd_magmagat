@@ -108,7 +108,9 @@ and an environment variable to point elsewhere.
   `p8_fxanim_zm_esc_smelter_ghost_mod` (the lever), `p8_zm_esc_skull_sgl`, `p8_zm_esc_skull_afterlife`,
   `c_t8_zmb_mob_ghoul_body1`, `c_t8_zmb_mob_ghoul_body2` and `p8_zm_esc_debris_wood_pile_splinter_40x40x4_burnt`, their
   images (`ximages`), and the ghouls' two xanims of the scene `aib_vign_zm_mob_smelter_ghost` (`xanims`, Direct XAnim,
-  BO1 compatibility). Without that folder `tools/import_all.pl` leaves the lever, the BO4 skulls, the ghouls and the
+  BO1 compatibility). Also the Magmagat's view animations, `vm_ww_blundergat_*` (the same settings, with the Magmagat
+  in hand so they are loaded): `tools/build_weapon.pl` gives them to the Magmagat and the Magmus Operandi, and keeps
+  the Blundergat's for any that is missing. Without that folder `tools/import_all.pl` leaves the lever, the BO4 skulls, the ghouls and the
   drums' filling out.
 - **Black Ops 4's sound banks** (`MG_BO4_SND`): with CascView, take `zm_escape.all.sabl`, `zm_escape.all.sabs`,
   `zm_common.all.sabl` and `zm_common.all.sabs` out of the game's `zone/snd/all` into one folder (by default
@@ -233,8 +235,8 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
 - **What the stock Linker cannot carry** (OpenAssetTools v0.33): particle effects (FxEffectDef is not loaded; the
   mod links them with a patched Linker, see PORTING_BO3_ASSETS.md, "The effects"), new tracers (the T6 tracer loader is not
   registered: the weapons use no tracer) and BO3 animations (no tool turns T7 xanims into T6 ones; the rig is shared,
-  so the Blundergat's animations fit the BO4 gun; BO4's ghoul animations come from Greyhound as Direct XAnim, BO1
-  compatibility, which the Linker reads).
+  so the Blundergat's animations fit the BO4 gun; BO4's animations, the ghouls' and the Magmagat's view animations,
+  come from Greyhound as Direct XAnim, BO1 compatibility, which the Linker reads).
 
 ### The GitHub Actions
 
