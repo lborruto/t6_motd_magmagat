@@ -365,7 +365,7 @@ mg_press_show( weapon )
     wait 0.17;
     gun = spawn_weapon_model( mg_magma_of( weapon ), undefined, c.origin, c.angles );
     level.mg_forge_place_ents[0] = gun;
-    mg_fx_once( "explo", c.origin );
+    mg_fx_once( "explo", c.origin, undefined, ( -90, 0, 0 ) );    // its +X up: Harry's burst is built along X
     body playsound( "mg_flame_burst" );
     body playsound( "zmb_buildable_complete" );
     level thread mg_forge_embers( gun, c.origin );

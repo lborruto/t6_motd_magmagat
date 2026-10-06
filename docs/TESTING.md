@@ -253,7 +253,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] A burst in a crowd: its gibs and 400s land two by two, 0.1 s apart (BO4's throttle), not all in one frame.
 - [ ] **Throttle under load** (co-op): two players burst trains back to back into a dozen burning zombies: the
       bursts' gibs and 400s still land within a second or so of the burst effect, never seconds later. A zombie
-      caught in two bursts before its hit lands takes one 400, not two.
+      caught in two bursts before its hit lands takes both 400s, as in Black Ops 4.
 - [ ] **Spoon**: stuck-blob kills in the showers count.
 - [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
 - [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and

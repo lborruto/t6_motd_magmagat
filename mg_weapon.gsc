@@ -771,9 +771,8 @@ mg_blob_burst( player, weapon, centre, at, hit )
             continue;
         }
 
-        // lit now, not after its turn in the throttle (mg_zombie_ignite): a second burst before that turn passes it by,
-        // so it is hit once (400, its limbs, its fire, its points), not twice
-        ai.mg_lit = 1;
+        // lit only on its turn in the throttle (mg_zombie_ignite), as BO4's: a second burst before that turn hits it
+        // again (400 and its limbs; it burns once)
         ai thread mg_burst_hit( player, weapon, hit );
     }
 

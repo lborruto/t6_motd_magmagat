@@ -21,6 +21,7 @@ The Magmagat, closer to Black Ops 4, read straight from the running game:
 - A burning zombie's flames start where it caught fire and spread one by one every half second; Brutus's start at his
   torso, then his limbs.
 - Brutus burns silently, as in Black Ops 4 (no zombie fire sounds on him).
+- A zombie caught in two bursts at once is hit by both, as in Black Ops 4 (1.0.4 hit it once).
 
 The quest:
 
@@ -31,6 +32,7 @@ The quest:
 - Powering the Machine plays its spark effect in full, and the Warden's line comes 1 second after, as in the remaster.
 - The drums go out 1 second after the Tempered Blundergat is laid on the forge.
 - The ghouls appear once on the forge's bed, not twice at once.
+- The burst as the Magmagat appears on the forge sprays upward, not sideways across the bed.
 - The flames under the floating Magmagat no longer vanish before it is taken.
 
 ## 1.0.4 - 2026-10-06
