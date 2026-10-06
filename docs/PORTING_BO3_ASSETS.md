@@ -8,8 +8,8 @@ the commands; this page explains the parts that are not obvious.
 
 This page began as a feasibility study before the project. It expected a reskin at best: no T7 to T6 animation
 converter exists, and OpenAssetTools has no T6 material pipeline or effect loader. Most of that has since been solved
-or worked around. The real BO4 Magmagat sits on BO2's Blundergat rig (Treyarch built it on that rig), so both BO2's and
-BO4's own view animations fit it. Materials are cloned from vanilla ones. Effects go through a patched OpenAssetTools (below). The
+or worked around. The real BO4 Magmagat sits on BO2's Blundergat rig (Treyarch built it on that rig), so BO2's own view
+animations fit it. Materials are cloned from vanilla ones. Effects go through a patched OpenAssetTools (below). The
 scripts ship inside the mod folder, not as loose `scripts\zm\` files. The study's estimates and recommendations are
 obsolete and have been removed; its sources are kept at the end.
 
@@ -48,9 +48,10 @@ only looks for in its own `.ipak` files).
 ### The weapon (`tools/build_weapon.pl`, `tools/build_magmagat_model.pl`)
 BO4's Magmagat and Tempered Blundergat view models were built on BO2's Blundergat rig, so the T6 skeleton is kept as
 dumped and only the mesh is replaced, bone names mapped. The comments in both tools give the details. Its view
-animations are BO4's own (`vm_ww_blundergat_*`, Greyhound's Direct XAnim, BO1 compatibility), copied into mod.ff by
-`tools/build_weapon.pl` with their notetracks rewritten to T6's sounds and rumbles (see CONTRIBUTING.md, "BO4's view
-animations"); the Tempered Blundergat keeps BO2's.
+animations are the Blundergat's: BO4's own (`vm_ww_blundergat_*`) were tried and don't fit BO2's view hands (the gun
+filled the screen). The Blundergat's reload, empty reload and first raise are copied into mod.ff by
+`tools/build_weapon.pl` with their sound notes rewritten to BO4's reload sounds (see CONTRIBUTING.md, "The reload
+sounds").
 
 ### The effects (`tools/bo3_fx.pl`)
 BO3 effects port 1:1. Neither upstream OpenAssetTools nor Greyhound handles effects, so the mod carries both halves:
@@ -102,19 +103,18 @@ own fires with their glow taken out, for the forge and the fireplace (`mg/fx_mg_
 from `fx_alcatraz_fire_sm` and `fx_alcatraz_falling_fire_impact`). The lava pool a miss
 lays is `mg/fx_prison_magmagat_aoe`. Not carried over: BO3's sound elements and spawn sounds (BO3 aliases; the mod
 plays its sounds from script) and BO3-only element types. A server script cannot play an effect on the view model,
-so the tempered gun's `_vm` flame is played by a client script carried in mod.ff
-(`csc/clientscripts/mp/zombies/_zm_weap_blundersplat.csc`, `playviewmodelfx`, replayed every 0.1 s), as the remaster
-does; the others see the same flame replayed on the world gun by `mg_run.gsc`.
+so the tempered gun's `_vm` flame is played by the mod's client script (`csc/zm_prison_magmagat.csc`, installed
+beside the packed `.gsc`, where Plutonium runs it on the client; `playviewmodelfx`, replayed every 0.1 s), as the
+remaster does; the others see the same flame replayed on the world gun by `mg_run.gsc`.
 
 ## Limits found
 - No T6 material authoring pipeline in OAT — you edit an existing compiled material's image
   slots/settings rather than writing one from a human-readable source format.
 - Mods menu loads one mod.ff at a time; must merge multiple mods into a single .ff to combine them.
 - No known automated T7 (BO3) → T6 (BO2) xanim converter; skeleton/rig differences mean new
-  animations are effectively a manual re-creation, not a port. BO4's animations do carry over (the ghouls', the
-  Magmagat's view animations): Greyhound exports them as Direct XAnim (BO1 compatibility), which OAT's Linker reads.
-  Their notetracks do not: Greyhound writes BO4's note names as hashes, and T6 ends the game on a rumble note it
-  does not know, so `tools/build_weapon.pl` rewrites them.
+  animations are effectively a manual re-creation, not a port. BO4's animations do carry over (the ghouls'):
+  Greyhound exports them as Direct XAnim (BO1 compatibility), which OAT's Linker reads. BO4's view animations load
+  too but don't fit BO2's view hands (their joints are oriented for BO4's arms).
 - Some GfxImage encodings aren't supported by OAT yet, which can bite on certain BO3 texture
   formats (needs a per-texture check during extraction).
 - Multiteam/asset-count ceilings exist in T6 fastfiles (the JezuzLizard player-model pack's own

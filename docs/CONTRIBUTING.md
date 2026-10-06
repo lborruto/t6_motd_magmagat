@@ -5,7 +5,8 @@ This file is for people who want to read, build, test or change the mod. Players
 [TESTING.md](TESTING.md).
 
 The mod is ONE folder, `mods\zm_magmagat\`: a `mod.ff` fastfile (the props, the Magmagat weapons and the effects),
-its sound bank `mod.all.sabl` / `mod.all.sabs`, a `mod.json`, and the quest scripts in `scripts\zm\zm_prison\`. The scripts' sources are the `mg_*.gsc` files in the
+its sound bank `mod.all.sabl` / `mod.all.sabs`, a `mod.json`, and the quest scripts with their client script
+(`zm_prison_magmagat.csc`) in `scripts\zm\zm_prison\`. The scripts' sources are the `mg_*.gsc` files in the
 repository root; the release carries a BUILD of them: `tools/pack.pl` concatenates the sources into one loadable
 file (or a few, when the sources no longer fit one). Never edit a packed file; edit a source and pack again.
 The fastfile is built from the game's own files and a Greyhound export of the BO3 map (see "The mod.ff").
@@ -30,9 +31,12 @@ change.
   errors only. It does not catch a misspelled or non-existent function name; those show up as script errors
   in the game console when the map loads (needs `developer 1; developer_script 1`). The lints below exist for
   exactly that gap.
-- The client scripts in `csc/` are not linted and CI does not build them: only `tools/build_mod.pl` compiles them
-  (gsc-tool `-i client`), and it stops on a syntax error or when `csc/clientscripts` holds none. `_zm_weap_blundersplat.csc` replaces Mob's own client script
-  of that name inside mod.ff, so it must keep everything vanilla's does (the Acid Gat dart's light).
+- Plutonium also runs every `*.csc` in those folders on the client, as it runs the `*.gsc` on the server. The client
+  script `csc/zm_prison_magmagat.csc` ships loose that way, beside the packed `.gsc` (`tools/deploy.pl`,
+  `tools/release.pl` and the release workflow copy it there); it overrides nothing vanilla. A client script carried
+  in mod.ff under a vanilla name never ran (the map's own stays), so none is. It is not linted, packed or built, and CI
+  does not check it: check its syntax by hand with
+  `"C:/Games/t6/gsc-tools/gsc-tool.exe" -m comp -g t6 -s pc -i client -y csc/zm_prison_magmagat.csc`.
 - `precachemodel` works only inside `init()`, before any wait; only models the map precached (or this mod
   precached) can be spawned. Builtins that do not exist in T6 (`array_remove`, `toupper`, `stopfxontag`, ...)
   must never be called: grep the decompiled vanilla scripts for `name(` before using anything unfamiliar.
@@ -53,7 +57,7 @@ change.
 | `mg_forge.gsc` | forge power (the closed press waking, the Warden's line 1 s after), the press (BO4's lever and ghouls), take; the open forge |
 | `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the blob (a sticky grenade, lobbed), the lava pool, the burning (with BO4's hit throttle and 12-burner cap), the Acid Gat kit and Mystery Box hooks (chained to any set before) |
 | `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg zone`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg brutus`, `!mg press`, `!mg power`, `!mg model`, `!mg spots` |
-| `csc/clientscripts/mp/zombies/_zm_weap_blundersplat.csc` | client script carried in mod.ff (`tools/build_mod.pl` compiles it with gsc-tool): vanilla Mob's own Acid Gat dart script (its blinking light and alert), unchanged, plus the Tempered Blundergat's first-person flame, replayed every 0.1 s while it is in hand (`playviewmodelfx`, which no server script can call) |
+| `csc/zm_prison_magmagat.csc` | the client script, installed as is beside the packed `.gsc` in `mods\zm_magmagat\scripts\zm\zm_prison\` (`tools/deploy.pl`, `tools/release.pl`, the release workflow), where Plutonium runs it on the client: the Tempered Blundergat's first-person flame, replayed every 0.1 s while it is in hand (`playviewmodelfx`, which no server script can call) |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
 | `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/paint_mask.pl`, `tools/model_tints.pl`, `tools/barrel_fill.pl`, `tools/build_ghoul_mats.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain (the dump, the props, the press's BO3 tints, the drums' paint tint and filling, the ghouls' materials, the Magmagat, the lava material, PNG / DDS) and the release (see "The mod.ff") |
 | `tools/bo4mem/*.cs` | the Black Ops 4 memory readers (C#; see "Reading Black Ops 4 from memory") |
@@ -111,18 +115,14 @@ and an environment variable to point elsewhere.
   `p8_fxanim_zm_esc_smelter_ghost_mod` (the lever), `p8_zm_esc_skull_sgl`, `p8_zm_esc_skull_afterlife`,
   `c_t8_zmb_mob_ghoul_body1`, `c_t8_zmb_mob_ghoul_body2` and `p8_zm_esc_debris_wood_pile_splinter_40x40x4_burnt`, their
   images (`ximages`), and the ghouls' two xanims of the scene `aib_vign_zm_mob_smelter_ghost` (`xanims`, Direct XAnim,
-  BO1 compatibility). Also the Magmagat's view animations, `vm_ww_blundergat_*` (into
-  `exported_files/black_ops_4_sp/xanims`, the same settings, with the Magmagat in hand so they are loaded):
-  `tools/build_weapon.pl` gives them to the Magmagat and the Magmus Operandi (idle, fire, ADS fire, reload, raise and
-  drop, quick raise and drop, sprint, crawl) and keeps the Blundergat's for ADS up and down and for any that is
-  missing. Without that folder `tools/import_all.pl` leaves the lever, the BO4 skulls, the ghouls and the
+  BO1 compatibility). Without that folder `tools/import_all.pl` leaves the lever, the BO4 skulls, the ghouls and the
   drums' filling out.
 - **Black Ops 4's sound banks** (`MG_BO4_SND`): with CascView, take `zm_escape.all.sabl`, `zm_escape.all.sabs`,
   `zm_common.all.sabl` and `zm_common.all.sabs` out of the game's `zone/snd/all` into one folder (by default
   `<MG_GREYHOUND>/sabs/zone/snd/all`). `tools/import_sounds.pl` copies the Magmagat's own sounds out of them
   (`tools/assets/bo4_sounds.tsv`).
 - **gsc-tool** (xensik; `MG_GSC_TOOL`, the exe): the syntax check; `tools/pack.pl` also reads the exact string block
-  size from its output when it is there; `tools/build_mod.pl` compiles the client scripts of `csc/` with it.
+  size from its output when it is there; run by hand (`-i client`) it checks the client script's syntax.
 - **The decompiled T6 scripts** (the `ZM` folder of a t6-scripts dump; `MG_T6_SCRIPTS`): `tools/lint_calls.pl` checks
   every call against them, and skips (passing) without them, as in CI.
 - **The GitHub CLI**, signed in (`gh auth login`), for `tools/publish.pl`.
@@ -134,8 +134,8 @@ and an environment variable to point elsewhere.
 | `MG_OAT_FX` | `build_mod.pl`, `bo3_fx.pl` | `C:/Games/t6/oat-src/build/bin/Release_x86` |
 | `MG_BO3_MAP` | `import_sounds.pl` | `C:/Program Files (x86)/Steam/steamapps/workshop/content/311210/3373649394` |
 | `MG_BO4_SND` | `import_sounds.pl` | `<MG_GREYHOUND>/sabs/zone/snd/all` |
-| `MG_GREYHOUND` | `import_all.pl`, `build_magmagat_model.pl`, `build_weapon.pl` (the BO4 view animations), `gen_lava_mat.pl`, `bo3_fx.pl`, `import_sounds.pl` (the default of `MG_BO4_SND`) | `C:/Games/t6/Greyhound-1.49.4.0` |
-| `MG_GSC_TOOL` | `pack.pl`, `build_mod.pl` (the client scripts) | `C:/Games/t6/gsc-tools/gsc-tool.exe` |
+| `MG_GREYHOUND` | `import_all.pl`, `build_magmagat_model.pl`, `gen_lava_mat.pl`, `bo3_fx.pl`, `import_sounds.pl` (the default of `MG_BO4_SND`) | `C:/Games/t6/Greyhound-1.49.4.0` |
+| `MG_GSC_TOOL` | `pack.pl` | `C:/Games/t6/gsc-tools/gsc-tool.exe` |
 | `MG_T6_SCRIPTS` | `lint_calls.pl` | `C:/Games/t6/t6-scripts/t6-scripts-main/ZM` |
 | `MG_RAW` | `import_prop.pl` (its output folder) | `mod/props` |
 | `MG_TEMPLATE_MTL` | `import_prop.pl` (the props' material template) | `mod/work/dump/materials/mc/mtl_p6_zm_al_wood_barrel_01.json` |
@@ -171,7 +171,8 @@ perl tools/deploy.pl --game DIR
 
 Game folder: `%localappdata%\Plutonium\storage\t6\mods\zm_magmagat\scripts\zm\zm_prison\`. Each mode removes what
 the other modes installed before, and any loose copy of the scripts in `scripts\zm\zm_prison\` (an early
-development layout), because two layouts must never coexist. Never hand-edit an installed file. `tools/build_mod.pl` installs
+development layout), because two layouts must never coexist. Every mode also copies the client script
+(`csc/zm_prison_magmagat.csc`) beside the scripts. Never hand-edit an installed file. `tools/build_mod.pl` installs
 `mod.ff`, its sound bank (`mod.all.sabl` / `.sabs`) and `mod.json` beside them.
 
 ### The mod.ff (props and the Magmagat)
@@ -188,7 +189,7 @@ perl tools/publish.pl          # the GitHub Release: mod.ff and the sound bank u
 ```
 
 Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/weapon`, `mod/sound`, `mod/fx`,
-`mod/csc` (the compiled client scripts), `mod/work` and `mod/out` are generated from the games' files and are never committed (`.gitignore` lists them).
+`mod/work` and `mod/out` are generated from the games' files and are never committed (`.gitignore` lists them).
 
 - **Props** (`tools/import_all.pl` lists them): each BO3 or BO4 model becomes a rigid T6 xmodel (the ghouls skinned, `--skinned`, their xanims in mod.ff's
   `animtrees/fxanim_props.atr`; Greyhound's glTF, Z-up
@@ -202,16 +203,16 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   which BO3 blends over it and T6 would draw opaque), `--skip` those whose material name matches (no prop needs it
   today); a `$black_color` surface gets a small embedded black image. Textures are block
   compressed by `tools/MgDds.pm` (BC1 colour, BC5 normal): the fastfile stays small.
-- **The Magmagat** (`tools/build_weapon.pl`): the Unlinker dumps zm_prison's weapons, models, materials and images
+- **The Magmagat** (`tools/build_weapon.pl`): the Unlinker dumps zm_prison's weapons, models, materials, images and
+  animations (a dump made before it dumped animations lacks `mod/work/dump/xanim`: run `--redump`)
   (the map's images sit in DLC `.ipak` files it only opens under a name it loads itself, so they are hard-linked as
   unused language bases for the dump, `tools/dump_game.pl`). The gun is the real BO4 Magmagat
   (`tools/build_magmagat_model.pl`, from Greyhound's `wpn_t8_zm_magmagat_view`): Treyarch built it on the BO2
   Blundergat's rig, so every BO4 bone sits where its T6 bone does and only the names differ. The T6 skeleton is kept
   exactly as dumped (joint nodes, inverse bind matrices) and only the mesh is replaced: BO4 vertices moved into the
   T6 mesh space, their joints renamed (`tag_weapon` = `j_gun`, `tag_cap_le_animate` = `j_cap_le`, ...; the BO4-only
-  armour and right-chain bones ride `j_gun`). So `magmagat_zm` can play any Blundergat animation: it plays BO4's own
-  view animations (`vm_ww_blundergat_*`, from Greyhound, see "Prerequisites") and keeps the Blundergat's ADS up and
-  down, and any BO4 animation missing from the export. Its lava parts are on
+  armour and right-chain bones ride `j_gun`). So `magmagat_zm` plays the Blundergat's own view animations (its
+  reload, empty reload and first raise as copies carrying BO4's sounds, see below). Its lava parts are on
   the Acid Gat's bones, so the weapon takes the Acid Gat's `hideTags`. `magmagat_upgraded_zm` (Magmus Operandi) is the
   same model with the BO4 armour kit (the `tag_armor_acid` kit dropped, as BO2 hides it). The world model's LOD0 is
   the same mesh fitted on BO2's world gun; its far LODs are BO2's world gun recoloured (`tools/recolor.pl`).
@@ -219,20 +220,16 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   molten parts on the Acid Gat's emberglow shader (reveal = BO4's crack mask, ember = BO4's magma glow noise on a
   molten ramp, heat = BO2's flicker; `%lava` turns up glow, flicker and scroll). The display names come from
   `english/localizedstrings/mg_weapons.str`.
-- **BO4's view animations** (`tools/build_weapon.pl`): BO4 plays one set on both guns, `vm_ww_blundergat_*` (its
-  weapon's anim table, read from memory). Each export is copied into mod.ff with its notetracks rewritten
-  (`vm_notes`), because T6 plays a note as the sound alias of that name, else as a rumble of that name, and a rumble
-  it does not know ends the game (COM_ERROR "Could not play rumble asset"). T6's own animations name their notes
-  `sndnt#<sound alias>` and `rmbnt#<rumble>`; Greyhound writes BO4's with the name hashed (`sndnt#<hash>`, the low 60
-  bits of the fnv1a-64 of the name). `%notes` maps each known hash: BO4's reload foley and the first raise's cock
-  become our `mg_reload_open`, `mg_reload_insert`, `mg_reload_close` and `mg_raise_cock` (at BO4's frames, each over
-  BO4's gun-handling layer, `mg_handle_high` or `mg_handle`; all in `tools/assets/bo4_sounds.tsv`), BO4's two rumbles
-  become BO2's own `reload_medium` and `reload_small`, and every other note (BO4's script notes: `open_cylinder`,
-  `bullets_in`, `loop_end`...) is dropped. A `sndnt#` or `rmbnt#` hash not in `%notes` is left out with a warning:
-  add it there (with its alias in `bo4_sounds.tsv`, or a rumble BO2 has) before shipping, never keep it as is. T6 fits
-  an animation into its state's time, so the loops take BO4's own lengths (`%vm_times`: sprint loop 3 s, crawl loops
-  1 s) and the empty raise and drop the normal ones (BO4 has one animation for both); the times that decide when the
-  gun may fire again keep the Blundergat's. The times are set only when the whole set was exported.
+- **The reload sounds** (`tools/build_weapon.pl`): both guns play the Blundergat's view animations. BO4's own
+  (`vm_ww_blundergat_*`) were tried and don't fit BO2's view hands (the gun filled the screen). The Blundergat's
+  reload, empty reload and first raise (`viewmodel_blundergat_*`, from the dump's `mod/work/dump/xanim`) are copied
+  into mod.ff as `mg_viewmodel_magmagat_*` with their notetracks rewritten (`vm_notes`, `%notes`). T6 names a note
+  `sndnt#<sound alias>` or `rmbnt#<rumble>`, and a rumble it does not know ends the game (COM_ERROR "Could not play
+  rumble asset"). `%notes` puts BO4's reload foley and the first raise's cock on the Blundergat's own sound notes:
+  `fly_blundergat_open`, `_insert` and `_close` become our `mg_reload_open`, `mg_reload_insert` and `mg_reload_close`,
+  the first raise's `fly_evoskorpion_tap` our `mg_raise_cock` (each over BO4's gun-handling layer, `mg_handle_high` or
+  `mg_handle`; all in `tools/assets/bo4_sounds.tsv`), at the Blundergat's moments. Every other note (the cloth sound,
+  the rumbles) stays the Blundergat's.
 - **The blob and the pool** (`tools/gen_lava_mat.pl`, run by `tools/build_weapon.pl`): the script does not fly a mesh. The
   Magmagat lobs a real sticky grenade, `mg_magma_blob_zm` (a grenade falls; T6 flies a projectile weapon straight),
   with the BO3 trail `mg/fx_magmagat_trail_bolt`; the script bursts it with `mg/fx_magmagat_explode`. It wears BO4's blob `mg_magma_blob` (`$blob` in `tools/build_weapon.pl`, `mg_model( "ball" )`),
@@ -254,14 +251,13 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   linear volume (written as T6's 100 + 20 log10; `tools/import_sounds.pl` adds `$BO4_GAIN`, 4, at most 100, as they
   sound louder in BO4's mix) and distances, for the weapon's fire and dry fire and the weapon script's blob, burst and
   burning sounds (`zm_weap_blundergat.csc`). The reload foley and the first raise's cock (`mg_reload_*`,
-  `mg_raise_cock`, with their layers `mg_handle_high` / `mg_handle`) are BO4's files at BO4's frames, with BO4's
-  volumes and distances read the same way.
+  `mg_raise_cock`, with their layers `mg_handle_high` / `mg_handle`) are BO4's files, played on the Blundergat's
+  notes, with BO4's volumes and distances read the same way.
 - **What the stock Linker cannot carry** (OpenAssetTools v0.33): particle effects (FxEffectDef is not loaded; the
   mod links them with a patched Linker, see PORTING_BO3_ASSETS.md, "The effects"), new tracers (the T6 tracer loader is not
   registered: the weapons use no tracer) and BO3 animations (no tool turns T7 xanims into T6 ones; the rig is shared,
-  so the Blundergat's animations fit the BO4 guns and the Tempered Blundergat keeps them). BO4's animations, the
-  ghouls' and the Magmagat's view animations, come from Greyhound as Direct XAnim, BO1 compatibility, which the Linker
-  reads.
+  so the Blundergat's animations fit the BO4 guns and the Tempered Blundergat keeps them). The ghouls' BO4
+  animations come from Greyhound as Direct XAnim, BO1 compatibility, which the Linker reads.
 
 ### The GitHub Actions
 
@@ -272,7 +268,7 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   games' files, which never leave the maintainer's PC, so `perl tools/publish.pl` builds it and publishes the release
   `v<version>` (`level.mg_version`) with `mod.ff`, `mod.all.sabl` and `mod.all.sabs` attached, on the pushed commit
   (needs `gh auth login`). The workflow checks the tag against the version, lints, packs the scripts from the tagged
-  sources, assembles `zm_magmagat/` (mod.ff, the sound bank, mod.json with the version, the packed scripts), attaches
+  sources, assembles `zm_magmagat/` (mod.ff, the sound bank, mod.json with the version, the packed scripts and the client script), attaches
   `zm_magmagat-<version>.zip` and removes the bare mod.ff and sound bank. `workflow_dispatch` rebuilds the zip of an existing release (from the bare files, or from the ones inside its zip once they were removed). `tools/release.pl` builds the same folder and
   zip locally, to try a release before publishing it.
 
@@ -363,7 +359,7 @@ repository and are never edited here — see "Rules every change must keep" belo
   (`scripts/zm_common/zm_utility.gsc` for the lure, `zm_spawner.gsc` for `damage_on_fire`, `scripts/zm/ai/zm_ai_brutus.gsc`).
   Each rule's comment in `mg_weapon.gsc` names the Black Ops 4 function it comes from (`function_78f754f7` Brutus's
   burn, `function_7b25328b` the lure, `function_bf2a4486` the pool...): check a change against it. Weapon data (fire
-  rate, reload, ammo), its view animations and the sounds are not in the scripts: they were read from the running game (`tools/bo4mem`,
+  rate, reload, ammo) and the sounds are not in the scripts: they were read from the running game (`tools/bo4mem`,
   see "Reading Black Ops 4 from memory").
 - **The quest and the look** follow copforthat's Black Ops III remaster (its decompiled scripts and zone, see
   [PORTING_BO3_ASSETS.md](PORTING_BO3_ASSETS.md)); Black Ops II's own behaviour is
@@ -382,7 +378,7 @@ Never commit the decompiled Black Ops 4 (or Black Ops III) scripts here: link to
 
 ### Reading Black Ops 4 from memory
 
-What the scripts don't hold (timings, ammo, view animations, sounds) is read from the running game with `tools/bo4mem` (C# console
+What the scripts don't hold (timings, ammo, sounds) is read from the running game with `tools/bo4mem` (C# console
 tools, built with the `csc.exe` line at the top of each; git ignores the exes). Start Black Ops 4 on Blood of the
 Dead, take the Magmagat and the Magmus Operandi and fire both, so their assets are loaded.
 
@@ -392,8 +388,6 @@ Dead, take the Magmagat and the Magmus Operandi and fire both, so their assets a
   Magmagat is the one whose `baseWeapon` is `#hash_23882a5729dceca` (`ww_blundergat_fire_t8`), the Magmus
   `#hash_1b5092cccdb3d65b`. Its pointer at `+0xA58` is the tunables block: fire time `+0xD10`, first raise `+0xD20`,
   reload `+0xE20`, max ammo `+0xD4C`, start ammo `+0xE40` (ms and rounds).
-- The view animations: the WeaponDef's anim table (the same weapon dump) names `vm_ww_blundergat_*`, one set for both
-  guns; export them with Greyhound (see "Prerequisites").
 - `Bo4Fields.exe` reads the engine's GSC weapon-field table, which maps a field name (`firetime`, `reloadtime`...) to
   its offset or to the getter that computes it; `Bo4Dis.exe` disassembles a getter and `Bo4Xref.exe` finds the code
   that reads a field (both need `Iced.dll`, from the NuGet package Iced, `lib/net45`, beside them).
@@ -405,7 +399,7 @@ Dead, take the Magmagat and the Magmus Operandi and fire both, so their assets a
 
 1. **One mod folder.** Everything the player installs is `mods\zm_magmagat\` (`tools/release.pl`). No edits to any
    file outside this repository except the installs done by `tools/build_mod.pl` and `tools/deploy.pl`. Files
-   generated from the games (`mod/props`, `mod/weapon`, `mod/sound`, `mod/fx`, `mod/csc`, `mod/work`, `mod/out`, dumps,
+   generated from the games (`mod/props`, `mod/weapon`, `mod/sound`, `mod/fx`, `mod/work`, `mod/out`, dumps,
    textures) are never committed.
 2. **Never edit another mod's files.** In particular `zm_scavenger.gsc`, `cheats_zm.gsc`, `motd_solo.gsc`,
    `b2op-plutonium.gsc` and `nav_autocomplete.gsc` are off limits; read them for reference only.

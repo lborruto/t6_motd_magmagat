@@ -12,7 +12,7 @@ say !mg bridge
 (Type `say !mg bridge` once the map is loaded: it opens the fireplace without the plane.)
 
 Install first, from the repo (Git Bash): `perl tools/build_mod.pl` (mod.ff, its sound bank mod.all.sabl / .sabs,
-and mod.json; it compiles `csc/` with gsc-tool, `MG_GSC_TOOL`) and `perl tools/deploy.pl` (the scripts), both into `mods/zm_magmagat`; then Mods -> zm_magmagat in game. Check it loaded: console
+and mod.json) and `perl tools/deploy.pl` (the scripts and the client script `zm_prison_magmagat.csc`), both into `mods/zm_magmagat`; then Mods -> zm_magmagat in game. Check it loaded: console
 `set mg_debug 1`, then `say !mg bridge` and `say !mg status` (it answers with the version, state, souls, carrier, timer, the gate flag
 and whether the forge is open). Every `!mg` answer is also printed to the console as `[MG] ...`.
 
@@ -25,6 +25,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 0. Load
 
 - [ ] No red error popup on map load.
+- [ ] The client script is installed: `mods\zm_magmagat\scripts\zm\zm_prison\zm_prison_magmagat.csc` sits beside the
+      packed `.gsc`, and the console shows it ran (`CSC Executed "scripts/zm/zm_prison/zm_prison_magmagat::init()"`
+      or similar).
 - [ ] The five route barrels are the remaster's dark-green drums and the three mantle skulls BO4's plain skulls
       (`!mg show` previews them; `!mg model mg_barrel_green` / `!mg model mg_skull_bo4` spawn one in front of you).
 - [ ] `!mg status` prints the version, the state (`ready` after the start block's `!mg bridge`, `locked` before it), souls 0/15, no carrier, the gate flag and the
@@ -138,8 +141,6 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       hand again.
 - [ ] Co-op: another player sees the blue flame on the gun in your hands for the whole run (wait out a refill or two),
       not just as you take it.
-- [ ] The client script still does vanilla's work (it replaces Mob's own): fire an Acid Gat into a wall: its dart
-      blinks its green light, faster and faster, with its fuse sound, until it goes off.
 - [ ] Fire it: the plain Blundergat's muzzle flash (no blue flash), in first person and as seen by another player.
 - [ ] The five drums (the remaster's dark-green drums, filled 2/3 with ash and burnt wood) burn blue from inside, the flames rising out of the rim.
 - [ ] Each drum is solid: you cannot walk through it nor jump onto it (its clip stands 128 units high from its foot).
@@ -206,13 +207,11 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       it) once every 0.4 s, reload in 2.3 s, and an empty trigger plays BO4's dry fire. A blob that sticks plays BO4's
       stick sound, then its burning loop until it goes.
 - [ ] **Reload and raise sounds**: reload (with a round left and empty): BO4's cylinder opening, the shells going in
-      and the cylinder closing, each as the animation does it, with a light rumble on a pad. The first raise of a
-      fresh Magmagat (from the forge, or `!mg magma`): BO4's cock as the gun is cocked. Nothing plays twice or out of
-      step, on the Magmus Operandi too.
-- [ ] **No crash** (a game-ending "Could not play rumble asset" error): reload, empty reload, the first raise, a raise
-      and drop (swap weapons), sprint, and crawl (go prone and move forward, back and sideways) with each gun.
-- [ ] **Sprint and crawl speed**: sprinting with it plays at a normal speed (not about 3 times too fast); crawling
-      prone moves it at a normal pace too. Raising and dropping it empty takes as long as with a round in it.
+      and the cylinder closing, each as the Blundergat's reload animation does it, with the Blundergat's cloth sound
+      and a light rumble on a pad. The first raise of a fresh Magmagat (from the forge, or `!mg magma`): BO4's cock as
+      the gun is cocked. Nothing plays twice or out of step, on the Magmus Operandi too.
+- [ ] **No crash** (a game-ending "Could not play rumble asset" error): reload, empty reload and the first raise with
+      each gun.
 - [ ] **Hit a zombie** (BO4's): 0.5 s later a zombie of 1000 health or less bursts in gore and dies; a tougher one
       burns, keeps its gait at about 60 % of its speed (a sprinter stays a slower sprinter, its legs not sliding), and
       dies 4 s later. A second blob on a tough one hurts it again (1000) and starts its own 4 s. When the Magmagat
@@ -257,9 +256,9 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] **Spoon**: stuck-blob kills in the showers count.
 - [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
 - [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and
-      barrels that glow and flicker) and BO4's own view animations play on it without parts drifting: idle, fire (hip
-      and ADS), reload (and empty reload), first raise, raise and drop, quick raise and drop, sprint in / loop / out,
-      crawl; ADS in and out are the Blundergat's. The same on the Magmus Operandi. On the forge and in other players'
+      barrels that glow and flicker) and the Blundergat's view animations play on it without parts drifting, the gun
+      at the Blundergat's place on screen: idle, fire (hip and ADS), ADS in and out, reload (and empty reload), first
+      raise, raise and drop, sprint, crawl. The same on the Magmus Operandi. On the forge and in other players'
       hands it is the same model. No flame rides the held gun.
 - [ ] **Pack-a-Punch**: a Magmagat comes back as `magmagat_upgraded_zm`, Magmus Operandi: the BO4 model with its
       armour kit, a 2-blob clip, the bigger pool and lure.
@@ -320,5 +319,6 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] `perl tools/lint_includes.pl && perl tools/lint_calls.pl && perl tools/lint_sounds.pl && perl tools/check_links.pl .`
       all green.
 - [ ] `"C:/Games/t6/gsc-tools/gsc-tool.exe" -m comp -g t6 -s pc -y <file>` prints `compiled t6/<file>` for
-      every changed source.
+      every changed source; `"C:/Games/t6/gsc-tools/gsc-tool.exe" -m comp -g t6 -s pc -i client -y
+      csc/zm_prison_magmagat.csc` for the client script.
 - [ ] `perl tools/build_mod.pl` and `perl tools/deploy.pl` install without error.

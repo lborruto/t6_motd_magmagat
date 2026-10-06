@@ -1,7 +1,8 @@
 #!/usr/bin/perl
-# Dumps BO2's zm_prison weapons, models, materials, images (as DDS) and animations into mod/work/dump with the OpenAssetTools
-# Unlinker: the source of the Magmagat (tools/build_weapon.pl) and of the prop material template
-# (tools/import_prop.pl). Game files: mod/work is never committed.
+# Dumps BO2's zm_prison weapons, models, materials, images (as DDS) and animations into mod/work/dump with the
+# OpenAssetTools Unlinker: the source of the Magmagat (tools/build_weapon.pl: its weapon files, and the reload
+# animations it carries BO4's sounds on) and of the prop material template (tools/import_prop.pl). Game files:
+# mod/work is never committed.
 # zm_prison's images sit in DLC ipaks the Unlinker only opens under a name it loads by itself (base,
 # <language>_base): zm.ipak and the DLC ipaks are hard-linked as unused language bases for the dump.
 #
