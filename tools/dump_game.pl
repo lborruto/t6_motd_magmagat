@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Dumps BO2's zm_prison weapons, models, materials and images (as DDS) into mod/work/dump with the OpenAssetTools
+# Dumps BO2's zm_prison weapons, models, materials, images (as DDS) and animations into mod/work/dump with the OpenAssetTools
 # Unlinker: the source of the Magmagat (tools/build_weapon.pl) and of the prop material template
 # (tools/import_prop.pl). Game files: mod/work is never committed.
 # zm_prison's images sit in DLC ipaks the Unlinker only opens under a name it loads by itself (base,
@@ -34,7 +34,7 @@ for my $src ( sort keys %as ) {
     next unless -f "$zones/$src.ipak";
     link( "$zones/$src.ipak", "$alias/$as{$src}.ipak" ) or die "dump_game.pl: hard link of $src.ipak failed ($!): the repo and BO2 must be on one drive\n";
 }
-my @cmd = ( "$oat/Unlinker.exe", '--search-path', winpath($alias) . ';' . winpath($zones), '--include-assets', 'weapon,xmodel,material,image',
+my @cmd = ( "$oat/Unlinker.exe", '--search-path', winpath($alias) . ';' . winpath($zones), '--include-assets', 'weapon,xmodel,material,image,xanim',
     '--image-format', 'DDS', '--model-format', 'GLTF', '-o', winpath($dump), winpath("$zones/zm_prison.ff") );
 my $rc = system(@cmd);
 remove_tree($alias);

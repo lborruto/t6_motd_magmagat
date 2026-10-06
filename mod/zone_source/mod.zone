@@ -31,25 +31,9 @@ xmodel,mg_tempered_view
 xmodel,mg_tempered_world
 xmodel,mg_tempered_up_view
 xmodel,mg_tempered_up_world
-xanim,vm_ww_blundergat_crawl_b
-xanim,vm_ww_blundergat_crawl_f
-xanim,vm_ww_blundergat_crawl_in
-xanim,vm_ww_blundergat_crawl_l
-xanim,vm_ww_blundergat_crawl_out
-xanim,vm_ww_blundergat_crawl_r
-xanim,vm_ww_blundergat_fire
-xanim,vm_ww_blundergat_fire_ads
-xanim,vm_ww_blundergat_first_raise
-xanim,vm_ww_blundergat_idle
-xanim,vm_ww_blundergat_pullout
-xanim,vm_ww_blundergat_pullout_quick
-xanim,vm_ww_blundergat_putaway
-xanim,vm_ww_blundergat_putaway_quick
-xanim,vm_ww_blundergat_reload
-xanim,vm_ww_blundergat_reload_empty
-xanim,vm_ww_blundergat_sprint_in
-xanim,vm_ww_blundergat_sprint_loop
-xanim,vm_ww_blundergat_sprint_out
+xanim,mg_viewmodel_magmagat_first_raise
+xanim,mg_viewmodel_magmagat_reload
+xanim,mg_viewmodel_magmagat_reload_empty
 weapon,magmagat_zm
 weapon,magmagat_upgraded_zm
 weapon,mg_magma_blob_zm
@@ -83,7 +67,3 @@ fx,mg/fx_mp_magma_splat02
 fx,mg/fx_prison_magmagat_aoe
 fx,mg/fx_prison_magmagat_press_fire
 // end fx
-
-// client scripts (tools/build_mod.pl, from csc/)
-script,clientscripts/mp/zombies/_zm_weap_blundersplat.csc
-// end client scripts

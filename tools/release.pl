@@ -2,8 +2,9 @@
 # Builds the release: ONE folder the player drops into %LOCALAPPDATA%\Plutonium\storage\t6\mods\, plus its zip.
 #   release/mods/zm_magmagat/mod.ff                              props, Magmagat weapons, effects (tools/build_mod.pl)
 #   release/mods/zm_magmagat/mod.json                            name, author, description, version
-#   release/mods/zm_magmagat/mod.all.sabl, mod.all.sabs         the sound bank (the BO3 remaster's sounds)
+#   release/mods/zm_magmagat/mod.all.sabl, mod.all.sabs         the sound bank (BO4's Magmagat sounds, the remaster's quest sounds)
 #   release/mods/zm_magmagat/scripts/zm/zm_prison/zm_prison_magmagat*.gsc   the quest (tools/pack.pl)
+#   release/mods/zm_magmagat/scripts/zm/zm_prison/zm_prison_magmagat.csc    the client script (csc/)
 #   release/zm_magmagat-<version>.zip                           mods\zm_magmagat, for the player's t6 folder
 # mod/props, mod/weapon, mod/sound and mod/fx must be built first (tools/import_all.pl, tools/build_weapon.pl,
 # tools/import_sounds.pl, tools/bo3_fx.pl): tools/build_mod.pl links them.
@@ -46,6 +47,11 @@ for my $n ( 1 .. 3 ) {
     last if ( $? >> 8 ) == 2;
 }
 die "release.pl: the scripts did not pack\n" unless $parts;
+
+# the client script, beside them: Plutonium runs it on the client
+for my $c ( glob("$repo/csc/*.csc") ) {
+    copy( $c, "$scripts/" . ( $c =~ s{.*/}{}r ) ) or die "release.pl: $c: $!\n";
+}
 
 my $zip = "$rel/zm_magmagat-$version.zip";
 unlink $zip;

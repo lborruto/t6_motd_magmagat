@@ -4,7 +4,7 @@ name: Release the player zip
 # Its mod.ff is built from the games' own files, which never leave the maintainer's PC: tools/publish.pl builds it
 # and publishes the GitHub Release v<version> with mod.ff and its sound bank (mod.all.sabl / .sabs) attached. This workflow then does the rest from the tagged
 # sources: lints, packs the quest scripts, assembles the folder (mod.ff, the sound bank, mod.json with the version,
-# scripts/zm/zm_prison/zm_prison_magmagat*.gsc), zips it, attaches zm_magmagat-<version>.zip and removes the bare
+# scripts/zm/zm_prison/zm_prison_magmagat*.gsc and .csc), zips it, attaches zm_magmagat-<version>.zip and removes the bare
 # files so the release offers the zip alone.
 on:
   release:
@@ -77,6 +77,8 @@ jobs:
           perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 1 \
             || perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 2 \
             || perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 3
+          # the client script, beside them (Plutonium runs it on the client)
+          cp csc/*.csc "$D/scripts/zm/zm_prison/"
           find "$D" -type f | xargs ls -la
 
       - name: The folder is complete
@@ -89,6 +91,8 @@ jobs:
             || { echo "::error::$D/mod.json does not carry version ${{ steps.ver.outputs.version }}"; exit 1; }
           ls "$D"/scripts/zm/zm_prison/zm_prison_magmagat*.gsc > /dev/null 2>&1 \
             || { echo "::error::no packed script in $D/scripts/zm/zm_prison (tools/pack.pl failed for 1, 2 and 3 parts)"; exit 1; }
+          [ -s "$D/scripts/zm/zm_prison/zm_prison_magmagat.csc" ] \
+            || { echo "::error::no client script in $D/scripts/zm/zm_prison"; exit 1; }
 
       - name: Zip and attach it
         run: |

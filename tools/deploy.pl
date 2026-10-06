@@ -55,11 +55,18 @@ die "deploy.pl: no mg_*.gsc in $repo\n" unless @sources;
 sub clean_game {
     my $n = 0;
 
-    for my $f ( map { ( glob("$_/mg_*.gsc"), glob("$_/$packed_base*.gsc") ) } $game, $legacy ) {
+    for my $f ( map { ( glob("$_/mg_*.gsc"), glob("$_/$packed_base*.gsc"), glob("$_/$packed_base*.csc") ) } $game, $legacy ) {
         unlink $f and $n++;
     }
 
     return $n;
+}
+
+# the client script (csc/), beside the server scripts in every mode: Plutonium runs it on the client
+sub install_csc {
+    my @csc = glob("$repo/csc/*.csc");
+    copy( $_, "$game/" . basename($_) ) or die "deploy.pl: cannot copy $_: $!\n" for @csc;
+    return @csc;
 }
 
 if ( $mode eq 'multi' ) {
@@ -71,6 +78,7 @@ if ( $mode eq 'multi' ) {
         $copied++;
     }
 
+    $copied += () = install_csc();
     print "deploy.pl: multi-file mode: $copied source(s) installed, $removed old file(s) removed\n";
     print "deploy.pl: in game: set mg_debug 1, then chat !mg status\n";
     exit 0;
@@ -108,6 +116,7 @@ for my $f ( @packed ) {
     copy( $f, "$game/" . basename($f) ) or die "deploy.pl: cannot copy $f: $!\n";
 }
 
+push @packed, install_csc();
 printf "deploy.pl: packed mode: %d file(s) installed (%s), %d old file(s) removed\n",
     scalar @packed, join( ', ', map { basename($_) } @packed ), $removed;
 print "deploy.pl: in game: set mg_debug 1, then chat !mg status\n";

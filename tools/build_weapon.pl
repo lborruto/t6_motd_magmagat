@@ -99,31 +99,17 @@ my @models = qw(mg_magmagat_view mg_magmagat_world mg_magmus_view mg_magmus_worl
 # the Blundergat they copy fires every 0.192 s and reloads in 2.55 s (the first raise is 0.95 s on both)
 my %bo4_times = ( fireTime => 0.4, lastFireTime => 0.4, reloadTime => 2.3, reloadEmptyTime => 2.3 );
 my $tank_tags = join "\n", qw(j_ammo_ri_bo j_ammo_ri_up j_ammo_le_bo j_ammo_le_up tag_muzzle tag_barrel_le_in tag_barrel_ri_in);
-# BO4's own view animations, the Magmagat's and the Magmus' (BO4 plays one set on both, vm_ww_blundergat_*: its
-# weapon's anim table, read from memory): Greyhound's Direct XAnim export (BO1 compatibility, the version the Linker
-# reads) into black_ops_4_sp/xanims, carried in mod.ff. Each BO4 animation and the T6 fields it fills; the fields left
-# out keep the Blundergat's (ADS up and down: BO4's ads_base_* move one bone, a base pose, not a replacement).
-my $xa4 = ( $ENV{MG_GREYHOUND} // 'C:/Games/t6/Greyhound-1.49.4.0' ) . '/exported_files/black_ops_4_sp/xanims';
-my %vm_fields = ( idle => [qw(idleAnim emptyIdleAnim)], fire => [qw(fireAnim fireIntroAnim lastShotAnim)],
-    fire_ads => [qw(adsFireAnim adsFireIntroAnim adsLastShotAnim)], reload => ['reloadAnim'], reload_empty => ['reloadEmptyAnim'],
-    pullout => [qw(raiseAnim emptyRaiseAnim altRaiseAnim)], first_raise => ['firstRaiseAnim'],
-    putaway => [qw(dropAnim emptyDropAnim altDropAnim)], pullout_quick => ['quickRaiseAnim'], putaway_quick => ['quickDropAnim'],
-    sprint_in => [qw(sprintInAnim sprintInEmptyAnim)], sprint_loop => [qw(sprintLoopAnim sprintLoopEmptyAnim)],
-    sprint_out => [qw(sprintOutAnim sprintOutEmptyAnim)], crawl_in => [qw(crawlInAnim crawlEmptyInAnim)],
-    crawl_out => [qw(crawlOutAnim crawlEmptyOutAnim)], crawl_f => [qw(crawlForwardAnim crawlEmptyForwardAnim)],
-    crawl_b => [qw(crawlBackAnim crawlEmptyBackAnim)], crawl_l => [qw(crawlLeftAnim crawlEmptyLeftAnim)],
-    crawl_r => [qw(crawlRightAnim crawlEmptyRightAnim)] );
-# Their notetracks, as T6's own animations name them: sndnt#<sound alias>, rmbnt#<rumble>; a rumble the game doesn't
-# know ends it (COM_ERROR "Could not play rumble asset"). Greyhound writes BO4's names as their hashes (fnv1a-64 of the
-# name, low 60 bits): the sounds become ours (tools/assets/bo4_sounds.tsv, BO4's reload foley at its frames;
-# 37e24dd167cadfd is fly_blundergat_first_raise), the rumbles are BO2's own reload_medium and reload_small (the
-# same names), and BO4's script notes (open_cylinder, bullets_in, loop_end...) go.
-my %notes = ( 'sndnt#b0e81208ad9bd0d' => 'sndnt#mg_reload_open', 'sndnt#f66f1b60c187356' => 'sndnt#mg_reload_insert',
-    'sndnt#62cefd09884e3ef' => 'sndnt#mg_reload_close', 'sndnt#37e24dd167cadfd' => 'sndnt#mg_raise_cock',
-    'rmbnt#a101e863b7f5052' => 'rmbnt#reload_medium', 'rmbnt#cd630b53ad2f9a0' => 'rmbnt#reload_small' );
+# The view animations stay the Blundergat's: BO4's own (vm_ww_blundergat_*, Greyhound's Direct XAnim) were tried and
+# don't fit BO2's view hands (their joints are oriented for BO4's arms: the gun filled the screen). Its reload and
+# first raise are copied (mod/work/dump/xanim, tools/dump_game.pl) only to carry BO4's own sounds on their notes, as T6
+# names them (sndnt#<sound alias>, rmbnt#<rumble>): BO4's reload foley (open, shells in, close) and the first raise's
+# cock (tools/assets/bo4_sounds.tsv), in place of the Blundergat's. The rest of the notes (cloth, rumbles) stay.
+my %notes = ( 'sndnt#fly_blundergat_open' => 'sndnt#mg_reload_open', 'sndnt#fly_blundergat_insert' => 'sndnt#mg_reload_insert',
+    'sndnt#fly_blundergat_close' => 'sndnt#mg_reload_close', 'sndnt#fly_evoskorpion_tap' => 'sndnt#mg_raise_cock' );
+my %vm_fields = ( reload => ['reloadAnim'], reload_empty => ['reloadEmptyAnim'], first_raise => ['firstRaiseAnim'] );
 
 # A Direct XAnim (version 19) ends with its notetracks: u8 count, then each a C string and a u16 frame. Found from
-# the end (the only count whose notes end exactly at the end of the file), rewritten through %notes, sorted by frame.
+# the end (the only count whose notes end exactly at the end of the file); its names rewritten through %notes.
 sub vm_notes {
     my ( $d, $name ) = @_;
     my $len = length $d;
@@ -138,34 +124,22 @@ sub vm_notes {
             $q = $e + 3;
         }
         next unless @n == $n && $q == $len;
-        my @kept;
-        for (@n) {
-            if ( defined $notes{ $_->[0] } ) { push @kept, [ $notes{ $_->[0] }, $_->[1] ] }
-            elsif ( $_->[0] =~ /^(sndnt|rmbnt)#/ ) { warn "build_weapon.pl: $name: note $_->[0] unknown, left out\n" }
-        }
-        @kept = sort { $a->[1] <=> $b->[1] } @kept;
-        return substr( $d, 0, $p ) . chr( scalar @kept ) . join( '', map { "$_->[0]\0" . pack( 'v', $_->[1] ) } @kept );
+        return substr( $d, 0, $p ) . chr( scalar @n ) . join( '', map { ( $notes{ $_->[0] } // $_->[0] ) . "\0" . pack( 'v', $_->[1] ) } @n );
     }
-    return $d;    # no notes
+    die "build_weapon.pl: $name has no notetracks\n";
 }
 
-# T6 fits an animation into its state's time, so the loops take BO4's own lengths (frames / 30: sprint 90, crawl 30;
-# the Blundergat's 0.935 s sprint loop ran BO4's 3 s one about 3 times fast), and the empty raise and drop the normal
-# ones (BO4 has one animation for both). The times that decide when the gun may fire again keep the Blundergat's.
-my %vm_times = ( sprintLoopTime => 3, crawlForwardTime => 1, crawlBackTime => 1, crawlLeftTime => 1, crawlRightTime => 1,
-    emptyRaiseTime => 0.7, emptyDropTime => 0.4 );
-my ( %bo4_anims, @xanims );
+my ( %vm_anims, @xanims );
 make_path("$raw/xanim");
 for my $a ( sort keys %vm_fields ) {
-    my $x = "vm_ww_blundergat_$a";
-    if ( !-f "$xa4/$x" ) { warn "build_weapon.pl: $x left out, the Blundergat's plays (no $xa4/$x)\n"; next }
-    spit( "$raw/xanim/$x", vm_notes( slurp("$xa4/$x"), $x ) );
+    my ( $src, $x ) = ( "viewmodel_blundergat_$a", "mg_viewmodel_magmagat_$a" );
+    -f "$dump/xanim/$src" or die "build_weapon.pl: no $dump/xanim/$src (perl tools/build_weapon.pl --redump)\n";
+    spit( "$raw/xanim/$x", vm_notes( slurp("$dump/xanim/$src"), $src ) );
     push @xanims, $x;
-    $bo4_anims{$_} = $x for @{ $vm_fields{$a} };
+    $vm_anims{$_} = $x for @{ $vm_fields{$a} };
 }
-%bo4_anims = ( %bo4_anims, %vm_times ) if @xanims == keys %vm_fields;    # the times go with the whole set
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
-    emptyFireSound => 'mg_dryfire_npc', emptyFireSoundPlayer => 'mg_dryfire_plr', %bo4_times, %bo4_anims );
+    emptyFireSound => 'mg_dryfire_npc', emptyFireSoundPlayer => 'mg_dryfire_plr', %bo4_times, %vm_anims );
 # the blob in flight and stuck: BO4's lava blob (p8_fxp_magma_blob, tools/import_all.pl), as mg_model( "ball" ) in
 # mg_coords.gsc. Export it from Greyhound after the Magmagat fired in BO3: before, BO3 has not streamed its mesh in and
 # the export is empty
