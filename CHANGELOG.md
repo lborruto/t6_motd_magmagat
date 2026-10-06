@@ -13,6 +13,7 @@ The quest:
 
 - The Tempered Blundergat's blue flame now burns at its muzzle in your own view too, as in the Black Ops 3 remaster
   (before, only other players saw it).
+- The drums go out 1 second after the Tempered Blundergat is laid on the forge.
 
 ## 1.0.4 - 2026-10-06
 

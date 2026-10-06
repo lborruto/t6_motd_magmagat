@@ -338,8 +338,9 @@ mg_run_give_back()
 }
 
 // Everything the run created, destroyed from one place (the loops may have been killed by a notify); a flame still
-// spawning sees the generation change and goes (mg_run_flame_spawn, mg_barrel_light).
-mg_run_cleanup()
+// spawning sees the generation change and goes (mg_run_flame_spawn, mg_barrel_light). keep_barrels: the drums stay lit
+// (the caller puts them out).
+mg_run_cleanup( keep_barrels )
 {
     level.mg_run_gen++;
 
@@ -351,11 +352,13 @@ mg_run_cleanup()
     level.mg_run_flame = undefined;
     level.mg_carrier = undefined;
     level.mg_run_weapon = undefined;
-    mg_barrels_set( 0 );
+
+    if ( !is_true( keep_barrels ) )
+        mg_barrels_set( 0 );
 }
 
 // The run's success (mg_forge, as the carrier lays the tempered gun on the Machine): it stops, the gun stays his for
-// the press to take.
+// the press to take. The drums go out 1 s after the gun is laid (the owner's call).
 mg_run_end_ok()
 {
     level notify( "mg_run_over" );
@@ -363,7 +366,18 @@ mg_run_end_ok()
     if ( isdefined( level.mg_carrier ) )
         level.mg_carrier.mg_tempered_from = undefined;
 
-    mg_run_cleanup();
+    mg_run_cleanup( 1 );
+    level thread mg_barrels_out_later( level.mg_run_gen );
+}
+
+// The drums out 1 s on, unless a goto or a new run has taken them over meanwhile (the generation changed).
+mg_barrels_out_later( gen )
+{
+    level endon( "end_game" );
+    wait 1;
+
+    if ( gen == level.mg_run_gen )
+        mg_barrels_set( 0 );
 }
 
 // self = player typing !mg goto
