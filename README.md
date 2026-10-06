@@ -95,8 +95,8 @@ copforthat's Black Ops III remaster.
 ## Assets and takedown
 
 A free, non-commercial fan project, not affiliated with or endorsed by Activision, Treyarch or Plutonium. Call of
-Duty and Black Ops are trademarks of Activision. The models, textures and sounds in the mod come from Call of Duty:
-Black Ops 4, Black Ops III and Black Ops II and remain the property of Activision / Treyarch; the effects from the
+Duty and Black Ops are trademarks of Activision. The models, textures, animations and sounds in the mod come from Call
+of Duty: Black Ops 4, Black Ops III and Black Ops II and remain the property of Activision / Treyarch; the effects from the
 Workshop map "MOB OF THE DEAD" are its team's, used with copforthat's permission. If you hold rights to any asset
 and want it removed, [open an issue](https://github.com/lborruto/t6_motd_magmagat/issues) and it will be removed
 promptly.
