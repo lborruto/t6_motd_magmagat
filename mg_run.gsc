@@ -119,7 +119,7 @@ mg_run_start( player, weapon )
     level.mg_run_weapon = weapon;
     level.mg_run_failing = 0;
     level.mg_run_powered = 0;
-    player.mg_temper_left = 15;
+    mg_temper_set( player, 15 );
     // the state first: lighting the barrels takes 0.75 s, and outside a run mg_tempered_watch takes the gun back
     mg_state_set( "run" );
     player thread mg_run_timer();
@@ -139,6 +139,25 @@ mg_run_carrier_watch( player )
 
     if ( mg_state_is( "run" ) )
         mg_run_fail( "the carrier left" );
+}
+
+// The carrier's temper left, in seconds: the world flame thins out with it (mg_temper_interval).
+mg_temper_set( player, left )
+{
+    player.mg_temper_left = left;
+}
+
+// How often the 1 s flame is played again with left seconds of temper: every 0.1 s (full) down to 10 s, then
+// sparser as it runs out (1.5 s / left: 0.3 s at 5 s, 0.75 s at 2 s, 1.2 s at its last second).
+mg_temper_interval( left )
+{
+    if ( !isdefined( left ) || left >= 10 )
+        return 0.1;
+
+    if ( left <= 1 )
+        return 1.2;
+
+    return 1.5 / left;
 }
 
 // self = carrier. The remaster's function_7f32cc1f: a second off, a second's wait, out at 0 (15 s after the start or
@@ -164,7 +183,7 @@ mg_run_timer()
             return;
         }
 
-        self.mg_temper_left--;
+        mg_temper_set( self, self.mg_temper_left - 1 );
         wait 1;
 
         if ( self.mg_temper_left <= 0 && !is_true( level.mg_run_powered ) )    // powered in its last second: it holds
@@ -210,7 +229,7 @@ mg_run_loop( weapon )
             {
                 if ( !is_true( barrel.mg_spent ) && mg_barrel_touch( self, barrel ) )
                 {
-                    self.mg_temper_left = 15;
+                    mg_temper_set( self, 15 );
                     mg_barrel_spend( barrel );
                 }
             }
@@ -262,11 +281,23 @@ mg_run_flame_on( player )
 mg_run_flame_replay()
 {
     self endon( "death" );
+    since = 0;
 
     while ( true )
     {
         wait 0.1;
-        playfxontag( level._effect["mg_gun_flame"], self, "tag_origin" );
+        since += 0.1;
+        left = undefined;
+
+        if ( isdefined( level.mg_carrier ) )
+            left = level.mg_carrier.mg_temper_left;
+
+        // thinner as the temper runs out (mg_temper_interval); polled each 0.1 s so a barrel's refill shows at once
+        if ( since + 0.001 >= mg_temper_interval( left ) )
+        {
+            since = 0;
+            playfxontag( level._effect["mg_gun_flame"], self, "tag_origin" );
+        }
     }
 }
 

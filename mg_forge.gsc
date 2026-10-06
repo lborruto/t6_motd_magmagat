@@ -213,6 +213,9 @@ mg_forge_power( player )
 {
     level endon( "mg_goto" );
     level.mg_run_powered = 1;
+
+    if ( isdefined( level.mg_carrier ) )
+        mg_temper_set( level.mg_carrier, 15 );    // the clock stops: its flame burns full again
     level notify( "mg_run_powered" );
     level.mg_forge_busy = 1;
     level thread mg_forge_power_fx();
