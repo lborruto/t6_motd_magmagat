@@ -42,8 +42,8 @@ mg_run_init()
     }
 }
 
-// Each flame spawns in its own level thread, 0.15 s apart as ever (its spawn time, waited here): a goto killing the
-// caller while one spawns no longer leaves it burning outside barrel.mg_fx, and a run ended meanwhile lights no more.
+// Each flame spawns in its own level thread, all five together as the remaster's: a goto killing the caller while one
+// spawns leaves none burning outside barrel.mg_fx, and a run ended meanwhile lights no more.
 mg_barrels_set( lit )
 {
     gen = level.mg_run_gen;
