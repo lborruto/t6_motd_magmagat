@@ -314,6 +314,31 @@ crosshair, and `!mg move <forward> <right> <up>` nudges them from where you look
 The cheats script (`cheats_zm.gsc`) and its old `!place` / `!spot` placement flow are not part of this
 repository and are never edited here — see "Rules every change must keep" below.
 
+## The 1:1 references
+
+- **The weapon** follows Black Ops 4's script, the community decompile
+  [`scripts/zm/weapons/zm_weap_blundergat.gsc`](https://github.com/shiversoftdev/t8-src/blob/main/scripts/zm/weapons/zm_weap_blundergat.gsc)
+  of [shiversoftdev/t8-src](https://github.com/shiversoftdev/t8-src) (`ww_blundergat_fire_t8` is the Magmagat, `_upgraded`
+  the Magmus Operandi, `_unfinished` the Tempered Blundergat), with its helpers in the same repository
+  (`scripts/zm_common/zm_utility.gsc` for the lure, `zm_spawner.gsc` for `damage_on_fire`, `scripts/zm/ai/zm_ai_brutus.gsc`).
+  Each rule's comment in `mg_weapon.gsc` names the Black Ops 4 function it comes from (`function_78f754f7` Brutus's
+  burn, `function_7b25328b` the lure, `function_bf2a4486` the pool...): check a change against it. Weapon data (fire
+  rate, ammo, projectile, impact damage, Brutus's damage scale) is not in the scripts and can't be checked this way.
+- **The quest and the look** follow copforthat's Black Ops III remaster (its decompiled scripts and zone, see
+  [PORTING_BO3_ASSETS.md](PORTING_BO3_ASSETS.md)); Black Ops II's own behaviour is
+  [plutoniummod/t6-scripts](https://github.com/plutoniummod/t6-scripts).
+- **Deliberate differences** (the owner's calls, keep them):
+  - Brutus: vanilla's `brutus_damage_override` keeps a tenth of a body hit; `mg_brutus_unscaled` gives the burns back
+    so one blob kills him in 3 to 5 s before round 15, as in Black Ops 4.
+  - The lure's 3 (6) spots are laid 12 units into the pool's fire (Black Ops 4 picks the navmesh nearest its middle;
+    vanilla's own ring layout lands outside the pool and hands out none under 4 a ring).
+  - An Insta-Kill impact's pool drops to the floor under the zombie (Black Ops 4 leaves it where the blob stuck).
+  - Points: Black Ops II's per-hit points, not Black Ops 4's points pool.
+  - The quest is per Magmagat (each player redoes it), the gun must be in hand, and powering the Machine leaves 60 s to
+    lay the gun.
+
+Never commit the decompiled Black Ops 4 (or Black Ops III) scripts here: link to them.
+
 ## Rules every change must keep
 
 1. **One mod folder.** Everything the player installs is `mods\zm_magmagat\` (`tools/release.pl`). No edits to any

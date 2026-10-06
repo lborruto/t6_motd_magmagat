@@ -68,6 +68,14 @@ It plays as in Black Ops 4: a lobbed lava blob that sticks to what it hits.
   Gat again. The Mystery Box offers no Blundergat while you hold a Magmagat, or while your Blundergat lies in the
   fireplace or on the forge.
 
+### Where the rules come from
+
+The Magmagat plays by Black Ops 4's own rules: its damage, timings, the lure, burning, the burst, Brutus, points and
+Insta-Kill were checked line by line against Black Ops 4's weapon script, as decompiled by the community:
+[`zm_weap_blundergat.gsc`](https://github.com/shiversoftdev/t8-src/blob/main/scripts/zm/weapons/zm_weap_blundergat.gsc)
+(shiversoftdev/t8-src). A few details differ where Black Ops II works differently. The quest, by contrast, follows
+copforthat's Black Ops III remaster.
+
 ## Credits
 
 - **copforthat** and the Mob of the Dead BO3 port team (tupivere_, dobby, Xela, Hybs, Rayjiun, robit, GCP, Booris and
