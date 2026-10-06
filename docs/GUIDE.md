@@ -49,7 +49,9 @@ Only the player who placed the gun can use the fireplace now, with no time limit
 - The tempered gun burns out in **15 seconds**.
 - Five **drums burning blue** on the way (the office exit, the stairs, the Citadel, the tunnels, the docks) reset it to
   15 seconds when you walk up to one, **once each per run**.
-- Firing is fine. Switching to another weapon (except a Blundergat), going down or running out of time **fails the
+- **Each shot costs 6 seconds** of the temper (and refills the gun), as in Black Ops 4; out of time, the run fails.
+  The flame others see on your gun thins out as the temper runs low.
+- Switching to another weapon (except a Blundergat), going down or running out of time **fails the
   run**: you get your gun back, and five seconds later the fireplace takes a gun again (back to step 1.2).
 - **Reviving a teammate counts as switching weapon** (the revive puts the syrette in your hands): it fails the run.
 - A Mystery Box or wall gun taken with your hands full replaces the tempered gun: the run fails, and your Blundergat

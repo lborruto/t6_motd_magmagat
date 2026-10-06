@@ -123,6 +123,7 @@ mg_run_start( player, weapon )
     // the state first: lighting the barrels takes 0.75 s, and outside a run mg_tempered_watch takes the gun back
     mg_state_set( "run" );
     player thread mg_run_timer();
+    player thread mg_run_shots();
     player thread mg_run_loop( weapon );
     player thread mg_run_down_watch();
     level thread mg_run_carrier_watch( player );
@@ -158,6 +159,34 @@ mg_temper_interval( left )
         return 1.2;
 
     return 1.5 / left;
+}
+
+// self = carrier. Each shot of the tempered gun costs 6 s of temper and refills its ammo, as BO4's (its quest
+// script_2ba3951675c7ee1c function_7f19d274: n_cooldown_time - 6, givemaxammo); out at 0, as the timer's. Nothing once
+// the Machine is powered (the clock stopped).
+mg_run_shots()
+{
+    level endon( "end_game" );
+    level endon( "mg_goto" );
+    level endon( "mg_run_over" );
+    self endon( "disconnect" );
+
+    while ( mg_state_is( "run" ) )
+    {
+        self waittill( "weapon_fired", weapon );
+
+        if ( !mg_is_tempered( weapon ) || is_true( level.mg_run_powered ) )
+            continue;
+
+        mg_temper_set( self, self.mg_temper_left - 6 );
+        self givemaxammo( weapon );
+
+        if ( self.mg_temper_left <= 0 )
+        {
+            mg_run_fail( "the flame died (a shot of the tempered gun costs 6 s)" );
+            return;
+        }
+    }
 }
 
 // self = carrier. The remaster's function_7f32cc1f: a second off, a second's wait, out at 0 (15 s after the start or

@@ -30,6 +30,8 @@ The quest:
 - A lit skull's flame turns with the skull.
 - Powering the Machine plays its spark effect in full, and the Warden's line comes 1 second after, as in the remaster.
 - The drums go out 1 second after the Tempered Blundergat is laid on the forge.
+- Each shot of the Tempered Blundergat costs 6 seconds of its temper, as in Black Ops 4, and the flame other players
+  see on it thins out as the temper runs low.
 - The ghouls appear once on the forge's bed, not twice at once.
 - The burst as the Magmagat appears on the forge sprays upward, not sideways across the bed.
 - The flames under the floating Magmagat no longer vanish before it is taken.

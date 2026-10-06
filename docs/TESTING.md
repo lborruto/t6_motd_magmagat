@@ -148,7 +148,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       flare and the flame-burst sound. No whoosh, no rumble; the drum keeps burning. A second visit to the same drum
       gives nothing. Standing on top of a drum does not count.
 - [ ] After a refill the run fails 15-16 s later.
-- [ ] Firing the tempered gun does NOT end the run.
+- [ ] Each shot of the tempered gun takes 6 s off the temper (`!mg status`) and refills its ammo; three shots in a
+      row from a full 15 s fail the run ("the flame died"). Once the Machine is powered, shots cost nothing.
+- [ ] Co-op: as the temper runs low (under 10 s) the flame another player sees on your gun thins out, and is full
+      again at a drum.
 - [ ] Switching to another weapon (a perk drink, a box weapon) ends the run within about 0.1 s. Switching to a
       Blundergat, Sweeper, Acid Gat or Vitriolic Withering does not. The run does not fail at the pickup while the
       tempered gun is being raised (try with one and with two primaries).
