@@ -113,12 +113,47 @@ my %vm_fields = ( idle => [qw(idleAnim emptyIdleAnim)], fire => [qw(fireAnim fir
     crawl_out => [qw(crawlOutAnim crawlEmptyOutAnim)], crawl_f => [qw(crawlForwardAnim crawlEmptyForwardAnim)],
     crawl_b => [qw(crawlBackAnim crawlEmptyBackAnim)], crawl_l => [qw(crawlLeftAnim crawlEmptyLeftAnim)],
     crawl_r => [qw(crawlRightAnim crawlEmptyRightAnim)] );
+# Their notetracks: T6 plays a note as the sound alias of that name, else as a rumble of that name, and a rumble it
+# doesn't know ends the game (COM_ERROR "Could not play rumble asset"). Greyhound writes BO4's as sndnt#<alias hash> /
+# rmbnt#<rumble hash>: the sounds become ours (tools/assets/bo4_sounds.tsv, BO4's reload foley at its frames), the
+# rumbles BO2's own reload rumbles, and BO4's script notes (open_cylinder, bullets_in, loop_end...) go.
+my %notes = ( 'sndnt#b0e81208ad9bd0d' => 'mg_reload_open', 'sndnt#f66f1b60c187356' => 'mg_reload_insert',
+    'sndnt#62cefd09884e3ef' => 'mg_reload_close', 'sndnt#37e24dd167cadfd' => 'mg_raise_cock',
+    'rmbnt#a101e863b7f5052' => 'reload_medium', 'rmbnt#cd630b53ad2f9a0' => 'reload_large' );
+
+# A Direct XAnim (version 19) ends with its notetracks: u8 count, then each a C string and a u16 frame. Found from
+# the end (the only count whose notes end exactly at the end of the file), rewritten through %notes, sorted by frame.
+sub vm_notes {
+    my ( $d, $name ) = @_;
+    my $len = length $d;
+    for ( my $p = $len - 1; $p >= 0 && $p >= $len - 8192; $p-- ) {
+        my $n = ord substr( $d, $p, 1 );
+        next unless $n;
+        my ( $q, @n ) = ( $p + 1 );
+        for ( 1 .. $n ) {
+            my $e = index( $d, "\0", $q );
+            last if $e <= $q || $e - $q > 64 || $e + 3 > $len || substr( $d, $q, $e - $q ) !~ /^[\x20-\x7e]+$/;
+            push @n, [ substr( $d, $q, $e - $q ), unpack( 'v', substr( $d, $e + 1, 2 ) ) ];
+            $q = $e + 3;
+        }
+        next unless @n == $n && $q == $len;
+        my @kept;
+        for (@n) {
+            if ( defined $notes{ $_->[0] } ) { push @kept, [ $notes{ $_->[0] }, $_->[1] ] }
+            elsif ( $_->[0] =~ /^(sndnt|rmbnt)#/ ) { warn "build_weapon.pl: $name: note $_->[0] unknown, left out\n" }
+        }
+        @kept = sort { $a->[1] <=> $b->[1] } @kept;
+        return substr( $d, 0, $p ) . chr( scalar @kept ) . join( '', map { "$_->[0]\0" . pack( 'v', $_->[1] ) } @kept );
+    }
+    return $d;    # no notes
+}
+
 my ( %bo4_anims, @xanims );
 make_path("$raw/xanim");
 for my $a ( sort keys %vm_fields ) {
     my $x = "vm_ww_blundergat_$a";
     if ( !-f "$xa4/$x" ) { warn "build_weapon.pl: $x left out, the Blundergat's plays (no $xa4/$x)\n"; next }
-    copy( "$xa4/$x", "$raw/xanim/$x" ) or die "build_weapon.pl: $x: $!\n";
+    spit( "$raw/xanim/$x", vm_notes( slurp("$xa4/$x"), $x ) );
     push @xanims, $x;
     $bo4_anims{$_} = $x for @{ $vm_fields{$a} };
 }
