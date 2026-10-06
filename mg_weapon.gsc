@@ -348,14 +348,24 @@ mg_blob_land( blob, player, weapon, fire )
 
     // its own model flew it; from now a copy shows it, turned to what it stuck to (mg_blob_show)
     blob hide();
-    mg_fx_stop( fire );
-    // Harry's impact is built along its +X (its splash flies out along X): forward along the surface's normal, as the
-    // engine plays a projectile's impact (the pool and the blob's model stand on their +Z instead: mg_up_angles)
-    mg_fx_once( "impact", blob.origin, undefined, vectortoangles( mg_blob_normal( dir, blob ) ) );
     host = undefined;
 
+    // Harry's impact is built along its +X (its splash flies out along X): forward along the surface's normal, as the
+    // engine plays a projectile's impact (the pool and the blob's model stand on their +Z instead: mg_up_angles). A
+    // blob still flying after 5 s hit nothing: no impact.
     if ( !flying )
+    {
+        mg_fx_once( "impact", blob.origin, undefined, vectortoangles( mg_blob_normal( dir, blob ) ) );
         host = mg_blob_host( blob );
+    }
+
+    // stuck to a zombie or Brutus, the blob keeps burning on it until it goes, as BO4's (magma_gat_blob_fx 2, from the
+    // stick to the zombie's death or Brutus's 5 s): its flight fire rides on, gone with the grenade. Anywhere else
+    // (and on an Insta-Kill impact, which pools) it goes out: the pool burns instead.
+    if ( isdefined( host ) && !mg_insta_kill_on( player, host ) )
+        fire thread mg_blob_show_end( blob );
+    else
+        mg_fx_stop( fire );
 
     // stuck to a teammate, it drops to the floor under him and pools there, as BO4's (function_482c54d5); stuck to
     // something else that moves but is no living zombie (a corpse, the gondola), it pools where it is, the pool staying
@@ -419,7 +429,7 @@ mg_blob_land( blob, player, weapon, fire )
         blob thread mg_blob_on_zombie( host );
 
         // each blob on it, a second one too, as each of BO4's impacts (function_efefda46: MOD_IMPACT)
-        host thread mg_magma_stuck( player, weapon );
+        host thread mg_magma_stuck( player, weapon, blob.origin );
     }
 }
 
@@ -587,7 +597,7 @@ mg_blob_lure( pos, blob, player )
 // dies; a tougher one catches fire for 1000 (another blob on a burning one: the 1000 alone), is slowed 4 s
 // (function_7f95d262), then dies whatever its health. The notify feeds the spoon in the showers, as the remaster's
 // killed_by_a_magmagat does.
-mg_magma_stuck( player, weapon )
+mg_magma_stuck( player, weapon, from )
 {
     self endon( "death" );
     wait 0.5;
@@ -607,7 +617,7 @@ mg_magma_stuck( player, weapon )
         return;
     }
 
-    self mg_zombie_ignite( player, weapon, 1000 );
+    self mg_zombie_ignite( player, weapon, 1000, from );
 
     // BO4's slowdown (hash_716657b9842cfd1b): 60 % of its speed whatever its gait, as vanilla's slowing weapons set
     // it (_zm_weap_slowgun, _zm_weap_staff_water: the anim rate, then a run update); it dies slowed
@@ -666,8 +676,15 @@ mg_blob_on_zombie( zombie )
     if ( isdefined( zombie.attacker ) && isplayer( zombie.attacker ) && isalive( zombie.attacker ) )
         killer = zombie.attacker;
 
+    // BO4 plays the burst on the body at its upper spine (zombie_magma_fire_explosion): read before the annihilate,
+    // which ghosts the body
+    at = zombie gettagorigin( "j_spineupper" );
+
+    if ( !isdefined( at ) )
+        at = self.origin;
+
     zombie mg_annihilate();
-    self mg_blob_burst( killer, zombie.damageweapon, zombie.origin );
+    self mg_blob_burst( killer, zombie.damageweapon, zombie.origin, at );
 }
 
 // self = blob on Brutus (BO4's boss: function_5f305489): his burn (mg_brutus_blob_burn) for 5 s, then the blob goes
@@ -732,11 +749,11 @@ mg_brutus_blob_burn( player, weapon )
 // zombies within 128 of the dead one (centre) never lit yet lose limbs (function_b826901d: gib_random_parts, before
 // the fire), catch fire and take 400; any other enemy (Brutus, fodder, a boss) takes 20 and burns. It hurts no
 // player. Then the blob goes (BO4 detonates nothing: no explosion of the weapon's own).
-mg_blob_burst( player, weapon, centre )
+mg_blob_burst( player, weapon, centre, at )
 {
     pos = self.origin;
-    mg_fx_once( "explo", pos, undefined, ( -90, 0, 0 ) );    // its +X up: Harry's burst is built along X, it sprayed sideways
-    mg_fx_once( "burst_fire", pos );
+    mg_fx_once( "explo", at, undefined, ( -90, 0, 0 ) );    // its +X up: Harry's burst is built along X, it sprayed sideways
+    mg_fx_once( "burst_fire", at );
 
     foreach ( ai in getaiarray( level.zombie_team ) )
     {
@@ -765,7 +782,7 @@ mg_burst_hit( player, weapon, pos )
     self endon( "death" );
     mg_throttle_wait();
     self mg_gib_random_parts( player );
-    self mg_zombie_ignite( player, weapon );
+    self mg_zombie_ignite( player, weapon, undefined, pos );
     mg_magma_dodamage( self, 400, pos, player, "MOD_EXPLOSIVE", weapon, "torso_lower" );
 }
 
@@ -890,8 +907,8 @@ mg_gib_random_parts( player )
 // takes only while fewer than 12 enemies burn (mg_burner_add, BO4's level.var_5fcf49dc): over that, only the hit
 // lands, and a pool touching it hits it again each frame. A zombie burns once in its life (var_cde645df): a later
 // ignition is its hit alone. Burning, it counts as on fire, as vanilla's burning zombies: one killed meanwhile falls
-// dead instead of bursting in gore (_zm_spawner zombie_death_event).
-mg_zombie_ignite( player, weapon, hit )
+// dead instead of bursting in gore (_zm_spawner zombie_death_event). from: where it caught fire (its first flame).
+mg_zombie_ignite( player, weapon, hit, from )
 {
     self.mg_lit = 1;
     burn = !is_true( self.mg_burning ) && self mg_burner_add();
@@ -900,6 +917,7 @@ mg_zombie_ignite( player, weapon, hit )
     {
         self.mg_burning = 1;
         self.is_on_fire = 1;
+        self.mg_burn_from = from;    // where it caught fire: its first flame (mg_burn_fx)
         self mg_burn_start();
     }
 
@@ -1204,7 +1222,7 @@ mg_pool_zombie()
         return;
     }
 
-    self mg_zombie_ignite( pool.owner, pool.weapon, self.health * 0.1 );
+    self mg_zombie_ignite( pool.owner, pool.weapon, self.health * 0.1, pool.origin );
 }
 
 // self = player. Only the pool's owner is hurt, as BO4's (function_b1abe6ab): 1 every 0.4 s while he touches it, down
@@ -1238,8 +1256,9 @@ mg_burn_start()
         self thread mg_burn_death();
     }
 
-    // BO4's (zm_weap_blundergat.csc positional_zombie_fire_fx): it ignites, then burns in a loop
-    if ( !is_true( self.mg_burn_loop ) )
+    // BO4's (zm_weap_blundergat.csc positional_zombie_fire_fx): it ignites, then burns in a loop. A zombie's only:
+    // Brutus burns silently, as BO4's boss fire (flame_death_fx)
+    if ( !is_true( self.mg_burn_loop ) && !mg_is_boss( self ) )
     {
         self.mg_burn_loop = 1;
         self playsound( "mg_burn_ignite" );
@@ -1256,11 +1275,47 @@ mg_burn_start()
 
 // self = zombie. Its flames, laid out as vanilla's flame_death_fx lays a burning body's (zm_death): Mob's torso fire up
 // and down the spine and a small fire on an arm and a leg, until mg_burn_end, or 2 s after its death as it lies there
-// (the owner's pick over the remaster's BO3 body fire).
+// (the owner's pick over the remaster's BO3 body fire). They light in BO4's order: a zombie's at the tag nearest where
+// it caught fire first, then one more every 0.5 s (zm_weap_blundergat.csc positional_zombie_fire_fx); Brutus's torso
+// first, an arm or a leg 1 s on, the rest 1 s later (zm_death flame_death_fx).
 mg_burn_fx()
 {
-    tags = array( "J_SpineUpper", "J_SpineLower", random( array( "J_Elbow_LE", "J_Elbow_RI" ) ), random( array( "J_Knee_LE", "J_Knee_RI" ) ) );
-    keys = array( "burn", "burn", "blob_fire", "blob_fire" );
+    elbow = random( array( "J_Elbow_LE", "J_Elbow_RI" ) );
+    knee = random( array( "J_Knee_LE", "J_Knee_RI" ) );
+
+    if ( mg_is_boss( self ) )
+    {
+        tags = array( "J_SpineLower", elbow, knee, "J_SpineUpper" );
+        keys = array( "burn", "blob_fire", "blob_fire", "burn" );
+        delays = array( 0, 1, 1, 0 );
+    }
+    else
+    {
+        tags = array( "J_SpineUpper", "J_SpineLower", elbow, knee );
+        keys = array( "burn", "burn", "blob_fire", "blob_fire" );
+        delays = array( 0, 0.5, 0.5, 0.5 );
+
+        // nearest first (a short sort of four)
+        if ( isdefined( self.mg_burn_from ) )
+        {
+            for ( i = 0; i < tags.size - 1; i++ )
+            {
+                for ( j = i + 1; j < tags.size; j++ )
+                {
+                    if ( distancesquared( self gettagorigin( tags[j] ), self.mg_burn_from ) < distancesquared( self gettagorigin( tags[i] ), self.mg_burn_from ) )
+                    {
+                        t = tags[i];
+                        tags[i] = tags[j];
+                        tags[j] = t;
+                        k = keys[i];
+                        keys[i] = keys[j];
+                        keys[j] = k;
+                    }
+                }
+            }
+        }
+    }
+
     fx = [];
 
     for ( i = 0; i < tags.size; i++ )
@@ -1275,8 +1330,7 @@ mg_burn_fx()
 
     if ( isdefined( self ) && isalive( self ) )
     {
-        for ( i = 0; i < fx.size; i++ )
-            mg_fx_add( fx[i], keys[i] );
+        self thread mg_burn_fx_spread( fx, keys, delays );
 
         // vanilla deletes far zombies without a death
         if ( self waittill_any_return( "death", "mg_burn_fx_off", "zombie_delete" ) == "death" )
@@ -1290,6 +1344,24 @@ mg_burn_fx()
 
     if ( isdefined( self ) )
         self.mg_burn_lit = undefined;
+}
+
+// self = burning enemy. Its flames light one by one, each delays[i] after the one before; they stop spreading when it
+// dies or its fire goes out (mg_burn_fx then deletes them all).
+mg_burn_fx_spread( fx, keys, delays )
+{
+    self endon( "death" );
+    self endon( "mg_burn_fx_off" );
+    self endon( "zombie_delete" );
+
+    for ( i = 0; i < fx.size; i++ )
+    {
+        if ( delays[i] > 0 )
+            wait( delays[i] );
+
+        if ( isdefined( fx[i] ) )
+            mg_fx_add( fx[i], keys[i] );
+    }
 }
 
 // self = zombie whose fire went out: the fire loop fades, the flames go (mg_burn_fx).

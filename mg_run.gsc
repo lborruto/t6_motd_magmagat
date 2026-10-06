@@ -57,8 +57,7 @@ mg_barrels_set( lit )
         if ( !lit )
             continue;
 
-        level thread mg_barrel_light( barrel, gen );
-        wait 0.15;
+        level thread mg_barrel_light( barrel, gen );    // all five at once, as the remaster's
     }
 }
 

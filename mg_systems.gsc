@@ -49,9 +49,9 @@ mg_fx_table()
     t["ghost_head"] = "maps/zombie_alcatraz/fx_alcatraz_ghost_head";
     t["ghost_tport"] = "maps/zombie_alcatraz/fx_alcatraz_afterlife_zmb_tport"; // a ghoul appearing, vanishing
     // the weapon (its blob's trail is in the weapon file, tools/build_weapon.pl)
-    t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso"; // a zombie the blob stuck to, burning (mg_burn_fx), with blob_fire
+    t["burn"] = "maps/zombie_alcatraz/fx_alcatraz_zmb_fire_torso"; // a burning enemy's torso fire (mg_burn_fx), with blob_fire on its limbs
     t["patch_fire"] = "mg/fx_prison_magmagat_aoe"; // the remaster's lava pool
-    t["blob_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // a small fire riding the blob in flight, and on a burning Brutus
+    t["blob_fire"] = "maps/zombie_alcatraz/fx_alcatraz_fire_xsm"; // a small fire riding the blob in flight and stuck on a body, and on a burning enemy's limbs
     t["impact"] = "mg/fx_magmagat_impact"; // Harry's: the blob landing
     t["explo"] = "mg/fx_magmagat_explode"; // Harry's: the blob bursting
     t["burst_fire"] = "maps/zombie/fx_zmb_tranzit_lava_torso_explo"; // Tranzit's lava zombie bursting: fire and smoke over it

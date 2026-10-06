@@ -240,7 +240,7 @@ mg_forge_power_fx()
     body playsound( "zmb_powerpanel_activate" );
     body playsound( "evt_electrical_surge" );
     fx = mg_coord( "MG_FORGE_FX" );
-    mg_fx_once( "sparks", fx.origin, undefined, fx.angles );
+    mg_fx_once( "sparks", fx.origin, 4, fx.angles );    // the power effect runs about 3.8 s
     lever rotatepitch( 8, 0.12 );
     wait 0.12;
     lever rotatepitch( -8, 0.25, 0, 0.2 );
@@ -257,7 +257,7 @@ mg_forge_power_fx()
     }
 
     // t 1.1: a slam in sparks, the fire flaring on the bed
-    mg_fx_once( "sparks", fx.origin, undefined, fx.angles );
+    mg_fx_once( "sparks", fx.origin, 4, fx.angles );    // the power effect runs about 3.8 s
     mg_fx_once( "barrel_flare", bed, 3 );
     body playsound( "zmb_hellbox_slam_shake" );
     body playsound( "mg_flame_burst" );
@@ -386,6 +386,7 @@ mg_forge_gun_float( origin )
 mg_forge_embers( gun, origin )
 {
     embers = mg_fx_loop( "embers", origin - ( 0, 0, 2 ) );
+    level thread mg_fx_keepalive( embers );
 
     while ( isdefined( gun ) )
         wait 0.2;
@@ -551,13 +552,15 @@ mg_forge_ghouls( bed )
 
     wait 0.05;    // an effect played in the frame an entity appears is dropped by the clients
 
-    // t 0 to 0.6: up through the machine (hidden in it) and out of the bed where the Magmagat lies, head first
+    // t 0 to 0.6: up through the machine (hidden in it) and out of the bed where the Magmagat lies, head first (one
+    // appearance for both)
+    mg_fx_once( "ghost_tport", bed );
+    playsoundatposition( "zmb_afterlife_object_apparate", bed );
+
     foreach ( g in ghouls )
     {
         mg_fx_add_tag( g, "ghost_body", "j_spineupper" );
         mg_fx_add_tag( g, "ghost_head", "j_head" );
-        mg_fx_once( "ghost_tport", bed );
-        playsoundatposition( "zmb_afterlife_object_apparate", bed );
         g playloopsound( "zmb_afterlife_ghost_loop", 0.5 );
         g moveto( bed + ( 0, 0, 25 ), 0.55, 0.15, 0.15 );
     }

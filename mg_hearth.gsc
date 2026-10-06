@@ -505,7 +505,7 @@ mg_skull_light( idx )
     skull setmodel( mg_skull_model( 1 ) );
     mg_fx_stop( level.mg_skull_fx[idx] );
     gen = level.mg_skull_gen;
-    ent = mg_fx_loop( "soul_full", skull.origin - ( 0, 0, 3.5 ) ); // at the skull's foot, as the remaster's skull fire
+    ent = mg_fx_loop( "soul_full", skull.origin - ( 0, 0, 3.5 ), skull.angles ); // at the skull's foot, turned with it, as the remaster's skull fire
 
     // the skulls were put out while the flame spawned
     if ( gen != level.mg_skull_gen )
