@@ -614,8 +614,8 @@ mg_hearth_blue_off()
 }
 
 // pickup -> run (MG.gsc:735-766): only the placer, and not while drinking or holding a mine, equipment, the revive
-// tool or nothing (the press is ignored). He gets our tempered gun (T6 cannot draw the remaster's view-model flame);
-// the run gives the placed variant back when it ends.
+// tool or nothing (the press is ignored). He gets our tempered gun (its flame burns at the muzzle in first person
+// through the client script in mod.ff); the run gives the placed variant back when it ends.
 mg_hearth_take( player )
 {
     if ( !mg_state_is( "pickup" ) || !isdefined( level.mg_hearth_owner ) || player != level.mg_hearth_owner )

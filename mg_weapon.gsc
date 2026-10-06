@@ -603,7 +603,7 @@ mg_magma_stuck( player, weapon, from )
     wait 0.5;
     self notify( "killed_by_a_blundersplat", player );
 
-    // fodder: killed outright, no gore (BO4's popcorn)
+    // fodder: killed outright; its death bursts it (mg_blob_on_zombie), as BO4's popcorn
     if ( mg_is_popcorn( self ) )
     {
         mg_magma_dodamage( self, self.health + 100, self.origin, player, "MOD_BURNED", weapon );
@@ -640,7 +640,12 @@ mg_annihilate()
     if ( !is_true( self.mg_exploded ) )
     {
         self.mg_exploded = 1;
-        playsoundatposition( "mg_explode", self gettagorigin( "j_spineupper" ) );
+        at = self gettagorigin( "j_spineupper" );
+
+        if ( !isdefined( at ) )
+            at = self.origin;
+
+        playsoundatposition( "mg_explode", at );
     }
 
     if ( isdefined( level.no_gib_in_wolf_area ) && self [[ level.no_gib_in_wolf_area ]]() )
@@ -683,8 +688,9 @@ mg_blob_on_zombie( zombie )
     if ( !isdefined( at ) )
         at = self.origin;
 
+    hit = zombie getcentroid();    // where BO4's burst hits its neighbours from (getcentroid)
     zombie mg_annihilate();
-    self mg_blob_burst( killer, zombie.damageweapon, zombie.origin, at );
+    self mg_blob_burst( killer, zombie.damageweapon, zombie.origin, at, hit );
 }
 
 // self = blob on Brutus (BO4's boss: function_5f305489): his burn (mg_brutus_blob_burn) for 5 s, then the blob goes
@@ -744,14 +750,13 @@ mg_brutus_blob_burn( player, weapon )
 }
 
 // self = blob on a zombie that died: BO4's burst (function_209c8c45), played with Harry's explosion, Tranzit's lava
-// zombie bursting in fire and smoke over it (the owner's); its sound is BO4's explosion, played as the zombie is
-// annihilated (mg_annihilate). The
-// zombies within 128 of the dead one (centre) never lit yet lose limbs (function_b826901d: gib_random_parts, before
-// the fire), catch fire and take 400; any other enemy (Brutus, fodder, a boss) takes 20 and burns. It hurts no
-// player. Then the blob goes (BO4 detonates nothing: no explosion of the weapon's own).
-mg_blob_burst( player, weapon, centre, at )
+// zombie bursting in fire and smoke over it (the owner's), both at its upper spine (at); its sound is BO4's explosion,
+// played as the zombie is annihilated (mg_annihilate). The zombies within 128 of the dead one (centre) never lit yet
+// lose limbs (function_b826901d: gib_random_parts, before the fire), catch fire and take 400 from its centroid (hit);
+// any other enemy (Brutus, fodder, a boss) takes 20 and burns. It hurts no player. Then the blob goes (BO4 detonates
+// nothing: no explosion of the weapon's own).
+mg_blob_burst( player, weapon, centre, at, hit )
 {
-    pos = self.origin;
     mg_fx_once( "explo", at, undefined, ( -90, 0, 0 ) );    // its +X up: Harry's burst is built along X, it sprayed sideways
     mg_fx_once( "burst_fire", at );
 
@@ -769,7 +774,7 @@ mg_blob_burst( player, weapon, centre, at )
         // lit now, not after its turn in the throttle (mg_zombie_ignite): a second burst before that turn passes it by,
         // so it is hit once (400, its limbs, its fire, its points), not twice
         ai.mg_lit = 1;
-        ai thread mg_burst_hit( player, weapon, pos );
+        ai thread mg_burst_hit( player, weapon, hit );
     }
 
     self delete();
@@ -1138,15 +1143,21 @@ mg_pool( blob, player, weapon, shown )
     pool = spawn( "trigger_radius", origin, 0, 64, 32 );
     pool.owner = player;
     pool.weapon = weapon;
-    fire = mg_fx_loop( "patch_fire", pos, shown.angles );
-    lure = mg_blob_lure( pos, blob, player );    // pos, not blob.origin: the blob may have flown on or gone in that wait
+    lure = mg_blob_lure( pos, blob, player );
 
-    // counted once its fire is up: the oldest may still be in that wait and miss the notify
+    // live from the landing, as BO4's (the effect spawns after): the oldest of two goes, flagged too, as it may still
+    // be waiting for its own effect and miss the notify
     if ( level.mg_pools.size >= 2 )
+    {
+        level.mg_pools[0].mg_ended = 1;
         level.mg_pools[0] notify( "mg_pool_end" );
+    }
 
     level.mg_pools[level.mg_pools.size] = pool;
-    pool waittill_any_timeout( 5, "mg_pool_end" );
+    fire = mg_fx_loop( "patch_fire", pos, shown.angles );
+
+    if ( !is_true( pool.mg_ended ) )
+        pool waittill_any_timeout( 5, "mg_pool_end" );
     arrayremovevalue( level.mg_pools, pool );
     pool delete();
     mg_fx_stop( fire );

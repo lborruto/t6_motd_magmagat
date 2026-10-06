@@ -236,9 +236,9 @@ mg_run_weapon_ok( current, weapon )
     return current == weapon || mg_is_tempered( current ) || mg_is_blundergat( current );
 }
 
-// The temper riding the gun. The remaster's flame is on the carrier's viewmodel muzzle only; T6 has no server-side
-// viewmodel fx, so the tempered gun's own model shows it in first person and this world flame, at the world gun's muzzle
-// (its hand when the gun has no tag_flash), shows it to the others.
+// The temper riding the gun. The remaster's flame is on the carrier's viewmodel muzzle, replayed every 0.1 s (it is
+// a 1 s one-shot): the client script in mod.ff does that in first person (_zm_weap_blundersplat.csc), and this world
+// flame, at the world gun's muzzle (its hand when the gun has no tag_flash), replays it the same way for the others.
 mg_run_flame_on( player )
 {
     tag = "tag_flash";
@@ -250,9 +250,24 @@ mg_run_flame_on( player )
 
     // the carrier may have left during the spawn
     if ( isdefined( flame ) && isdefined( player ) )
+    {
         flame linkto( player, tag, ( 0, 0, 0 ), ( 0, 0, 0 ) );
+        flame thread mg_run_flame_replay();
+    }
 
     return flame;
+}
+
+// self = the world flame's carrier: the 1 s flame again every 0.1 s, as the remaster's, until it goes
+mg_run_flame_replay()
+{
+    self endon( "death" );
+
+    while ( true )
+    {
+        wait 0.1;
+        playfxontag( level._effect["mg_gun_flame"], self, "tag_origin" );
+    }
 }
 
 // a flame still spawning when the run ends (or its carrier gone) goes at once, as mg_lockdown_wall

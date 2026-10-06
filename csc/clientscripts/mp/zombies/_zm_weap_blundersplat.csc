@@ -67,6 +67,10 @@ mg_tempered_flame( localclientnum )
 {
     while ( true )
     {
+        // as vanilla's polls (_zm_weap_thundergun.csc): no weapon to read before the client has a snapshot
+        while ( !clienthassnapshot( localclientnum ) )
+            wait 0.05;
+
         weapon = getcurrentweapon( localclientnum );
 
         if ( weapon == "mg_tempered_zm" || weapon == "mg_tempered_upgraded_zm" )

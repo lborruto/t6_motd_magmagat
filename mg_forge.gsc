@@ -216,11 +216,12 @@ mg_forge_power( player )
     level notify( "mg_run_powered" );
     level.mg_forge_busy = 1;
     level thread mg_forge_power_fx();
-    wait 2.5;
+    wait 1;    // the Warden answers 1 s after the press, as the remaster's
 
     if ( isdefined( player ) )
         player playsoundtoplayer( "mg_brutus_mgu", player );
 
+    wait 1.5;    // the press is open 2.5 s after it (mg_forge_power_fx)
     level.mg_forge_open = 1;
     level.mg_forge_busy = 0;
     mg_debug_print( "MG: the Machine is powered: lay the Tempered Blundergat on it" );

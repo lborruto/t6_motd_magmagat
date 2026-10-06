@@ -187,6 +187,9 @@ mg_fx_add_tag( ent, key, tag )
 // or starts moving ("mg_moving": setting its origin would cut a moveto short).
 mg_fx_keepalive( ent )
 {
+    if ( !isdefined( ent ) )
+        return;
+
     level endon( "end_game" );
     ent endon( "death" );
     ent endon( "mg_moving" );

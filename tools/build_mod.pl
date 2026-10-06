@@ -21,6 +21,7 @@
 use strict;
 use warnings;
 use File::Copy qw(copy);
+use File::Glob qw(bsd_glob);    # a path with spaces stays one pattern
 use File::Path qw(make_path remove_tree);
 use FindBin;
 
@@ -42,7 +43,8 @@ chdir "$repo/mod" or die "build_mod.pl: no mod/ folder\n";
 
 # the client scripts (csc/): compiled with gsc-tool into mod/csc at their asset path (the bytecode holds no name of
 # its own: the zone names it) and listed in the zone's client script block (the asset type is "script")
-my @csc = map { s{^\Q$repo\E/csc/}{}r } grep { -f } glob("$repo/csc/clientscripts/*/*/*.csc $repo/csc/clientscripts/*/*.csc");
+my @csc = map { s{^\Q$repo\E/csc/}{}r } grep { -f } map { bsd_glob($_) } ( "$repo/csc/clientscripts/*/*/*.csc", "$repo/csc/clientscripts/*/*.csc" );
+die "build_mod.pl: no client script under csc/clientscripts\n" unless @csc;
 remove_tree('csc');
 for my $c (@csc) {
     my $base = $c =~ s{^.*/}{}r;

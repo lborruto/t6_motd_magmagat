@@ -113,13 +113,14 @@ my %vm_fields = ( idle => [qw(idleAnim emptyIdleAnim)], fire => [qw(fireAnim fir
     crawl_out => [qw(crawlOutAnim crawlEmptyOutAnim)], crawl_f => [qw(crawlForwardAnim crawlEmptyForwardAnim)],
     crawl_b => [qw(crawlBackAnim crawlEmptyBackAnim)], crawl_l => [qw(crawlLeftAnim crawlEmptyLeftAnim)],
     crawl_r => [qw(crawlRightAnim crawlEmptyRightAnim)] );
-# Their notetracks: T6 plays a note as the sound alias of that name, else as a rumble of that name, and a rumble it
-# doesn't know ends the game (COM_ERROR "Could not play rumble asset"). Greyhound writes BO4's as sndnt#<alias hash> /
-# rmbnt#<rumble hash>: the sounds become ours (tools/assets/bo4_sounds.tsv, BO4's reload foley at its frames), the
-# rumbles BO2's own reload rumbles, and BO4's script notes (open_cylinder, bullets_in, loop_end...) go.
-my %notes = ( 'sndnt#b0e81208ad9bd0d' => 'mg_reload_open', 'sndnt#f66f1b60c187356' => 'mg_reload_insert',
-    'sndnt#62cefd09884e3ef' => 'mg_reload_close', 'sndnt#37e24dd167cadfd' => 'mg_raise_cock',
-    'rmbnt#a101e863b7f5052' => 'reload_medium', 'rmbnt#cd630b53ad2f9a0' => 'reload_large' );
+# Their notetracks, as T6's own animations name them: sndnt#<sound alias>, rmbnt#<rumble>; a rumble the game doesn't
+# know ends it (COM_ERROR "Could not play rumble asset"). Greyhound writes BO4's names as their hashes (fnv1a-64 of the
+# name, low 60 bits): the sounds become ours (tools/assets/bo4_sounds.tsv, BO4's reload foley at its frames;
+# 37e24dd167cadfd is fly_blundergat_first_raise), the rumbles are BO2's own reload_medium and reload_small (the
+# same names), and BO4's script notes (open_cylinder, bullets_in, loop_end...) go.
+my %notes = ( 'sndnt#b0e81208ad9bd0d' => 'sndnt#mg_reload_open', 'sndnt#f66f1b60c187356' => 'sndnt#mg_reload_insert',
+    'sndnt#62cefd09884e3ef' => 'sndnt#mg_reload_close', 'sndnt#37e24dd167cadfd' => 'sndnt#mg_raise_cock',
+    'rmbnt#a101e863b7f5052' => 'rmbnt#reload_medium', 'rmbnt#cd630b53ad2f9a0' => 'rmbnt#reload_small' );
 
 # A Direct XAnim (version 19) ends with its notetracks: u8 count, then each a C string and a u16 frame. Found from
 # the end (the only count whose notes end exactly at the end of the file), rewritten through %notes, sorted by frame.
@@ -148,6 +149,11 @@ sub vm_notes {
     return $d;    # no notes
 }
 
+# T6 fits an animation into its state's time, so the loops take BO4's own lengths (frames / 30: sprint 90, crawl 30;
+# the Blundergat's 0.935 s sprint loop ran BO4's 3 s one about 3 times fast), and the empty raise and drop the normal
+# ones (BO4 has one animation for both). The times that decide when the gun may fire again keep the Blundergat's.
+my %vm_times = ( sprintLoopTime => 3, crawlForwardTime => 1, crawlBackTime => 1, crawlLeftTime => 1, crawlRightTime => 1,
+    emptyRaiseTime => 0.7, emptyDropTime => 0.4 );
 my ( %bo4_anims, @xanims );
 make_path("$raw/xanim");
 for my $a ( sort keys %vm_fields ) {
@@ -157,6 +163,7 @@ for my $a ( sort keys %vm_fields ) {
     push @xanims, $x;
     $bo4_anims{$_} = $x for @{ $vm_fields{$a} };
 }
+%bo4_anims = ( %bo4_anims, %vm_times ) if @xanims == keys %vm_fields;    # the times go with the whole set
 my %blob_only = ( shotCount => 1, damage => 0, minDamage => 0, playerDamage => 0, tracerType => '', impactType => 'none',
     emptyFireSound => 'mg_dryfire_npc', emptyFireSoundPlayer => 'mg_dryfire_plr', %bo4_times, %bo4_anims );
 # the blob in flight and stuck: BO4's lava blob (p8_fxp_magma_blob, tools/import_all.pl), as mg_model( "ball" ) in
