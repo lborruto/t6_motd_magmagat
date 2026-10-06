@@ -14,16 +14,27 @@ init()
 // a watcher per local client (split screen has more than one)
 mg_tempered_flame_start()
 {
-    waitforallclients();
+    setdvar( "mg_csc", "started" );
 
-    for ( i = 0; i < getlocalplayers().size; i++ )
+    // the first client's snapshot (vanilla's waitforallclients waits on level.localplayers, which the map's own client
+    // scripts set and this one, loaded beside them, never sees)
+    while ( !clienthassnapshot( 0 ) )
+        wait 0.05;
+
+    n = getlocalplayers().size;
+
+    if ( n < 1 )
+        n = 1;
+
+    setdvar( "mg_csc", "clients " + n );
+
+    for ( i = 0; i < n; i++ )
         level thread mg_tempered_flame( i );
 }
 
 mg_tempered_flame( localclientnum )
 {
-    last = "";
-    println( "MG csc: tempered flame watcher on client " + localclientnum + ", effect " + level._effect["mg_tempered_flame"] );
+    played = 0;
 
     while ( true )
     {
@@ -33,16 +44,15 @@ mg_tempered_flame( localclientnum )
 
         weapon = getcurrentweapon( localclientnum );
 
-        if ( weapon != last )
+        if ( weapon == "mg_tempered_zm" || weapon == "mg_tempered_upgraded_zm" )
         {
-            last = weapon;
-
-            if ( getdvarint( "mg_debug" ) )
-                println( "MG csc: client " + localclientnum + " holds " + weapon );
+            playviewmodelfx( localclientnum, level._effect["mg_tempered_flame"], "tag_muzzle_acid" );
+            played++;
         }
 
-        if ( weapon == "mg_tempered_zm" || weapon == "mg_tempered_upgraded_zm" )
-            playviewmodelfx( localclientnum, level._effect["mg_tempered_flame"], "tag_muzzle_acid" );
+        // what it sees, for the console (type mg_csc): its effect, the weapon in hand, the flames played
+        if ( localclientnum == 0 )
+            setdvar( "mg_csc", "fx " + level._effect["mg_tempered_flame"] + " weapon " + weapon + " played " + played );
 
         wait 0.1;
     }

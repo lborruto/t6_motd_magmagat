@@ -27,7 +27,7 @@ mg_dryfire_plr	wpn/assault/dry_fire/plr/dry_fire_00.ln100.pc.snd		loaded	2d	nonl
 mg_blob_stick	#44223decef68af7		loaded	3d	nonlooping	80	125	750	750	a blob sticks (a zombie or the ground)
 mg_blob_stick	#b146a14d6d6369a		loaded	3d	nonlooping	80	125	750	750	
 mg_blob_stick	#9e573ea2c069d45		loaded	3d	nonlooping	80	125	750	750	
-mg_blob_loop	#bcbb62f60112697		loaded	3d	looping	94	75	750	750	a stuck blob burns
+mg_blob_loop	#bcbb62f60112697		loaded	3d	looping	89	75	750	750	a stuck blob burns (BO4 plays it at 94: 5 lower, the owner's call)
 mg_explode	#6a094a471bab2f8	mg_explode_2	loaded	3d	nonlooping	95	375	1250	1250	a zombie bursts: BO4 explosion layer 1
 mg_explode	#be9248b723366cd	mg_explode_2	loaded	3d	nonlooping	95	375	1250	1250	
 mg_explode	#af9d0a2324d7ac2	mg_explode_2	loaded	3d	nonlooping	95	375	1250	1250	
