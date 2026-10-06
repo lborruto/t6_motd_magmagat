@@ -48,6 +48,16 @@ for my $n ( 1 .. 3 ) {
 }
 die "release.pl: the scripts did not pack\n" unless $parts;
 
+# every name a pack may use, the unused ones as empty placeholders: a player copies the new release on top of the old
+# one, and an old release's part this one no longer uses would load beside it (its functions twice: a fatal duplicate)
+for my $n ( '', '_1', '_2', '_3' ) {
+    my $f = "$scripts/zm_prison_magmagat$n.gsc";
+    next if -f $f;
+    open my $h, '>', $f or die "release.pl: $f: $!\n";
+    print $h "// Magmagat $version: empty on purpose, it replaces a script part an older release had\n";
+    close $h;
+}
+
 # the client script, beside them: Plutonium runs it on the client
 for my $c ( glob("$repo/csc/*.csc") ) {
     copy( $c, "$scripts/" . ( $c =~ s{.*/}{}r ) ) or die "release.pl: $c: $!\n";

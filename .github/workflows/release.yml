@@ -77,6 +77,12 @@ jobs:
           perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 1 \
             || perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 2 \
             || perl tools/pack.pl --out "$D/scripts/zm/zm_prison/zm_prison_magmagat.gsc" --parts 3
+          # every name a pack may use, the unused ones as empty placeholders (as tools/release.pl): a player copies the
+          # release on top of the old one, whose part this one no longer uses would load beside it
+          for n in "" _1 _2 _3; do
+            f="$D/scripts/zm/zm_prison/zm_prison_magmagat$n.gsc"
+            [ -f "$f" ] || echo "// Magmagat ${{ steps.ver.outputs.version }}: empty on purpose, it replaces a script part an older release had" > "$f"
+          done
           # the client script, beside them (Plutonium runs it on the client)
           cp csc/*.csc "$D/scripts/zm/zm_prison/"
           find "$D" -type f | xargs ls -la
