@@ -21,6 +21,7 @@ The Magmagat, closer to Black Ops 4, read straight from the running game:
 - A burning zombie's flames start where it caught fire and spread one by one every half second; Brutus's start at his
   torso, then his limbs.
 - Brutus burns silently, as in Black Ops 4 (no zombie fire sounds on him).
+- A blob's impact deals Black Ops 4's own 10 damage to the zombie or Brutus it sticks to (no points, as before).
 - A zombie caught in two bursts at once is hit by both, as in Black Ops 4 (1.0.4 hit it once).
 
 The quest:

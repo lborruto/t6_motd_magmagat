@@ -254,8 +254,8 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   linear volume (written as T6's 100 + 20 log10; `tools/import_sounds.pl` adds `$BO4_GAIN`, 4, at most 100, as they
   sound louder in BO4's mix) and distances, for the weapon's fire and dry fire and the weapon script's blob, burst and
   burning sounds (`zm_weap_blundergat.csc`). The reload foley and the first raise's cock (`mg_reload_*`,
-  `mg_raise_cock`, with their layers `mg_handle_high` / `mg_handle`) are BO4's files at BO4's frames, but their
-  volumes are BO2's foley level for now: BO4 was not running to read them. Read them with `Bo4Snd.exe` when it is.
+  `mg_raise_cock`, with their layers `mg_handle_high` / `mg_handle`) are BO4's files at BO4's frames, with BO4's
+  volumes and distances read the same way.
 - **What the stock Linker cannot carry** (OpenAssetTools v0.33): particle effects (FxEffectDef is not loaded; the
   mod links them with a patched Linker, see PORTING_BO3_ASSETS.md, "The effects"), new tracers (the T6 tracer loader is not
   registered: the weapons use no tracer) and BO3 animations (no tool turns T7 xanims into T6 ones; the rig is shared,

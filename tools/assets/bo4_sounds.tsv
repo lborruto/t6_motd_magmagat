@@ -44,39 +44,39 @@ mg_burn_ignite	wpn/zmb/magma_gat/ignite_zmb/ignite_02.ln100.pc.snd		loaded	3d	no
 mg_burn_ignite	wpn/zmb/magma_gat/ignite_zmb/ignite_03.ln100.pc.snd		loaded	3d	nonlooping	76	75	400	500	
 mg_burn_ignite	wpn/zmb/magma_gat/ignite_zmb/ignite_04.ln100.pc.snd		loaded	3d	nonlooping	76	75	400	500	
 mg_burn_loop	pfx/fire/small/fire_small_00.ll100.pc.snd		loaded	3d	looping	65	50	375	425	a zombie burns
-mg_reload_open	#3331612604a7429	mg_handle_high	loaded	2d	nonlooping	87	0	5000	5000	reload: the cylinder opens (BO4 note at frame 14)
-mg_reload_insert	#94ef1837d8a64e2	mg_handle_high	loaded	2d	nonlooping	87	0	5000	5000	reload: the shells go in (frame 34)
-mg_reload_close	#40e22328311d255	mg_handle	loaded	2d	nonlooping	87	0	5000	5000	reload: the cylinder closes (frame 70; 68 when empty)
-mg_raise_cock	#c9b49ca10906285	mg_handle_high	loaded	2d	nonlooping	87	0	5000	5000	first raise: the gun is cocked (frame 20)
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_00.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	the gun handled, layered under them (BO4 secondary 362dec8e20c51902, one of 16)
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_01.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_02.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_03.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_04.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_05.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_06.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_07.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_08.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_09.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_10.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_12.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_13.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_14.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_15.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle_high	fly/weapon/handle/high/gun_handle_high_16.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_00.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	the same, lighter (BO4 secondary 5d375e88f08abd60)
-mg_handle	fly/weapon/handle/gun_handle_01.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_02.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_03.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_04.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_05.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_06.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_07.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_08.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_09.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_10.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_11.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_12.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_13.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_14.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
-mg_handle	fly/weapon/handle/gun_handle_15.ln100.pc.snd		loaded	2d	nonlooping	79	0	5000	5000	
+mg_reload_open	#3331612604a7429	mg_handle_high	loaded	2d	nonlooping	93	0	5000	5000	reload: the cylinder opens (BO4 note at frame 14)
+mg_reload_insert	#94ef1837d8a64e2	mg_handle_high	loaded	2d	nonlooping	93	0	5000	5000	reload: the shells go in (frame 34)
+mg_reload_close	#40e22328311d255	mg_handle	loaded	2d	nonlooping	93	0	5000	5000	reload: the cylinder closes (frame 70; 68 when empty)
+mg_raise_cock	#c9b49ca10906285	mg_handle_high	loaded	2d	nonlooping	93	0	5000	5000	first raise: the gun is cocked (frame 20)
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_00.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	the gun handled, layered under them (BO4 secondary 362dec8e20c51902, one of 16)
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_01.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_02.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_03.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_04.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_05.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_06.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_07.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_08.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_09.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_10.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_12.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_13.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_14.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_15.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle_high	fly/weapon/handle/high/gun_handle_high_16.ln100.pc.snd		loaded	2d	nonlooping	77	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_00.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	the same, lighter (BO4 secondary 5d375e88f08abd60)
+mg_handle	fly/weapon/handle/gun_handle_01.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_02.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_03.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_04.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_05.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_06.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_07.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_08.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_09.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_10.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_11.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_12.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_13.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_14.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	
+mg_handle	fly/weapon/handle/gun_handle_15.ln100.pc.snd		loaded	2d	nonlooping	75	0	5000	5000	

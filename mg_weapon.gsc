@@ -363,7 +363,13 @@ mg_blob_land( blob, player, weapon, fire )
     // stick to the zombie's death or Brutus's 5 s): its flight fire rides on, gone with the grenade. Anywhere else
     // (and on an Insta-Kill impact, which pools) it goes out: the pool burns instead.
     if ( isdefined( host ) && !mg_insta_kill_on( player, host ) )
+    {
         fire thread mg_blob_show_end( blob );
+
+        // the impact's own damage, BO4's 10 on both guns (its tunables' damage, read from memory; BO4's damage
+        // override's "return 0" cancels nothing), as an impact: it pays nothing and a zombie it kills does not burst
+        host dodamage( 10, blob.origin, undefined, host, "none", "MOD_IMPACT", 0, weapon );
+    }
     else
         mg_fx_stop( fire );
 
