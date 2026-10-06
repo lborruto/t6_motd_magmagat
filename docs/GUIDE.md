@@ -50,7 +50,8 @@ Only the player who placed the gun can use the fireplace now, with no time limit
 - Five **drums burning blue** on the way (the office exit, the stairs, the Citadel, the tunnels, the docks) reset it to
   15 seconds when you walk up to one, **once each per run**.
 - **Each shot costs 6 seconds** of the temper (and refills the gun), as in Black Ops 4; out of time, the run fails.
-  The flame others see on your gun thins out as the temper runs low.
+  Once the Machine is powered, shots cost nothing. The flame others see on your gun thins out under 10 seconds of
+  temper and burns full again at a drum or once the Machine is powered; in your own view it stays full.
 - Switching to another weapon (except a Blundergat), going down or running out of time **fails the
   run**: you get your gun back, and five seconds later the fireplace takes a gun again (back to step 1.2).
 - **Reviving a teammate counts as switching weapon** (the revive puts the syrette in your hands): it fails the run.
@@ -84,6 +85,7 @@ fireplace then takes a new gun, so every player can forge his own.
 - **On Brutus**: he burns for 5 seconds.
 - **Missed shot**: a lava pool for **5 seconds** (two at most). Zombies touching it catch fire, Brutus burns hard
   until his flames catch; near the floor it lures zombies into its fire, 3 at a time. It only stings its owner, barely.
+  A blob that hits a zombie as it dies, or is left in the air where a body was, drops to the floor and pools there.
 - **Burning zombies** die fast in early rounds, slower later, and fall dead. Twelve enemies burn at most at once.
 - **Points**: burns and bursts pay as any weapon's hits (the shot and the blob's impact pay none); under Insta-Kill
   any Magmagat hit kills, a blob on contact (no burst, it pools on the floor under the zombie).

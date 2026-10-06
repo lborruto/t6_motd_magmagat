@@ -47,7 +47,8 @@ only looks for in its own `.ipak` files).
 
 ### The weapon (`tools/build_weapon.pl`, `tools/build_magmagat_model.pl`)
 BO4's Magmagat and Tempered Blundergat view models were built on BO2's Blundergat rig, so the T6 skeleton is kept as
-dumped and only the mesh is replaced, bone names mapped. The comments in both tools give the details. Its view
+dumped and only the mesh is replaced, bone names mapped; a BO4-only bone (the right chains, the armour, the rails)
+rides the T6 bone of its nearest BO4 parent, so it follows the reload. The comments in both tools give the details. Its view
 animations are the Blundergat's: BO4's own (`vm_ww_blundergat_*`) were tried and don't fit BO2's view hands (the gun
 filled the screen). The Blundergat's reload, empty reload and first raise are copied into mod.ff by
 `tools/build_weapon.pl` with their sound notes rewritten to BO4's reload sounds (see CONTRIBUTING.md, "The reload
@@ -105,7 +106,8 @@ lays is `mg/fx_prison_magmagat_aoe`. Not carried over: BO3's sound elements and 
 plays its sounds from script) and BO3-only element types. A server script cannot play an effect on the view model,
 so the tempered gun's `_vm` flame is played by the mod's client script (`csc/zm_prison_magmagat.csc`, installed
 beside the packed `.gsc`, where Plutonium runs it on the client; `playviewmodelfx`, replayed every 0.1 s), as the
-remaster does; the others see the same flame replayed on the world gun by `mg_run.gsc`.
+remaster does, always full; the others see the same flame replayed on the world gun by `mg_run.gsc`, thinning out
+under 10 s of temper.
 
 ## Limits found
 - No T6 material authoring pipeline in OAT — you edit an existing compiled material's image

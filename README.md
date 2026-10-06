@@ -34,7 +34,8 @@ opens when someone sits in the chair on the Golden Gate Bridge after the first t
 5. **Take the Tempered Blundergat.** Hold use again once the fire burns blue: you now carry the tempered gun.
 6. **Run to the forge.** You have **15 seconds** before the temper burns out. Five drums burning blue along the way
    (the office exit, the stairs, the Citadel, the tunnels, the docks) each refill it to 15 seconds **once per run**.
-   Each shot of the tempered gun costs 6 seconds of it, and its flame thins out as it runs low. Don't switch to another weapon (reviving a teammate counts as one) and don't go down, or the run fails and you
+   Each shot of the tempered gun costs 6 seconds of it, and the flame others see on it thins out as it runs low.
+   Don't switch to another weapon (reviving a teammate counts as one) and don't go down, or the run fails and you
    start again from step 2.
 7. **Use the forge** in the Generator Room by the docks: first **power the Machine** (the temper stops burning out
    there: you then have 60 seconds to place the gun, and a weapon switch or going down still fails the run), then

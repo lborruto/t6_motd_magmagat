@@ -34,7 +34,10 @@ change.
 - Plutonium also runs every `*.csc` in those folders on the client, as it runs the `*.gsc` on the server. The client
   script `csc/zm_prison_magmagat.csc` ships loose that way, beside the packed `.gsc` (`tools/deploy.pl`,
   `tools/release.pl` and the release workflow copy it there); it overrides nothing vanilla. A client script carried
-  in mod.ff under a vanilla name never ran (the map's own stays), so none is. It is not linted, packed or built, and CI
+  in mod.ff under a vanilla name never ran (the map's own stays), so none is. It waits for the first client snapshot
+  (`clienthassnapshot( 0 )`), not for `level.localplayers`, which only the map's own client scripts see set. It reports
+  what it sees in the dvar `mg_csc` (type `mg_csc` in the console): `started`, `clients <n>`, then
+  `fx <id> weapon <name> played <n>` (its effect, the weapon held, the flames played), for debugging. It is not linted, packed or built, and CI
   does not check it: check its syntax by hand with
   `"C:/Games/t6/gsc-tools/gsc-tool.exe" -m comp -g t6 -s pc -i client -y csc/zm_prison_magmagat.csc`.
 - `precachemodel` works only inside `init()`, before any wait; only models the map precached (or this mod
@@ -53,11 +56,11 @@ change.
 | `mg_place.gsc` | live placement mode `!mg grab <KEY>` / `drop` / `cancel` / `rot` / `up` / `move` (ported from Dead Frequency's `df_place.gsc`), anchor previews `mg_preview_show` / `mg_preview_refresh` / `mg_preview_hide` / `mg_preview_teleport` |
 | `mg_quest.gsc` | `level.mg_state`, `mg_state_set( s )`, `mg_state_is( s )`, `level notify( "mg_state", s )`, bridge gate, `mg_goto( state )` fabrication, `mg_status_lines()` |
 | `mg_hearth.gsc` | fireplace (boards, prompts, place), the lockdown (outline, door clip, opened for a teammate down inside), the souls (essences dropped, stepped on, flown into the skulls), skulls, the deposit, pickup |
-| `mg_run.gsc` | temper run (15 s timer, 60 s once the Machine is powered, barrels lit together and put out 1 s after the gun is laid, the world flame on the gun replayed every 0.1 s, weapon rule), carrier fail rules |
-| `mg_forge.gsc` | forge power (the closed press waking, the Warden's line 1 s after), the press (BO4's lever and ghouls), take; the open forge |
-| `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the blob (a sticky grenade, lobbed), the lava pool, the burning (with BO4's hit throttle and 12-burner cap), the Acid Gat kit and Mystery Box hooks (chained to any set before) |
+| `mg_run.gsc` | temper run (15 s timer, 60 s once the Machine is powered, barrels lit together and put out 1 s after the gun is laid, each shot of the tempered gun costing 6 s and refilling its ammo until the Machine is powered (`mg_run_shots`), the world flame on the gun replayed every 0.1 s and sparser under 10 s of temper (`mg_temper_interval`), weapon rule), carrier fail rules |
+| `mg_forge.gsc` | forge power (the closed press waking, the Warden's line 1 s after, the temper set full again), the press (BO4's lever and ghouls, its fires lit again at each slam, the reveal burst aimed up), take; the open forge |
+| `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the blob (a sticky grenade, lobbed; BO4's 10 impact damage; one stuck to a dying body or left in the air drops to the floor), the lava pool, the burning (with BO4's hit throttle and 12-burner cap), the Acid Gat kit and Mystery Box hooks (chained to any set before) |
 | `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg zone`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg brutus`, `!mg press`, `!mg power`, `!mg model`, `!mg spots` |
-| `csc/zm_prison_magmagat.csc` | the client script, installed as is beside the packed `.gsc` in `mods\zm_magmagat\scripts\zm\zm_prison\` (`tools/deploy.pl`, `tools/release.pl`, the release workflow), where Plutonium runs it on the client: the Tempered Blundergat's first-person flame, replayed every 0.1 s while it is in hand (`playviewmodelfx`, which no server script can call) |
+| `csc/zm_prison_magmagat.csc` | the client script, installed as is beside the packed `.gsc` in `mods\zm_magmagat\scripts\zm\zm_prison\` (`tools/deploy.pl`, `tools/release.pl`, the release workflow), where Plutonium runs it on the client: the Tempered Blundergat's first-person flame, replayed every 0.1 s while it is in hand (`playviewmodelfx`, which no server script can call; always full, the world flame alone thins out), and the `mg_csc` debug dvar |
 | `tools/pack.pl`, `tools/deploy.pl`, `tools/lint_*.pl`, `tools/check_links.pl`, `tools/gsc_header.pl`, `tools/gen_vanilla_map.pl`, `tools/vanilla_namespaces.txt` | build chain, copied from the Dead Frequency mod's tools and re-pointed to this mod's prefix and map |
 | `tools/dump_game.pl`, `tools/import_all.pl`, `tools/import_prop.pl`, `tools/paint_mask.pl`, `tools/model_tints.pl`, `tools/barrel_fill.pl`, `tools/build_ghoul_mats.pl`, `tools/build_weapon.pl`, `tools/build_magmagat_model.pl`, `tools/gen_lava_mat.pl`, `tools/recolor.pl`, `tools/build_mod.pl`, `tools/release.pl`, `tools/png2dds.pl`, `tools/dds2png.pl`, `tools/MgPng.pm`, `tools/MgDds.pm` | the mod.ff chain (the dump, the props, the press's BO3 tints, the drums' paint tint and filling, the ghouls' materials, the Magmagat, the lava material, PNG / DDS) and the release (see "The mod.ff") |
 | `tools/bo4mem/*.cs` | the Black Ops 4 memory readers (C#; see "Reading Black Ops 4 from memory") |
@@ -210,8 +213,9 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   (`tools/build_magmagat_model.pl`, from Greyhound's `wpn_t8_zm_magmagat_view`): Treyarch built it on the BO2
   Blundergat's rig, so every BO4 bone sits where its T6 bone does and only the names differ. The T6 skeleton is kept
   exactly as dumped (joint nodes, inverse bind matrices) and only the mesh is replaced: BO4 vertices moved into the
-  T6 mesh space, their joints renamed (`tag_weapon` = `j_gun`, `tag_cap_le_animate` = `j_cap_le`, ...; the BO4-only
-  armour and right-chain bones ride `j_gun`). So `magmagat_zm` plays the Blundergat's own view animations (its
+  T6 mesh space, their joints renamed (`tag_weapon` = `j_gun`, `tag_cap_le_animate` = `j_cap_le`, ...; a BO4-only
+  bone, the right chains', the armour's or the rails', rides the T6 bone of its nearest BO4 parent, `t6_ride`, so it
+  follows the reload: the right chains move with the right barrel, the armour with the breaking action). So `magmagat_zm` plays the Blundergat's own view animations (its
   reload, empty reload and first raise as copies carrying BO4's sounds, see below). Its lava parts are on
   the Acid Gat's bones, so the weapon takes the Acid Gat's `hideTags`. `magmagat_upgraded_zm` (Magmus Operandi) is the
   same model with the BO4 armour kit (the `tag_armor_acid` kit dropped, as BO2 hides it). The world model's LOD0 is
@@ -248,8 +252,9 @@ Everything these need is listed under "Prerequisites" above. `mod/props`, `mod/w
   (version 21, 48-byte entries), each entry named by the low 60 bits of the fnv1a-64 of its file name
   (`MgBo3::bo4_file_id`; a name Greyhound does not know is given as `#<id>`). The manifest was read from the running
   game: each BO4 alias's variants (their files), the alias it layers (BO4's secondary alias, our `Secondary`), its
-  linear volume (written as T6's 100 + 20 log10; `tools/import_sounds.pl` adds `$BO4_GAIN`, 4, at most 100, as they
-  sound louder in BO4's mix) and distances, for the weapon's fire and dry fire and the weapon script's blob, burst and
+  linear volume (written as T6's 100 + 20 log10; `tools/import_sounds.pl` adds `$BO4_GAIN`, 4, at most 100, to every one, as they
+  sound louder in BO4's mix; the stuck blob's loop `mg_blob_loop` is written 89, 5 under BO4's 94, the owner's call)
+  and distances, for the weapon's fire and dry fire and the weapon script's blob, burst and
   burning sounds (`zm_weap_blundergat.csc`). The reload foley and the first raise's cock (`mg_reload_*`,
   `mg_raise_cock`, with their layers `mg_handle_high` / `mg_handle`) are BO4's files, played on the Blundergat's
   notes, with BO4's volumes and distances read the same way.
@@ -371,6 +376,8 @@ repository and are never edited here — see "Rules every change must keep" belo
     vanilla's own ring layout lands outside the pool and hands out none under 4 a ring).
   - An Insta-Kill impact's pool drops to the floor under the zombie (Black Ops 4 leaves it where the blob stuck).
   - Points: Black Ops II's per-hit points, not Black Ops 4's points pool.
+  - Sounds: Black Ops 4's volumes 4 louder, and the stuck blob's burning loop 5 under Black Ops 4's before that.
+  - The world flame on the tempered gun thins out under 10 s of temper (the first-person flame stays full).
   - The quest is per Magmagat (each player redoes it), the gun must be in hand, and powering the Machine leaves 60 s to
     lay the gun.
 

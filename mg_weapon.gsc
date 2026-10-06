@@ -373,10 +373,10 @@ mg_blob_land( blob, player, weapon, fire )
     else
         mg_fx_stop( fire );
 
-    // stuck to a teammate, it drops to the floor under him and pools there, as BO4's (function_482c54d5); stuck to
-    // something else that moves but is no living zombie (a corpse, the gondola), it pools where it is, the pool staying
-    // there as BO4's (its pool model is never linked). A blob on the map itself reports the world as what it is linked
-    // to: that one pools too.
+    // stuck to a teammate, it drops to the floor under him and pools there, as BO4's (function_482c54d5), and so does
+    // one on a body already dead or left in the air (below); stuck to something else that moves (the gondola), it
+    // pools where it is, the pool staying there as BO4's (its pool model is never linked). A blob on the map itself
+    // reports the world as what it is linked to: that one pools too.
     linked = blob getlinkedent();
 
     if ( !isdefined( host ) && isdefined( linked ) && isplayer( linked ) )

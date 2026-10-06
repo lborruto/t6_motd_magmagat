@@ -20,7 +20,7 @@ init()
         return;
 
     level.mg_active = 1;
-    level.mg_version = "1.0.4";
+    level.mg_version = "1.0.5";
     mg_fx_init();
     mg_precache();
     mg_weapon_precache();

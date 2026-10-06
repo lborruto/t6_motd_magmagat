@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.5 - unreleased
+## 1.0.5 - 2026-10-06
 
 The Magmagat, closer to Black Ops 4, read straight from the running game:
 
@@ -8,14 +8,18 @@ The Magmagat, closer to Black Ops 4, read straight from the running game:
   2.55).
 - Black Ops 4's own sounds: the shot (the Magmus Operandi's with its Pack-a-Punch layer), the empty trigger, a blob
   sticking and burning, a zombie bursting, and a zombie catching fire and burning. They play a little louder than
-  Black Ops 4's raw volume, as they sound in its mix.
+  Black Ops 4's raw volume, as they sound in its mix; a stuck blob's burning plays a little quieter.
 - Black Ops 4's reload sounds (the cylinder opening, the shells going in, the cylinder closing) and the cock of the
   first raise, on the Blundergat's own reload and first raise animations, which both guns keep.
+- The Magmagat's right chains and the Magmus Operandi's armour move with the gun as it breaks open to reload, instead
+  of standing still in the air.
 - A zombie's burst plays at its upper body, not where the blob stuck, and hits its neighbours from the zombie's
   middle, as in Black Ops 4.
 - A blob stuck on a zombie or on Brutus keeps burning on it until it goes.
 - A lava pool burns from the moment it lands.
 - A blob still flying after 5 seconds lays its pool with no splash in mid-air.
+- A blob that hits a zombie as it dies, or is left hanging in the air where a body was, drops to the floor and pools
+  there.
 - A burning zombie's flames start where it caught fire and spread one by one every half second; Brutus's start at his
   torso, then his limbs.
 - Brutus burns silently, as in Black Ops 4 (no zombie fire sounds on him).
@@ -30,9 +34,12 @@ The quest:
 - A lit skull's flame turns with the skull.
 - Powering the Machine plays its spark effect in full, and the Warden's line comes 1 second after, as in the remaster.
 - The drums go out 1 second after the Tempered Blundergat is laid on the forge.
-- Each shot of the Tempered Blundergat costs 6 seconds of its temper, as in Black Ops 4, and the flame other players
-  see on it thins out as the temper runs low.
+- Each shot of the Tempered Blundergat costs 6 seconds of its temper and refills its ammo, as in Black Ops 4 (shots
+  cost nothing once the Machine is powered).
+- The flame other players see on the Tempered Blundergat thins out under 10 seconds of temper, and burns full again
+  at a drum or once the Machine is powered. In your own view it stays full.
 - The ghouls appear once on the forge's bed, not twice at once.
+- The forge's fire burns the whole time the press works the gun (it died out before the ram lifted).
 - The burst as the Magmagat appears on the forge sprays upward, not sideways across the bed.
 - The flames under the floating Magmagat no longer vanish before it is taken.
 
