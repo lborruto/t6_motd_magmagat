@@ -1,4 +1,4 @@
-// Watches Black Ops 4 for projectile trajectories: { type (small), time, duration, vec3 base, vec3 delta } where the
+// Watches Black Ops 4 for projectile trajectories: { type (its low byte small), time, duration, vec3 base, vec3 delta } where the
 // delta is a launch velocity (300..10000 units/s). Polls the exe's writable memory for <seconds> and prints each new
 // trajectory once, with the velocity's length, its horizontal part and its vertical part.
 //
@@ -48,7 +48,7 @@ static class Bo4Traj
                     if (!ReadProcessMemory(proc, (IntPtr)(long)at, d, (IntPtr)len, out got)) continue;
                     for (int o = 0; o + 36 <= len; o += 4)
                     {
-                        uint type = BitConverter.ToUInt32(d, o);
+                        uint type = d[o];    // a byte or a dword: only its low byte is read
                         if (type == 0 || type > 16) continue;
                         int time = BitConverter.ToInt32(d, o + 4), dur = BitConverter.ToInt32(d, o + 8);
                         if (time <= 1000 || dur < 0 || dur > 100000) continue;
