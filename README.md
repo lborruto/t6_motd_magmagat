@@ -73,7 +73,7 @@ A lobbed lava blob that sticks to whatever it hits.
 
 The Magmagat plays by Black Ops 4's own rules: its damage, timings, the lure, burning, the burst, Brutus, points and
 Insta-Kill were checked line by line against Black Ops 4's weapon script, as decompiled by the community (its fire
-rate, reload, ammo and sounds, which the script doesn't hold, were read from the game itself):
+rate, reload, ammo, sounds and view animations, which the script doesn't hold, were read from the game itself):
 [`zm_weap_blundergat.gsc`](https://github.com/shiversoftdev/t8-src/blob/main/scripts/zm/weapons/zm_weap_blundergat.gsc)
 (shiversoftdev/t8-src). A few details differ where Black Ops II works differently. The quest, by contrast, follows
 copforthat's Black Ops III remaster.
@@ -87,8 +87,8 @@ copforthat's Black Ops III remaster.
   Blundergat, the lava blob, the forge with its lever and ghouls, the skulls, the drums' ash and burnt wood, the
   Magmagat's animations and sounds and, as far as we can tell, the quest's sounds. From Black Ops III: the drums, the
   lava and the effects' textures. From Black Ops II: Mob of the Dead itself and the Tempered Blundergat's animations.
-- **Tools**: OpenAssetTools (Laupetin and contributors), Greyhound and HydraX (Scobalula), atian-cod-tools (ate47)
-  and Iced (0xd4d).
+- **Tools**: OpenAssetTools (Laupetin and contributors), Greyhound and HydraX (Scobalula), atian-cod-tools (ate47),
+  gsc-tool (xensik), CascView (Ladik) and Iced (0xd4d).
 - **Plutonium**, for keeping Black Ops II alive.
 
 ## Assets and takedown

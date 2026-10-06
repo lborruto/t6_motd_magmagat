@@ -61,7 +61,7 @@ In the Generator Room by the docks, while the temper still burns:
 
 1. **Hold use** to **power the Machine** (once per game). The temper stops burning out there, but the run goes on:
    you have 60 seconds to place the gun, and switching weapon or going down still fails it until then.
-2. **Hold use** to **place the Tempered Blundergat** on it. The run is won.
+2. **Hold use** to **place the Tempered Blundergat** on it. The run is won, and the drums go out a second later.
 3. After about 13 seconds, **take the Magmagat** within **15 seconds**, or it is lost.
 
 Taking it calls a **Brutus**, sent by the game as its own Brutus are, unless one is already out (Mob allows one at a time). Already own a
@@ -73,6 +73,7 @@ fireplace then takes a new gun, so every player can forge his own.
 | | Magmagat | Magmus Operandi |
 |---|---|---|
 | Clip / start / max ammo | 1 / 30 / 36 | 2 / 25 / 30 |
+| Fires every / reloads in | 0.4 s / 2.3 s | 0.4 s / 2.3 s |
 | Lure | 3 at a time into its fire, 128 units | 6 at a time, 256 units |
 
 - **On a zombie**: half a second later it blows apart (or, if tough, burns, slowed, and dies 4 seconds later). When

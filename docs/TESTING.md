@@ -6,11 +6,14 @@ Solo (and co-op where noted) in game with `developer_script 1`. Console before l
 developer 1
 developer_script 1
 set mg_debug 1
+say !mg bridge
 ```
 
+(Type `say !mg bridge` once the map is loaded: it opens the fireplace without the plane.)
+
 Install first, from the repo (Git Bash): `perl tools/build_mod.pl` (mod.ff, its sound bank mod.all.sabl / .sabs,
-and mod.json) and `perl tools/deploy.pl` (the scripts), both into `mods/zm_magmagat`; then Mods -> zm_magmagat in game. Check it loaded: console
-`set mg_debug 1`, then in chat `!mg status` (it answers with the version, state, souls, carrier, timer, the gate flag
+and mod.json; it compiles `csc/` with gsc-tool, `MG_GSC_TOOL`) and `perl tools/deploy.pl` (the scripts), both into `mods/zm_magmagat`; then Mods -> zm_magmagat in game. Check it loaded: console
+`set mg_debug 1`, then `say !mg bridge` and `say !mg status` (it answers with the version, state, souls, carrier, timer, the gate flag
 and whether the forge is open). Every `!mg` answer is also printed to the console as `[MG] ...`.
 
 The `!mg ...` commands below are typed in chat. From the console, put `say` in front: `say !mg goto run`.
@@ -24,7 +27,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] No red error popup on map load.
 - [ ] The five route barrels are the remaster's dark-green drums and the three mantle skulls BO4's plain skulls
       (`!mg show` previews them; `!mg model mg_barrel_green` / `!mg model mg_skull_bo4` spawn one in front of you).
-- [ ] `!mg status` prints the version, the state (`locked` at boot), souls 0/15, no carrier, the gate flag and the
+- [ ] `!mg status` prints the version, the state (`ready` after the start block's `!mg bridge`, `locked` before it), souls 0/15, no carrier, the gate flag and the
       forge (closed).
 - [ ] `!mg spots` lists `MG_HEARTH`, `MG_HEARTH_USE`, `MG_SKULL_1..3`, `MG_BARREL_1..5`, `MG_FORGE`,
       `MG_FORGE_GUN`, `MG_PRESS`, `MG_LEVER`, `MG_FORGE_FX`, `MG_GHOUL_1`, `MG_GHOUL_2`; none say
@@ -36,10 +39,12 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 
 - [ ] Console `printsoundalias mg_press`: the alias is known (the mod's `mod.all` bank loaded with `mod.ff`). If it
       is unknown, every `mg_*` sound is silent: report it (the bank then moves to a `mod_load` zone).
+- [ ] `printsoundalias mg_fire_plr`, `printsoundalias mg_burn_loop` and `printsoundalias mg_reload_open`: Black Ops
+      4's aliases are known too.
 
 ## 0b. The look, in one pass
 
-- [ ] `!mg tour`: seven labelled stops. Every effect is visible and every sound heard (the BO3 remaster's own); note
+- [ ] `!mg tour`: seven labelled stops. Every effect is visible and every sound heard (the BO3 remaster's own; step 7's are Black Ops 4's); note
       the step number of anything to change.
       1. The first press at the fireplace: the flame burst, the boards burn.
       2. A placed gun: the laugh, the office outlined in light, the door clip up.
@@ -50,6 +55,8 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       7. A real Magmagat blob lobbed at the floor: it lays its pool, then the burst.
 
 ## 1. Locked / ready
+
+(Type `say !mg goto locked` first: the start block's `!mg bridge` has opened the fireplace.)
 
 - [ ] Before anyone has sat in the bridge chair after the first plane trip: state stays `locked`, no prompt at the
       hearth even with a Blundergat in hand, presses do nothing.
@@ -92,7 +99,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Kill more zombies than souls still missing without taking any: no more essences drop than souls still missing
       (15 lying = no new one); once some are taken, kills drop again.
 - [ ] Brutus dying in the office, and a zombie dying outside it, give no soul.
-- [ ] Skulls light at 5, 10 and 15: the blue flame, and the plain skull turns into the Afterlife skull; no sound. No soul counts past 15.
+- [ ] Skulls light at 5, 10 and 15: the blue flame, at the skull's foot and turned with it, and the plain skull turns into the Afterlife skull; no sound. No soul counts past 15.
 - [ ] 1 s after the 15th soul reaches its skull the laugh plays again; 2 s later the outline and the door clip go, and
       the essences still lying there vanish.
 - [ ] **Fail**: the placer goes down (last stand or Afterlife) during the lockdown: the skulls go out at once, no
@@ -124,9 +131,15 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 4. The run
 
 - [ ] `!mg goto run` (or take the tempered gun honestly): state is `run`, a flame rides the gun and the five barrels
-      burn (no timer on screen: the flame is the only indicator; `!mg status` prints the seconds left).
-- [ ] In your hands the tempered gun is BO4's tempered Blundergat (a Sweeper gives the tempered Sweeper with its
-      armour): its canisters glow blue; others see a blue flame on it.
+      light together (no timer on screen: the flame is the only indicator; `!mg status` prints the seconds left).
+- [ ] In your hands the tempered gun is BO4's Tempered Blundergat (a Sweeper gives the tempered Sweeper with its
+      armour): its canisters glow blue and the remaster's blue flame burns at its muzzle in your own view, the whole
+      time it is in hand. The flame in your view goes when you lower it (a perk, a revive) and comes back when it is in
+      hand again.
+- [ ] Co-op: another player sees the blue flame on the gun in your hands for the whole run (wait out a refill or two),
+      not just as you take it.
+- [ ] The client script still does vanilla's work (it replaces Mob's own): fire an Acid Gat into a wall: its dart
+      blinks its green light, faster and faster, with its fuse sound, until it goes off.
 - [ ] Fire it: the plain Blundergat's muzzle flash (no blue flash), in first person and as seen by another player.
 - [ ] The five drums (the remaster's dark-green drums, filled 2/3 with ash and burnt wood) burn blue from inside, the flames rising out of the rim.
 - [ ] Each drum is solid: you cannot walk through it nor jump onto it (its clip stands 128 units high from its foot).
@@ -142,6 +155,7 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       teammate (co-op: the syrette in your hands counts as a switch, the remaster's rule). Each: silent, the flame
       and the barrels go out, you get your Blundergat back, the skulls go dark; 5 s later the state is `ready` and the
       fireplace takes a gun again.
+- [ ] When the run fails or the gun is laid on the forge, no blue flame stays in your view.
 - [ ] **Box or wall gun, hands full**: with two primaries (the tempered gun in hand), take a Mystery Box gun or buy a
       wall gun: the run fails and the new gun has replaced the tempered one; no Blundergat comes back. With Mule Kick
       and a free slot: the Blundergat comes back next to the new gun.
@@ -149,21 +163,22 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 ## 5. The forge
 
 - [ ] With the tempered gun at the forge, "Hold [use] to power the Machine" shows for the carrier only. Before that
-      the press stands closed. Using it plays the power-panel sound and the sparks on the Machine; the press shudders and opens in fire;
+      the press stands closed. Using it plays the power-panel sound and the sparks on the Machine, played out in full (about 4 s, twice); the press shudders and opens in fire;
       the run goes on but its timer stops (`!mg status`: `temper left stopped (Machine powered)`; waiting there past
       15 s does not fail it, 60 s without placing the gun does, and a weapon switch or going down still does) and the gun stays in your hands. A drum reached
-      after that does not flare. About 2.5 s later the Warden's line
-      plays to that player only. (`!mg goto forge` fabricates a Magmagat
+      after that does not flare. 1 s after the press the Warden's line
+      plays to that player only (not later, not at the press itself); the forge's place prompt comes about 1.5 s after it. (`!mg goto forge` fabricates a Magmagat
       waiting for you.)
 - [ ] Then "Hold [use] to place the Tempered Blundergat", for the carrier only: nobody else, and no plain Blundergat,
       gets a prompt, and only while it is in his hands. Letting the temper run out before powering the Machine fails the
       run as anywhere else; once it is powered, only a weapon switch, going down or leaving does. On a later run (the
       Machine already powered) the timer runs until the gun is placed.
 - [ ] The Machine has collision: you cannot walk through it.
-- [ ] Place it: the run ends, the skulls go out and the fireplace takes a Blundergat again. The gun lies on the bed
-      with a blue flare; two ghouls rise out of the bed to the lever's grips and pull it at about 3.4 s; the ram
+- [ ] Place it: the run ends, the skulls go out, the drums go out 1 s later (not at once) and the fireplace takes a
+      Blundergat again. The gun lies on the bed with a blue flare; two ghouls rise out of the bed (one appearance effect
+      and sound for both) to the lever's grips and pull it at about 3.4 s; the ram
       strikes the gun at 4 s with a slam, no electricity (the gun disappears) and works it for 7.4 s in fire, the fire loop
-      roaring. At about 11.6 s the ram and lever lift and the Magmagat floats over the bed over tiny flames, with the
+      roaring. At about 11.6 s the ram and lever lift and the Magmagat floats over the bed over tiny flames that stay until it is taken or lost, with the
       "build complete" chime; the ghouls are gone through the roof.
 - [ ] At about 13 s "Hold [use] to take the Magmagat" shows, for the placer only.
 - [ ] Taking it: a Brutus spawns about 1 s later, where vanilla's Brutus spawning puts him. With a Brutus already
@@ -187,16 +202,27 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] Fire it: one orange blob (a little smaller than BO4's) flies with a trail of soft glints and a small fire riding
       it (no burst of solid star sparks round it, in first person too), the remaster's fire-coloured muzzle flash
       (the Magmus: Harry's _ug one), no tracer streak, no bullet impact and no green acid splash where it lands. The
-      clip holds one (the Magmus two). Both fire with the plain Blundergat's shot, as
-      the remaster's own t8_magmagat_zm does.
+      clip holds one (the Magmus two). Both fire Black Ops 4's own shot (the Magmus with its Pack-a-Punch layer over
+      it) once every 0.4 s, reload in 2.3 s, and an empty trigger plays BO4's dry fire. A blob that sticks plays BO4's
+      stick sound, then its burning loop until it goes.
+- [ ] **Reload and raise sounds**: reload (with a round left and empty): BO4's cylinder opening, the shells going in
+      and the cylinder closing, each as the animation does it, with a light rumble on a pad. The first raise of a
+      fresh Magmagat (from the forge, or `!mg magma`): BO4's cock as the gun is cocked. Nothing plays twice or out of
+      step, on the Magmus Operandi too.
+- [ ] **No crash** (a game-ending "Could not play rumble asset" error): reload, empty reload, the first raise, a raise
+      and drop (swap weapons), sprint, and crawl (go prone and move forward, back and sideways) with each gun.
+- [ ] **Sprint and crawl speed**: sprinting with it plays at a normal speed (not about 3 times too fast); crawling
+      prone moves it at a normal pace too. Raising and dropping it empty takes as long as with a round in it.
 - [ ] **Hit a zombie** (BO4's): 0.5 s later a zombie of 1000 health or less bursts in gore and dies; a tougher one
       burns, keeps its gait at about 60 % of its speed (a sprinter stays a slower sprinter, its legs not sliding), and
       dies 4 s later. A second blob on a tough one hurts it again (1000) and starts its own 4 s. When the Magmagat
-      kills it, it bursts in gore and the blob bursts in flame with the Acid Gat's explosion sound (no green smoke):
-      the zombies within 128 units of it lose limbs (some crawl on), catch fire, take 400 and burn to death. Killed
-      by another weapon (or a trap), it falls whole and the blob just goes. No player is hurt. Other zombies are not
+      kills it, it bursts in gore and the blob bursts in flame at its upper body (the upper spine, not where the blob
+      stuck), with Black Ops 4's explosion sound (no green smoke): the zombies within 128 units of it lose limbs (some
+      crawl on), catch fire, take 400 and burn to death (the burst hits them from the dead zombie's middle: their
+      flames start at the body part facing it). Until then the blob keeps burning on it. Killed by another weapon (or
+      a trap), it falls whole and the blob goes with it. No player is hurt. Other zombies are not
       drawn to a blob on a zombie. Near a hungry wolf head (the Hell's Retriever's) the stuck zombie dies whole.
-- [ ] **Hit Brutus** (`!mg brutus` sends one): 0.5 s later 100, then he burns 5 s (his torso flames light only 2.5 s after the blob sticks, as BO4's, and not while 12 enemies already burn) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured. Two blobs a second apart: both burns stop when the first blob goes, but his flames stay until the last blob goes. A blob ending while a pool's burn still runs on him leaves his flames on until that burn ends (and the reverse).
+- [ ] **Hit Brutus** (`!mg brutus` sends one): 0.5 s later 100, then he burns 5 s (his torso flames light only 2.5 s after the blob sticks, as BO4's, then an arm or a leg 1 s later and the rest 1 s after that, with no ignite or burning sound on him: Brutus burns silently; not while 12 enemies already burn) losing 10 to 20 % of his health each second (from round 15, 5 to 10 %), so before round 15 one blob usually kills him in 3 to 5 s; then the blob is gone with no burst; zombies are not lured. Two blobs a second apart: both burns stop when the first blob goes, but his flames stay until the last blob goes. A blob ending while a pool's burn still runs on him leaves his flames on until that burn ends (and the reverse).
 - [ ] **Hit the floor, a wall or a ceiling**: the blob stays where it landed, standing out of that surface, its fire
       turned the same way, for 5 s, then vanishes (no explosion). Near the floor it draws zombies into its fire, 3 at a time
       (the Magmus Operandi 6, while it is in hand), the next coming as each dies: nearly every zombie near it. High up a wall,
@@ -204,10 +230,12 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
       burns to death (in early rounds within about 2 s). Brutus walking through it loses a tenth of his health each
       frame until his flames light 2 s later (with the burn compensation he usually dies in it). Only its owner is
       hurt touching it: 1 every 0.4 s, with a light rumble (a pad's), down or not.
-- [ ] A blob fired into the sky (it never lands): a pool appears where it is after 5 s of flight. A blob on a corpse
-      or the gondola pools where it stuck.
-- [ ] A burning zombie: Mob's torso fire up its spine and a small fire on an arm and a leg; the flames and the loop
-      sound stay on it until it dies or for 8 s.
+- [ ] A blob fired into the sky (it never lands): a pool appears where it is after 5 s of flight, with no landing
+      splash in mid-air. A blob on a corpse or the gondola pools where it stuck.
+- [ ] A pool burns from the moment it lands: a blob landing at a zombie's feet sets it alight at once.
+- [ ] A burning zombie: BO4's ignite sound, then its burning loop; Mob's torso fire up its spine and a small fire on an
+      arm and a leg, the first at the body part nearest where it caught fire, one more every 0.5 s (watch them spread).
+      The flames and the loop stay on it until it dies or for 8 s.
 - [ ] The blob's landing splash flies out of the surface it hit (floor: upward; wall: out of the wall), for the Magmus
       Operandi too; a zombie's burst sprays upward, not sideways.
 - [ ] **12 burning at most**: with 12 or more enemies burning (a big train through two pools), the next ones take
@@ -229,9 +257,10 @@ prove the surrounding checks (prompts, fx, timers) actually fire.
 - [ ] **Spoon**: stuck-blob kills in the showers count.
 - [ ] Ammo: Magmagat 1 in the clip, 30 to start, 36 at most; Magmus 2 / 25 / 30.
 - [ ] **Look**: in first person the Magmagat is the BO4 model (its own receiver, stock and chains, molten canisters and
-      barrels that glow and flicker) and every Blundergat animation plays on it without parts drifting (raise, reload,
-      the hammer, the swivel, the loader, the left chains, sprint); on the forge and in other players' hands it is the
-      same model. No flame rides the held gun.
+      barrels that glow and flicker) and BO4's own view animations play on it without parts drifting: idle, fire (hip
+      and ADS), reload (and empty reload), first raise, raise and drop, quick raise and drop, sprint in / loop / out,
+      crawl; ADS in and out are the Blundergat's. The same on the Magmus Operandi. On the forge and in other players'
+      hands it is the same model. No flame rides the held gun.
 - [ ] **Pack-a-Punch**: a Magmagat comes back as `magmagat_upgraded_zm`, Magmus Operandi: the BO4 model with its
       armour kit, a 2-blob clip, the bigger pool and lure.
 - [ ] **Acid Gat kit takes a Magmagat**: holding only a Magmagat, use the Acid Gat station: the kit shows the

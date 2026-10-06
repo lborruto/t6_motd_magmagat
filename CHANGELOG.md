@@ -6,15 +6,32 @@ The Magmagat, closer to Black Ops 4, read straight from the running game:
 
 - Both guns fire every 0.4 seconds and reload in 2.3 seconds, as in Black Ops 4 (they used the Blundergat's 0.19 and
   2.55).
-- Black Ops 4's own view animations on both guns: idle, firing, reload, raise and lower, sprint and crawl.
+- Black Ops 4's own view animations on both guns: idle, firing, reload, raise and lower, sprint and crawl. Sprinting
+  and crawling play at Black Ops 4's own speed.
 - Black Ops 4's own sounds: the shot (the Magmus Operandi's with its Pack-a-Punch layer), the empty trigger, a blob
-  sticking and burning, a zombie bursting, and a zombie catching fire and burning.
+  sticking and burning, a zombie bursting, and a zombie catching fire and burning. They play a little louder than
+  Black Ops 4's raw volume, as they sound in its mix.
+- Black Ops 4's reload sounds (the cylinder opening, the shells going in, the cylinder closing) and the cock of the
+  first raise, at Black Ops 4's own moments, with a controller rumble.
+- A zombie's burst plays at its upper body, not where the blob stuck, and hits its neighbours from the zombie's
+  middle, as in Black Ops 4.
+- A blob stuck on a zombie or on Brutus keeps burning on it until it goes.
+- A lava pool burns from the moment it lands.
+- A blob still flying after 5 seconds lays its pool with no splash in mid-air.
+- A burning zombie's flames start where it caught fire and spread one by one every half second; Brutus's start at his
+  torso, then his limbs.
+- Brutus burns silently, as in Black Ops 4 (no zombie fire sounds on him).
 
 The quest:
 
 - The Tempered Blundergat's blue flame now burns at its muzzle in your own view too, as in the Black Ops 3 remaster
-  (before, only other players saw it).
+  (before, only other players saw it), and other players now see its flame for the whole run, not just at the start.
+- The five drums light together, as in the remaster.
+- A lit skull's flame turns with the skull.
+- Powering the Machine plays its spark effect in full, and the Warden's line comes 1 second after, as in the remaster.
 - The drums go out 1 second after the Tempered Blundergat is laid on the forge.
+- The ghouls appear once on the forge's bed, not twice at once.
+- The flames under the floating Magmagat no longer vanish before it is taken.
 
 ## 1.0.4 - 2026-10-06
 
