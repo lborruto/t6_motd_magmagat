@@ -47,6 +47,7 @@ change.
 | `mg_quest.gsc` | `level.mg_state`, `mg_state_set( s )`, `mg_state_is( s )`, `level notify( "mg_state", s )`, bridge gate, `mg_goto( state )` fabrication, `mg_status_lines()` |
 | `mg_hearth.gsc` | fireplace (boards, prompts, place), the lockdown (outline, door clip, opened for a teammate down inside), the souls (essences dropped, stepped on, flown into the skulls), skulls, the deposit, pickup |
 | `mg_run.gsc` | temper run (15 s timer, barrels, weapon rule), carrier fail rules |
+| `csc/clientscripts/mp/zombies/_zm_weap_blundersplat.csc` | client script carried in mod.ff (`tools/build_mod.pl` compiles it with gsc-tool): vanilla Mob's own Acid Gat dart script, unchanged, plus the Tempered Blundergat's first-person flame (`playviewmodelfx`, which no server script can call) |
 | `mg_forge.gsc` | forge power (the closed press waking), the press (BO4's lever and ghouls), take; the open forge |
 | `mg_weapon.gsc` | the Magmagat weapons (`magmagat_zm`, `magmagat_upgraded_zm` from our mod.ff): precache, Pack-a-Punch registration, `player mg_weapon_grant( blundergat )`, the blob (a sticky grenade, lobbed), the lava pool, the burning (with BO4's hit throttle and 12-burner cap), the Acid Gat kit and Mystery Box hooks (chained to any set before) |
 | `mg_debug.gsc` | shock pistol, `!mg tour`, `!mg lockdown`, `!mg zone`, `!mg fx` / `!mg snd` audition (ported), `!mg give`, `!mg magma`, `!mg brutus`, `!mg press`, `!mg power`, `!mg model`, `!mg spots` |
@@ -114,7 +115,7 @@ and an environment variable to point elsewhere.
   `<MG_GREYHOUND>/sabs/zone/snd/all`). `tools/import_sounds.pl` copies the Magmagat's own sounds out of them
   (`tools/assets/bo4_sounds.tsv`).
 - **gsc-tool** (xensik; `MG_GSC_TOOL`, the exe): the syntax check; `tools/pack.pl` also reads the exact string block
-  size from its output when it is there.
+  size from its output when it is there; `tools/build_mod.pl` compiles the client scripts of `csc/` with it.
 - **The decompiled T6 scripts** (the `ZM` folder of a t6-scripts dump; `MG_T6_SCRIPTS`): `tools/lint_calls.pl` checks
   every call against them, and skips (passing) without them, as in CI.
 - **The GitHub CLI**, signed in (`gh auth login`), for `tools/publish.pl`.
@@ -127,7 +128,7 @@ and an environment variable to point elsewhere.
 | `MG_BO3_MAP` | `import_sounds.pl` | `C:/Program Files (x86)/Steam/steamapps/workshop/content/311210/3373649394` |
 | `MG_BO4_SND` | `import_sounds.pl` | `<MG_GREYHOUND>/sabs/zone/snd/all` |
 | `MG_GREYHOUND` | `import_all.pl`, `build_magmagat_model.pl`, `gen_lava_mat.pl`, `bo3_fx.pl` | `C:/Games/t6/Greyhound-1.49.4.0` |
-| `MG_GSC_TOOL` | `pack.pl` | `C:/Games/t6/gsc-tools/gsc-tool.exe` |
+| `MG_GSC_TOOL` | `pack.pl`, `build_mod.pl` (the client scripts) | `C:/Games/t6/gsc-tools/gsc-tool.exe` |
 | `MG_T6_SCRIPTS` | `lint_calls.pl` | `C:/Games/t6/t6-scripts/t6-scripts-main/ZM` |
 | `MG_RAW` | `import_prop.pl` (its output folder) | `mod/props` |
 | `MG_TEMPLATE_MTL` | `import_prop.pl` (the props' material template) | `mod/work/dump/materials/mc/mtl_p6_zm_al_wood_barrel_01.json` |

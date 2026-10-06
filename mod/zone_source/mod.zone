@@ -64,3 +64,7 @@ fx,mg/fx_mp_magma_splat02
 fx,mg/fx_prison_magmagat_aoe
 fx,mg/fx_prison_magmagat_press_fire
 // end fx
+
+// client scripts (tools/build_mod.pl, from csc/)
+script,clientscripts/mp/zombies/_zm_weap_blundersplat.csc
+// end client scripts

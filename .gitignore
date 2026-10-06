@@ -9,3 +9,4 @@ mod/fx/
 tools/bo3mem/*.exe
 tools/bo4mem/*.exe
 tools/bo4mem/*.dll
+mod/csc/

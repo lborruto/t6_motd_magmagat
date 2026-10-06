@@ -9,6 +9,11 @@ The Magmagat, closer to Black Ops 4, read straight from the running game:
 - Black Ops 4's own sounds: the shot (the Magmus Operandi's with its Pack-a-Punch layer), the empty trigger, a blob
   sticking and burning, a zombie bursting, and a zombie catching fire and burning.
 
+The quest:
+
+- The Tempered Blundergat's blue flame now burns at its muzzle in your own view too, as in the Black Ops 3 remaster
+  (before, only other players saw it).
+
 ## 1.0.4 - 2026-10-06
 
 The Magmagat, closer to Black Ops 4's own script:
