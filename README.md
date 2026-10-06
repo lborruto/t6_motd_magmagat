@@ -5,6 +5,9 @@ Port of Black Ops 4's Magmagat to Black Ops II's Mob of the Dead, with the same 
 **[⬇ Download the latest release](https://github.com/lborruto/t6_motd_magmagat/releases/latest)** ·
 [What's new](CHANGELOG.md) · [Full walkthrough](docs/GUIDE.md)
 
+<img width="3840" height="1720" alt="image" src="https://github.com/user-attachments/assets/4a9d67df-2768-44cf-ada5-aeab68fc9fd9" />
+
+
 ---
 
 ## Install
