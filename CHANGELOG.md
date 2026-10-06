@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.4 - 2026-10-05
+## 1.0.4 - 2026-10-06
 
 The Magmagat, closer to Black Ops 4's own script:
 
